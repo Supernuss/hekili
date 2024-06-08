@@ -2162,10 +2162,6 @@ hunter:RegisterAbilities( {
         spend = function()
             local cost = 50
 
-            if buff.lock_and_load.up then
-                cost = 0
-            end
-            
             if talent.efficiency.rank == 1 then
                 cost = cost - 2
             elseif talent.efficiency.rank == 2 then
