@@ -785,7 +785,7 @@ function GetNextTFB( time, lastApplied )
         return
     end
 
-    local next_possible_tfb = ( (lastApplied or 0 ) == 0 and time ) or ( lastApplied + 6 )
+    local next_possible_tfb = ( (lastApplied or 0 ) == 0 and time ) or ( lastApplied + 5 )
     local next_prediction = 0
     -- Ensure rend_tracker.target is a table
     if type(rend_tracker.target) == "table" then
