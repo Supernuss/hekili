@@ -684,6 +684,7 @@ spec:RegisterStateExpr("calc_rip_end_thresh", function()
 end)
 
 spec:RegisterStateExpr("clip_roar", function()
+<<<<<<< HEAD
 
     if not debuff.rip.up or (target.time_to_die - debuff.rip.remains < cached_rip_end_thresh) then
         return false
@@ -724,6 +725,50 @@ spec:RegisterStateExpr("clip_roar", function()
     local min_roars_possible = (target.time_to_die - buff.savage_roar.remains) / new_roar_dur
     local projected_roar_casts = target.time_to_die / new_roar_dur
     
+=======
+    local local_ttd = ttd
+    local rip_remains = debuff.rip.remains
+    local roar_remains = buff.savage_roar.remains
+    local combo_point = combo_points.current
+
+    if combo_point == 0 then
+        return false
+    end
+
+    if not debuff.rip.up or (local_ttd - rip_remains <  cached_rip_end_thresh) then
+        return false
+    end
+
+    if roar_remains > (rip_remains + settings.rip_leeway) then 
+        return false
+    end
+
+    if roar_remains >= local_ttd then
+        return false
+    end
+    
+    -- Calculate roar duration since aura.savage_roar.duration gives wrong values
+    local new_duration = 17 + combo_point * 5
+    Hekili:Debug("Roar duration: (%.1f VS %.1f) CP: (%.1f)", new_duration, aura.savage_roar.duration, combo_points.current)
+
+    if new_duration >= local_ttd then
+        return true
+    end
+
+    if not is_execute_phase then
+        return new_duration >= (rip_remains + settings.min_roar_offset)
+    end
+
+    -- Execution fase, ignore the offset rule and instead optimize for as few Roar casts as possible.
+    if combo_point < 5 then
+        return false
+    end
+
+    local min_roars_possible = math.floor((local_ttd - roar_remains) / new_duration)
+    local projected_roar_casts = math.floor(local_ttd / new_duration)
+    Hekili:Debug("Roar execution: min (%.1f) VS projected (%.1f)", min_roars_possible, projected_roar_casts)
+        
+>>>>>>> e26bd07f (Clip roar)
     return projected_roar_casts == min_roars_possible
 end)
 
