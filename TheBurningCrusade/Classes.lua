@@ -76,6 +76,8 @@ end
 local HekiliSpecMixin = ns.HekiliSpecMixin
 
 function HekiliSpecMixin:RegisterGlyphs( glyphs )
+    if not Hekili.IsWrath() then return end
+
     for id, name in pairs( glyphs ) do
         self.glyphs[ id ] = name
     end
@@ -83,6 +85,8 @@ end
 
 
 function ns.updateGlyphs()
+    if not Hekili.IsWrath() or not GetGlyphSocketInfo then return end
+
     for _, glyph in pairs( state.glyph ) do
         glyph.rank = 0
     end
@@ -102,12 +106,14 @@ function ns.updateGlyphs()
     end
 end
 
-RegisterEvent( "GLYPH_ADDED", ns.updateGlyphs )
-RegisterEvent( "GLYPH_REMOVED", ns.updateGlyphs )
-RegisterEvent( "GLYPH_UPDATED", ns.updateGlyphs )
-RegisterEvent( "USE_GLYPH", ns.updateGlyphs )
-RegisterEvent( "PLAYER_LEVEL_UP", ns.updateGlyphs )
-RegisterEvent( "PLAYER_ENTERING_WORLD", ns.updateGlyphs )
+if Hekili.IsWrath() then
+    RegisterEvent( "GLYPH_ADDED", ns.updateGlyphs )
+    RegisterEvent( "GLYPH_REMOVED", ns.updateGlyphs )
+    RegisterEvent( "GLYPH_UPDATED", ns.updateGlyphs )
+    RegisterEvent( "USE_GLYPH", ns.updateGlyphs )
+    RegisterEvent( "PLAYER_LEVEL_UP", ns.updateGlyphs )
+    RegisterEvent( "PLAYER_ENTERING_WORLD", ns.updateGlyphs )
+end
 
 
 all = class.specs[ 0 ]

@@ -22,16 +22,16 @@ Events.lua
 
 Classes.lua
 
-Wrath\Classes.lua
-Wrath\Druid.lua
-Wrath\Hunter.lua
-Wrath\Mage.lua
-Wrath\Paladin.lua
-Wrath\Priest.lua
-Wrath\Rogue.lua
-Wrath\Shaman.lua
-Wrath\Warlock.lua
-Wrath\Warrior.lua
+TheBurningCrusade\Classes.lua
+TheBurningCrusade\Druid.lua
+TheBurningCrusade\Hunter.lua
+TheBurningCrusade\Mage.lua
+TheBurningCrusade\Paladin.lua
+TheBurningCrusade\Priest.lua
+TheBurningCrusade\Rogue.lua
+TheBurningCrusade\Shaman.lua
+TheBurningCrusade\Warlock.lua
+TheBurningCrusade\Warrior.lua
 
 Targets.lua
 Options.lua

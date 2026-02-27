@@ -291,6 +291,11 @@ do
     end
 
 function Hekili:ContinueOnSpellLoad( spellID, func )
+    if not C_Spell or not C_Spell.IsSpellDataCached or not C_Spell.RequestLoadSpellData then
+        func( true )
+        return
+    end
+
         if C_Spell.IsSpellDataCached( spellID ) then
         func( true )
         return
@@ -502,6 +507,10 @@ end )
 
 
 do
+    if not ItemLocation or not ItemLocation.CreateEmpty or not C_AzeriteEmpoweredItem or not C_AzeriteEssence then
+        function ns.updatePowers() end
+        function ns.updateEssences() end
+    else
     local loc = ItemLocation:CreateEmpty()
 
     local GetAllTierInfoByItemID = C_AzeriteEmpoweredItem.GetAllTierInfoByItemID
@@ -660,6 +669,7 @@ do
     end
 
     ns.updateEssences()
+    end
 end
 
 

@@ -8655,6 +8655,8 @@ do
                 wipe( auras )
                 wipe( abilities )
 
+                local talentToSpell = Hekili.IsTBC() and ns.TBCTalentToSpellID or ns.WrathTalentToSpellID
+
                 for i = 1, GetNumTalentTabs() do
                     for n = 1, GetNumTalents( i ) do
                         local talentID = tonumber( GetTalentLink( i, n ):match( "talent:(%d+)" ) )
@@ -8663,9 +8665,9 @@ do
 
                         insert( talents, { name = key, talent = talentID, ranks = ranks } )
 
-                        local tToS = ns.WrathTalentToSpellID[ talentID ]
+                        local tToS = talentToSpell and talentToSpell[ talentID ] or {}
 
-                        for rank, spell in ipairs( ns.WrathTalentToSpellID[ talentID ] ) do
+                        for rank, spell in ipairs( tToS ) do
                             EmbedSpellData( spell, key, true, rank )
                         end
                     end
@@ -8862,8 +8864,9 @@ do
                                 for i, tal in ipairs( talents ) do
                                     append( tal.name .. " = { " .. ( tal.talent or "nil" ) .. ", " .. ( tal.spell or "nil" ) .. " }," )
                                 end
-                            elseif Hekili.IsWrath() then
+                            elseif Hekili.IsClassic() then
                                 local maxlength = 0
+                                local talentToSpell = Hekili.IsTBC() and ns.TBCTalentToSpellID or ns.WrathTalentToSpellID
                                 skeletonHandler( listener, "PLAYER_TALENT_UPDATE" )
                                 table.sort( talents, function( a, b )
                                     maxlength = max( maxlength, a.name:len(), b.name:len() )
@@ -8871,13 +8874,14 @@ do
                                 end )
 
                                 for i, tal in ipairs( talents ) do
+                                    local tToS = talentToSpell and talentToSpell[ tal.talent ] or {}
                                     local fmt = "%-" .. maxlength .. "s = { %5d, %d"
-                                    for i = 1, #ns.WrathTalentToSpellID[ tal.talent ] do
+                                    for i = 1, #tToS do
                                         fmt = fmt .. ", %5d"
                                     end
                                     fmt = fmt .. " },"
 
-                                    append( format( fmt, tal.name, tal.talent, tal.ranks, unpack( ns.WrathTalentToSpellID[ tal.talent ] ) ) )
+                                    append( format( fmt, tal.name, tal.talent, tal.ranks, unpack( tToS ) ) )
                                 end
                             else
 
