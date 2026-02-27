@@ -19,20 +19,27 @@ Hekili.AllowSimCImports = true
 Hekili.IsRetail = function()
     return Hekili.Flavor == "Retail"
 end
+Hekili.IsTBC = function()
+    return Hekili.Flavor == "TBC" or Hekili.Flavor == "BurningCrusade"
+end
 Hekili.IsWrath = function()
     return Hekili.Flavor == "Wrath"
 end
 Hekili.IsClassic = function()
-    return Hekili.IsWrath()
+    return Hekili.IsWrath() or Hekili.IsTBC()
 end
 Hekili.IsDragonflight = function()
     return select( 4, GetBuildInfo() ) >= 100000
 end
 
+ns.callHook = ns.callHook or function( _, ... )
+    return ...
+end
+
 ns.PTR = false
 
 
-ns.Patrons = "Abom, Abra, Abuna, Aern, Aggronaught, akh270, Alasha, alcaras, Amera, ApexPlatypus, aphoenix, Archxlock, Aristocles, aro725, Artoo, Ash, av8ordoc, Battle Hermit VIA, Belatar, Borelia, Brangeddon, Bsirk/Kris, Cele, Chimmi, Coan, Cortland, Daz, DB, Der Baron, Dez, Drako, Enemy, Eryx, fuon, Garumako, Graemec, Grayscale, guhbjs, Hambrick, Hexel, Himea, Hollaputt, Hungrypilot, Ifor, Ingrathis, intheyear, Jacii, jawj, Jenkz, Katurn, Kingreboot, Kittykiller, Lagertha, Leorus, Loraniden, Lord Corn, Lovien, Manni, Mirando, mr. jing0, Mr_Hunter, MrBean73, mrminus, Muffin, Mumrikk, Nelix, neurolawl, Nighteyez, nomiss, nqrse, Orcodamus, Parameshvar, Rage, Ramen, Ramirez (Jon), Rebdull, Ridikulus0510, rockschtar, Roodie, Rusah, Samuraiwillz501, sarrge, Sarthol, Scerick, Sebstar, Seniroth, seriallos, Shakeykev, Shuck, Skeletor, Slem, Spaten, Spy, Srata, Stevi, Strozzy, Tekfire, Tevka, Theda99, Thordros, Tic[Ã ]sentence, Tobi, todd, Torsti, tsukari, Tyazrael, Ulti.DTY, Val (Valdrath), Vaxum, Vsmit, Wargus (Shagus), Weedwalker, WhoaIsJustin, Wonder, zab, Zarggg, and zarrin-zuljin"
+ns.Patrons = "You'n me both, baby. You'n me both."
 
 
 do

@@ -21,7 +21,7 @@ local format = string.format
 
 local Mark, SuperMark, ClearMarks = ns.Mark, ns.SuperMark, ns.ClearMarks
 
-local RC = LibStub( "LibRangeCheck-2.0" )
+local RC = LibStub( "LibRangeCheck-3.0" )
 local LSR = LibStub( "SpellRange-1.0" )
 
 local class = Hekili.Class
@@ -2379,7 +2379,7 @@ local mt_stat = {
             t[k] = state.mana and state.mana.regen or 0
 
         elseif k == "attack_power" then
-            if Hekili.IsWrath() then
+            if Hekili.IsClassic() then
                 local a, b = UnitAttackPower( "player" )
                 t[k] = a + b
             else t[k] = UnitAttackPower("player") + UnitWeaponAttackPower("player") end
@@ -2448,7 +2448,7 @@ local mt_stat = {
             t[k] = 0
 
         elseif k == "crit" then
-            t[k] = ( max( GetCritChance(), Hekili.IsWrath() and GetSpellCritChance( 3 ) or GetSpellCritChance( "player" ), GetRangedCritChance() ) + ( t.mod_crit_pct or 0 ) )
+            t[k] = ( max( GetCritChance(), Hekili.IsClassic() and GetSpellCritChance( 3 ) or GetSpellCritChance( "player" ), GetRangedCritChance() ) + ( t.mod_crit_pct or 0 ) )
 
         end
 
@@ -6799,7 +6799,7 @@ end
 function state:IsKnown( sID, notoggle )
 
     if type( sID ) ~= "number" then
-        if Hekili.IsWrath() then
+        if Hekili.IsClassic() then
             -- Gloss over spell ranks.
             local ability = class.abilities[ sID ]
 

@@ -49,15 +49,25 @@ local function EmbedBlizOptions()
     open:SetText( "Open Hekili Options Panel" )
 
     open:SetScript( "OnClick", function ()
-        InterfaceOptionsFrameOkay:Click()
-        GameMenuButtonContinue:Click()
+        if InterfaceOptionsFrameOkay and InterfaceOptionsFrameOkay.Click then
+            InterfaceOptionsFrameOkay:Click()
+        end
+        if GameMenuButtonContinue and GameMenuButtonContinue.Click then
+            GameMenuButtonContinue:Click()
+        end
 
         ns.StartConfiguration()
     end )
 
     Hekili:ProfileFrame( "OptionsEmbedFrame", open )
 
-    InterfaceOptions_AddCategory( panel )
+    if InterfaceOptions_AddCategory then
+        InterfaceOptions_AddCategory( panel )
+    elseif Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory then
+        local category = Settings.RegisterCanvasLayoutCategory( panel, "Hekili" )
+        category.ID = "Hekili"
+        Settings.RegisterAddOnCategory( category )
+    end
 end
 
 
@@ -70,9 +80,12 @@ function Hekili:OnInitialize()
     self.Options.args.profiles = LibStub( "AceDBOptions-3.0" ):GetOptionsTable( self.DB )
 
     -- Reimplement LibDualSpec; some folks want different layouts w/ specs of the same class.
-    local LDS = LibStub( "LibDualSpec-1.0" )
-    LDS:EnhanceDatabase( self.DB, "Hekili" )
-    LDS:EnhanceOptions( self.Options.args.profiles, self.DB )
+    -- Optional for TBC flavors where dual spec does not exist.
+    local LDS = LibStub( "LibDualSpec-1.0", true )
+    if LDS then
+        LDS:EnhanceDatabase( self.DB, "Hekili" )
+        LDS:EnhanceOptions( self.Options.args.profiles, self.DB )
+    end
 
     self.DB.RegisterCallback( self, "OnProfileChanged", "TotalRefresh" )
     self.DB.RegisterCallback( self, "OnProfileCopied", "TotalRefresh" )

@@ -44,14 +44,14 @@ externals:
         tag: latest
     Libs/LibSpellRange-1.0:
         url: https://github.com/ascott18/LibSpellRange-1.0.git
-    Libs/LibRangeCheck-2.0:
-        url: https://repos.wowace.com/wow/librangecheck-2-0/trunk/LibRangeCheck-2.0
+    Libs/LibRangeCheck-3.0:
+        url: https://github.com/WeakAuras/LibRangeCheck-3.0.git
     Libs/LibCompress:
         url: https://repos.wowace.com/wow/libcompress/trunk
+    Libs/LibDBIcon-1.0:
+        url: https://repos.wowace.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
     Libs/LibDeflate:
         url: https://github.com/SafeteeWoW/LibDeflate.git
-    Libs/LibDualSpec-1.0:
-        url: https://git.wowace.com/wow/libdualspec-1-0/mainline.git
     Libs/LibItemBuffs-1.0:
         url: https://github.com/AdiAddons/LibItemBuffs-1.0.git
     Libs/LibCustomGlow-1.0:
@@ -60,5 +60,7 @@ externals:
         url: https://repos.wowace.com/wow/libchatanims/trunk/LibChatAnims
     Libs/LibTranslit-1.0:
         url: https://github.com/Vardex/LibTranslit.git
+    Libs/LibDataBroker-1.1:
+        url: https://github.com/tekkub/libdatabroker-1-1
     Libs/SpellFlashCore:
         url: https://github.com/Tga123/SpellFlashCore.git

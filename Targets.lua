@@ -209,7 +209,7 @@ RegisterEvent( "UNIT_FLAGS", function( event, unit )
 end )
 
 
-local RC = LibStub("LibRangeCheck-2.0")
+local RC = LibStub("LibRangeCheck-3.0")
 
 local lastCount = 1
 local lastStationary = 1
@@ -232,7 +232,7 @@ do
         end
     end
 
-    if not Hekili.IsDragonflight() and not Hekili.IsWrath() then
+    if not Hekili.IsDragonflight() and not Hekili.IsClassic() then
         RegisterEvent( "CHROMIE_TIME_OPEN", ChromieCheck )
         RegisterEvent( "CHROMIE_TIME_CLOSE", ChromieCheck )
         RegisterEvent( "PLAYER_ENTERING_WORLD", ChromieCheck )
@@ -250,7 +250,7 @@ do
         end
     end
 
-    if not Hekili.IsWrath() then
+    if not Hekili.IsClassic() then
         RegisterEvent( "UI_INFO_MESSAGE", CheckWarMode )
         RegisterEvent( "PLAYER_ENTERING_WORLD", CheckWarMode )
     end

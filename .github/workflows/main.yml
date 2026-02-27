@@ -39,4 +39,4 @@ jobs:
       - name: Package and Release
         uses: BigWigsMods/packager@v2
         with:
-          args: -g wrath
+          args: -g tbc

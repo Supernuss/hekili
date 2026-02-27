@@ -33,7 +33,7 @@ local NewFeature = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0|
 local GreenPlus = "Interface\\AddOns\\Hekili\\Textures\\GreenPlus"
 local RedX = "Interface\\AddOns\\Hekili\\Textures\\RedX"
 local BlizzBlue = "|cFF00B4FF"
-local ClassColor = Hekili.IsWrath() and RAID_CLASS_COLORS[ class.file ] or C_ClassColor.GetClassColor( class.file )
+local ClassColor = Hekili.IsClassic() and RAID_CLASS_COLORS[ class.file ] or C_ClassColor.GetClassColor( class.file )
 
 -- Simple bypass for Wrath-friendliness.
 local GetSpecialization = _G.GetSpecialization or function() return GetActiveTalentGroup() end
@@ -4269,6 +4269,18 @@ do
     end
 
 
+    function Hekili:GetActiveSpecOption( option, default )
+        local spec = state.spec.id or GetCurrentSpec() or select( 3, UnitClass( "player" ) )
+        if not spec then return default end
+
+        self.DB.profile.specs[ spec ] = self.DB.profile.specs[ spec ] or {}
+
+        local value = self.DB.profile.specs[ spec ][ option ]
+        if value == nil then return default end
+        return value
+    end
+
+
     function Hekili:SetSpecPref( info, val )
     end
 
@@ -5230,7 +5242,7 @@ do
         while( true ) do
             local id, name, description, texture, baseName, coords
 
-            if Hekili.IsWrath() then
+            if Hekili.IsClassic() then
                 if i > 1 then break end
                 name, baseName, id = UnitClass( "player" )
                 coords = CLASS_ICON_TCOORDS[ baseName ]
@@ -8406,7 +8418,7 @@ do
     Hekili.skeleTalents = talents
     Hekili.skeleAbilities = abilities
 
-    if Hekili.IsWrath() then
+    if Hekili.IsClassic() then
         listener:RegisterEvent( "ACTIVE_TALENT_GROUP_CHANGED" )
         listener:RegisterEvent( "PLAYER_TALENT_UPDATE" )
     else
@@ -8504,7 +8516,7 @@ do
             local selfbuff = SpellIsSelfBuff( spellID )
             local talent = talent or IsTalentSpell( spellID )
 
-            if Hekili.IsWrath() then
+            if Hekili.IsClassic() then
                 auras[ spellID ] = token
             else
                 if selfbuff or passive then
@@ -8583,8 +8595,9 @@ do
 
     local function skeletonHandler( self, event, ... )
         local unit = select( 1, ... )
+        local specChanged = not Hekili.IsClassic() and event == "PLAYER_SPECIALIZATION_CHANGED" and UnitIsUnit( unit, "player" )
 
-        if not Hekili.IsWrath() and ( event == "PLAYER_SPECIALIZATION_CHANGED" and UnitIsUnit( unit, "player" ) ) or event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_TALENT_UPDATE" or event == "ACTIVE_TALENT_GROUP_CHANGED" then
+        if specChanged or event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_TALENT_UPDATE" or event == "ACTIVE_TALENT_GROUP_CHANGED" then
             for k, i in pairs( Enum.PowerType ) do
                 if k ~= "NumPowerTypes" and i >= 0 then
                     if UnitPowerMax( "player", i ) > 0 then resources[ k ] = i end
@@ -8637,7 +8650,7 @@ do
                     insert( pvptalents, { name = name, talent = tID, spell = sID } )
                 end
 
-            elseif Hekili.IsWrath() then
+            elseif Hekili.IsClassic() then
                 wipe( resources )
                 wipe( auras )
                 wipe( abilities )
@@ -8877,7 +8890,7 @@ do
                             decreaseIndent()
                             append( "} )\n\n" )
 
-                            if not Hekili.IsWrath() then
+                            if not Hekili.IsClassic() then
                                 append( "-- PvP Talents" )
                                 append( "spec:RegisterPvpTalents( { " )
                                 increaseIndent()
@@ -9155,7 +9168,7 @@ function Hekili:GenerateProfile()
     local conduits
     local soulbinds
 
-    if not Hekili.IsWrath() then
+    if not Hekili.IsClassic() then
         for i, v in ipairs( covenants ) do
             if state.covenant[ v ] then covenant = v; break end
         end
