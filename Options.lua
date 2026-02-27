@@ -6907,7 +6907,7 @@ do
                                                 local action = entry.action
                                                 local desc
 
-                                                local warning, color = false
+                                                local warning, color = false, nil
 
                                                 if not action then
                                                     action = "Unassigned"
@@ -8842,7 +8842,7 @@ do
                             append( "" )
                             append( "local spec = Hekili:NewSpecialization( " .. specID .. " )\n" )
 
-                            if Hekili.IsWrath() then
+                            if Hekili.IsClassic() then
                                 for k, i in pairs( Enum.PowerType ) do
                                     if k ~= "NumPowerTypes" and i >= 0 then
                                         if UnitPowerMax( "player", i ) > 0 then resources[ k ] = i end
