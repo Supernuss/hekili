@@ -38,6 +38,38 @@ local IsInJailersTower = _G.IsInJailersTower or function() return false end
 local UnitEffectiveLevel = _G.UnitEffectiveLevel or _G.UnitLevel
 local UnitSpellHaste = _G.UnitSpellHaste or function() return GetCombatRatingBonus( CR_HASTE_SPELL ) end
 
+local SpellBookSpellBank = Enum and Enum.SpellBookSpellBank
+local SPELLBOOK_BANK_PLAYER = SpellBookSpellBank and SpellBookSpellBank.Player
+local SPELLBOOK_BANK_PET = SpellBookSpellBank and SpellBookSpellBank.Pet
+
+local IsSpellKnown = _G.IsSpellKnown
+if not IsSpellKnown and C_SpellBook and C_SpellBook.IsSpellInSpellBook then
+    IsSpellKnown = function( spellID, isPet )
+        local spellBank = isPet and SPELLBOOK_BANK_PET or SPELLBOOK_BANK_PLAYER
+        if not spellBank then return false end
+
+        local includeOverrides = false
+        return C_SpellBook.IsSpellInSpellBook( spellID, spellBank, includeOverrides )
+    end
+end
+if not IsSpellKnown then
+    IsSpellKnown = function() return false end
+end
+
+local IsSpellKnownOrOverridesKnown = _G.IsSpellKnownOrOverridesKnown
+if not IsSpellKnownOrOverridesKnown and C_SpellBook and C_SpellBook.IsSpellInSpellBook then
+    IsSpellKnownOrOverridesKnown = function( spellID, isPet )
+        local spellBank = isPet and SPELLBOOK_BANK_PET or SPELLBOOK_BANK_PLAYER
+        if not spellBank then return false end
+
+        local includeOverrides = true
+        return C_SpellBook.IsSpellInSpellBook( spellID, spellBank, includeOverrides )
+    end
+end
+if not IsSpellKnownOrOverridesKnown then
+    IsSpellKnownOrOverridesKnown = IsSpellKnown
+end
+
 -- This will be our environment table for local functions.
 local state = Hekili.State
 
@@ -608,6 +640,8 @@ state.GetTime = GetTime
 state.GetTotemInfo = GetTotemInfo
 state.InCombatLockdown = InCombatLockdown ]]
 state.IsActiveSpell = ns.IsActiveSpell
+state.IsSpellKnown = IsSpellKnown
+state.IsSpellKnownOrOverridesKnown = IsSpellKnownOrOverridesKnown
 --[[ state.IsPlayerSpell = IsPlayerSpell
 state.IsSpellKnown = IsSpellKnown
 state.IsSpellKnownOrOverridesKnown = IsSpellKnownOrOverridesKnown
