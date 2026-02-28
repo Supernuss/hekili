@@ -370,7 +370,9 @@ end
 RegisterEvent( "PLAYER_ENTERING_WORLD", function( event, login, reload )
     if login or reload then
         Hekili.PLAYER_ENTERING_WORLD = true
-        Hekili:SpecializationChanged()
+        if type( Hekili.SpecializationChanged ) == "function" then
+            Hekili:SpecializationChanged()
+        end
         Hekili:RestoreDefaults()
 
         ns.checkImports()
@@ -400,14 +402,18 @@ end)
 do
     if Hekili.IsClassic() then
         RegisterEvent( "ACTIVE_TALENT_GROUP_CHANGED", function()
-            Hekili:SpecializationChanged()
+            if type( Hekili.SpecializationChanged ) == "function" then
+                Hekili:SpecializationChanged()
+            end
         end )
     else
         local lastChange = 0
         RegisterUnitEvent( "PLAYER_SPECIALIZATION_CHANGED", "player", nil, function()
             local now = GetTime()
             if now - lastChange > 1 then
-                Hekili:SpecializationChanged()
+                if type( Hekili.SpecializationChanged ) == "function" then
+                    Hekili:SpecializationChanged()
+                end
                 lastChange = now
             end
         end )

@@ -5,7 +5,7 @@ actions.precombat+=/lightning_shield,if=buff.shield.down
 actions.precombat+=/strength_of_earth_totem,if=buff.earth_totem.down
 actions.precombat+=/windfury_totem,if=buff.air_totem.down
 actions.precombat+=/mana_spring_totem,if=buff.water_totem.down
-actions.precombat+=/searing_totem,if=buff.fire_totem.down
+actions.precombat+=/magma_totem,if=buff.fire_totem.down
 actions.precombat+=/potion
 
 actions+=/windfury_weapon,if=!mainhand_imbued&!mainhand_has_spellpower
@@ -15,16 +15,15 @@ actions+=/lightning_shield,if=buff.shield.down
 actions+=/strength_of_earth_totem,if=buff.earth_totem.remains<=latency
 actions+=/windfury_totem,if=buff.air_totem.remains<=latency
 actions+=/mana_spring_totem,if=buff.water_totem.remains<=latency
-actions+=/shamanistic_rage,if=target.within10&mana.pct<settings.shaman_rage_threshold
+actions+=/fire_elemental_totem,if=target.time_to_die>120
 actions+=/bloodlust,if=target.time_to_die>40
+actions+=/shamanistic_rage,if=target.within10&mana.pct<settings.shaman_rage_threshold
 actions+=/use_items
 actions+=/potion
-actions+=/fire_elemental_totem,if=target.time_to_die>120
-
+actions+=/stormstrike,if=buff.stormstrike.down
+actions+=/flame_shock,if=!ticking&target.time_to_die>=12
+actions+=/earth_shock
 actions+=/magma_totem,if=active_enemies>1&buff.fire_totem.remains<=latency&buff.fire_elemental_totem.down
 actions+=/fire_nova_totem,if=active_enemies>1&buff.magma_totem.up
 actions+=/searing_totem,if=active_enemies<=1&buff.fire_totem.remains<=latency&buff.fire_elemental_totem.down
-actions+=/flame_shock,if=active_enemies<=1&!ticking&target.time_to_die>=12
-actions+=/stormstrike,if=buff.stormstrike.down
-actions+=/earth_shock
 actions+=/stormstrike

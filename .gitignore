@@ -46,6 +46,11 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# github related
+.github/copilot-instructions.md
+.github/planning/
+.github/scripts/
+
 # Actual Stuff in my folder.
 Libs/AceAddon-3.0
 Libs/AceBucket-3.0
@@ -89,5 +94,4 @@ CHANGELOG.md
 .release/
 Notes/
 Hekili Wrath.code-workspace
-.github/copilot-instructions.md
-.github/planning/
+

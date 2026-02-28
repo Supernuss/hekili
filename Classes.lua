@@ -480,16 +480,21 @@ local HekiliSpecMixin = {
             end
         end
 
-        local potionItem = Item:CreateFromItemID( data.item )
+        local itemID = tonumber( data.item )
 
-        if not potionItem:IsItemEmpty() then
-            potionItem:ContinueOnItemLoad( function()
-                if not data.name then data.name = potionItem:GetItemName() end
-                if not data.link then data.link = potionItem:GetItemLink() end
+        if itemID and itemID > 0 then
+            local knownItemID = GetItemInfoInstant and select( 1, GetItemInfoInstant( itemID ) )
 
-                class.potionList[ potion ] = link
-                return true
-            end )
+            if knownItemID then
+                local name, link = CGetItemInfo( itemID )
+
+                if name then
+                    if not data.name then data.name = name end
+                    if not data.link then data.link = link end
+
+                    class.potionList[ potion ] = data.link
+                end
+            end
         end
 
         if data.buff and data.aura then

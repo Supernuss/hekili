@@ -46,9 +46,13 @@ function ns.updateTalents()
     if not Hekili.DB.profile.specs[ spec ].usePackSelector then return end
 
     -- Swap priorities if needed.
-    local tab1 = select( 3, GetTalentTabInfo(1) )
-    local tab2 = select( 3, GetTalentTabInfo(2) )
-    local tab3 = select( 3, GetTalentTabInfo(3) )
+    local _, _, tab1v = GetTalentTabInfo( 1 )
+    local _, _, tab2v = GetTalentTabInfo( 2 )
+    local _, _, tab3v = GetTalentTabInfo( 3 )
+
+    local tab1 = tonumber( tab1v ) or 0
+    local tab2 = tonumber( tab2v ) or 0
+    local tab3 = tonumber( tab3v ) or 0
 
     local fromPackage = Hekili.DB.profile.specs[ spec ].package
 

@@ -20,7 +20,10 @@ Hekili.IsRetail = function()
     return Hekili.Flavor == "Retail"
 end
 Hekili.IsTBC = function()
+    local interfaceVersion = select( 4, GetBuildInfo() )
+
     return Hekili.Flavor == "TBC" or Hekili.Flavor == "BurningCrusade"
+        or ( interfaceVersion >= 20500 and interfaceVersion < 30000 )
 end
 Hekili.IsWrath = function()
     return Hekili.Flavor == "Wrath"
