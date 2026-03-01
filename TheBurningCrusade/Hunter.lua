@@ -438,18 +438,18 @@ spec:RegisterAuras( {
                 name, _, count, _, duration, expires, caster = FindUnitBuffByID( "pet", spell )
 
                 if name then
-                    fs.count = 1
-                    fs.applied = expires - duration
-                    fs.expires = expires
-                    fs.caster = "pet"
+                    t.count = 1
+                    t.applied = expires - duration
+                    t.expires = expires
+                    t.caster = "pet"
                     return
                 end
             end
 
-            fs.count = 0
-            fs.applied = 0
-            fs.expires = 0
-            fs.caster = "nobody"
+            t.count = 0
+            t.applied = 0
+            t.expires = 0
+            t.caster = "nobody"
         end,
     },
     -- Redirecting threat.
@@ -1092,7 +1092,7 @@ spec:RegisterAbilities( {
         cooldown = function() return UnitRangedDamage( "player" ) end,
         gcd = "off",
 
-        startsCombat = false, -- it kinda doesn't.
+        startsCombat = false, -- it kind of does not.
         -- texture = 132369,
 
         nobuff = "auto_shot",
@@ -1271,7 +1271,7 @@ spec:RegisterAbilities( {
         usable = function() return target.distance < 10, "requires melee range" end,
 
         handler = function ()
-            removeBufF( "counterattack_usable" )
+            removeBuff( "counterattack_usable" )
             applyDebuff( "target", "counterattack" )
         end,
     },
@@ -2390,7 +2390,7 @@ spec:RegisterPackSelector( "beast_mastery", "Beast Mastery (wowtbc.gg)", "|T1321
         return tab1 > max( tab2, tab3 )
     end )
 
-spec:RegisterPackSelector( "marksmanship", "Marksmanship (wowtbc.gg)", "|T132222:0|t Marksmanship",
+spec:RegisterPackSelector( "marksmanship", "Marksmanship", "|T132222:0|t Marksmanship",
     "If you have spent more points in |T132222:0|t Marksmanship than in any other tree, this priority will be automatically selected for you.",
     function( tab1, tab2, tab3 )
         return tab2 > max( tab1, tab3 )

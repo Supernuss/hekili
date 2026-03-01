@@ -12,8 +12,8 @@ actions.precombat+=/soul_fire,if=talent.improved_shadow_bolt.enabled
 actions+=/demonic_empowerment
 actions+=/potion
 actions+=/immolate,if=!ticking&target.time_to_die>dot.immolate.duration
-actions+=/group_curse,if=debuff.my_curse.down&curse_grouped
-actions+=/solo_curse,if=debuff.my_curse.down
+actions+=/curse_of_the_elements,if=debuff.my_curse.down&curse_grouped
+actions+=/curse_of_agony,if=debuff.my_curse.down&!curse_grouped
 actions+=/corruption,if=!ticking&target.time_to_die>dot.corruption.duration
 actions+=/metamorphosis,if=fight_remains>210|boss&fight_remains<40
 actions+=/use_items

@@ -5,7 +5,6 @@ actions.precombat+=/potion
 
 actions+=/use_items
 actions+=/potion
-actions+=/hyperspeed_acceleration,use_off_gcd=1,if=set_bonus.tier7feral_4pc=1&(buff.tigers_fury.up|cooldown.tigers_fury.remains>=15)
 actions+=/run_action_list,name=bearweave,if=buff.dire_bear_form.up&bearweaving_enabled
 actions+=/run_action_list,name=bear_tank_aoe,if=buff.dire_bear_form.up&!bearweaving_enabled&active_enemies>4&bear_mode_tank_enabled
 actions+=/run_action_list,name=bear_tank,if=buff.dire_bear_form.up&!bearweaving_enabled&bear_mode_tank_enabled
@@ -46,22 +45,14 @@ actions.bearweave+=/enrage,use_off_gcd=1,if=cooldown.mangle_bear.up
 actions.bearweave+=/maul,use_off_gcd=1,if=!up&!buff.clearcasting.up&rage.current>=action.maul.spend+(cooldown.mangle_bear.up&action.mangle_bear.spend|0)
 actions.bearweave+=/mangle_bear
 
-actions.bear_tank_init+=/variable,name=time_to_die,value=(debuff.training_dummy.up&300)|target.time_to_die
-actions.bear_tank_init+=/variable,name=build_lacerate,value=!debuff.lacerate.up|debuff.lacerate.stack<5
-actions.bear_tank_init+=/variable,name=build_lacerate_cost,op=setif,if=variable.build_lacerate,value=action.lacerate.spend*(5-debuff.lacerate.stack),value_else=0
-actions.bear_tank_init+=/variable,name=maintain_lacerate,value=!variable.build_lacerate&debuff.lacerate.remains<8&debuff.lacerate.remains<variable.time_to_die
-actions.bear_tank_init+=/variable,name=maintain_lacerate_cost,op=setif,if=variable.maintain_lacerate,value=action.lacerate.spend,value_else=0
-actions.bear_tank_init+=/variable,name=emergency_lacerate,value=debuff.lacerate.up&debuff.lacerate.remains<4.5&debuff.lacerate.remains<variable.time_to_die
-
-actions.bear_tank+=/call_action_list,name=bear_tank_init
 actions.bear_tank+=/faerie_fire_feral,if=glyph.omen_of_clarity.enabled&!buff.clearcasting.up
 actions.bear_tank+=/enrage,use_off_gcd=1,if=time<10
 actions.bear_tank+=/berserk
-actions.bear_tank+=/maul,use_off_gcd=1,if=rage.current>action.maul.spend+variable.build_lacerate_cost+variable.maintain_lacerate_cost+action.mangle_bear.spend
-actions.bear_tank+=/lacerate,if=variable.emergency_lacerate
+actions.bear_tank+=/maul,use_off_gcd=1,if=rage.current>action.maul.spend+action.mangle_bear.spend
+actions.bear_tank+=/lacerate,if=debuff.lacerate.up&debuff.lacerate.remains<4.5&debuff.lacerate.remains<target.time_to_die
 actions.bear_tank+=/mangle_bear
 actions.bear_tank+=/faerie_fire_feral
-actions.bear_tank+=/lacerate,if=variable.build_lacerate|variable.maintain_lacerate
+actions.bear_tank+=/lacerate,if=!debuff.lacerate.up|debuff.lacerate.stack<5|debuff.lacerate.remains<8&debuff.lacerate.remains<target.time_to_die
 actions.bear_tank+=/swipe_bear,if=rage.current>60
 
 actions.bear_tank_aoe+=/enrage,use_off_gcd=1,if=time<10

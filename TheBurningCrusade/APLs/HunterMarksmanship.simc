@@ -10,7 +10,6 @@ actions.st+=/rapid_fire,if=buff.rapid_fire.down
 actions.st+=/call_of_the_wild,if=buff.call_of_the_wild.down
 actions.st+=/potion
 actions.st+=/use_items
-actions.st+=/hyperspeed_acceleration
 actions.st+=/kill_shot
 actions.st+=/serpent_sting,if=debuff.stings.down
 actions.st+=/chimera_shot

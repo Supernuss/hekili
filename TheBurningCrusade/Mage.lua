@@ -12,101 +12,82 @@ spec:RegisterResource( Enum.PowerType.Mana )
 
 -- Talents
 spec:RegisterTalents( {
-    arcane_barrage         = {  1847, 1, 44425 },
-    arcane_concentration   = {    75, 1, 11213, 12574, 12575, 12576, 12577 },
-    arcane_empowerment     = {  1727, 1, 31579, 31582, 31583 },
-    arcane_flows           = {  1843, 1, 44378, 44379 },
-    arcane_focus           = {    76, 1, 11222, 12839, 12840 },
-    arcane_fortitude       = {    85, 1, 28574, 54658, 54659 },
-    arcane_instability     = {   421, 1, 15058, 15059, 15060 },
-    arcane_meditation      = {  1142, 1, 18462, 18463, 18464 },
-    arcane_mind            = {    77, 1, 11232, 12500, 12501, 12502, 12503 },
-    arcane_potency         = {  1725, 1, 31571, 31572 },
+    arcane_concentration   = {    75, 5, 11213, 12574, 12575, 12576, 12577 },
+    arcane_empowerment     = {  1727, 3, 31579, 31582, 31583 },
+    arcane_focus           = {    76, 5, 11222, 12839, 12840, 12841, 12842 },
+    arcane_fortitude       = {    85, 1, 28574 },
+    arcane_instability     = {   421, 3, 15058, 15059, 15060 },
+    arcane_meditation      = {  1142, 3, 18462, 18463, 18464 },
+    arcane_mind            = {    77, 5, 11232, 12500, 12501, 12502, 12503 },
+    improved_arcane_missiles = {   78, 2, 6057, 6085 },
+    arcane_potency         = {  1725, 3, 31571, 31572, 31573 },
     arcane_power           = {    87, 1, 12042 },
-    arcane_shielding       = {    83, 1, 11252, 12605 },
-    arcane_stability       = {    80, 1, 11237, 12463, 12464, 16769, 16770 },
-    arcane_subtlety        = {    74, 1, 11210, 12592 },
-    arctic_reach           = {   741, 1, 16757, 16758 },
-    arctic_winds           = {  1738, 1, 31674, 31675, 31676, 31677, 31678 },
+    arcane_shielding       = {    83, 2, 11252, 12605 },
+    arcane_stability       = {    80, 5, 11237, 12463, 12464, 16769, 16770 },
+    arcane_subtlety        = {    74, 2, 11210, 12592 },
+    arctic_reach           = {   741, 2, 16757, 16758 },
+    arctic_winds           = {  1738, 5, 31674, 31675, 31676, 31677, 31678 },
     blast_wave             = {    32, 1, 11113 },
-    blazing_speed          = {  1731, 1, 31641, 31642 },
-    brain_freeze           = {  1854, 1, 44546, 44548, 44549 },
-    burning_determination  = {  2212, 1, 54747, 54749 },
-    burning_soul           = {    23, 1, 11083, 12351 },
-    burnout                = {  1851, 1, 44449, 44469, 44470, 44471, 44472 },
-    chilled_to_the_bone    = {  1856, 1, 44566, 44567, 44568, 44570, 44571 },
-    cold_as_ice            = {  1737, 1, 55091, 55092 },
+    blazing_speed          = {  1731, 2, 31641, 31642 },
+    burning_soul           = {    23, 2, 11083, 12351 },
+    cold_as_ice            = {  1737, 2, 31670, 31672 },
     cold_snap              = {    72, 1, 11958 },
     combustion             = {    36, 1, 11129 },
-    critical_mass          = {    33, 1, 11115, 11367, 11368 },
-    deep_freeze            = {  1857, 1, 44572 },
+    critical_mass          = {    33, 3, 11115, 11367, 11368 },
     dragons_breath         = {  1735, 1, 31661 },
-    empowered_fire         = {  1734, 1, 31656, 31657, 31658 },
-    empowered_frostbolt    = {  1740, 1, 31682, 31683 },
-    enduring_winter        = {  1855, 1, 44557, 44560, 44561 },
-    fiery_payback          = {  1848, 1, 64353, 64357 },
-    fingers_of_frost       = {  1853, 1, 44543, 44545 },
-    fire_power             = {    35, 1, 11124, 12378, 12398, 12399, 12400 },
-    firestarter            = {  1849, 1, 44442, 44443 },
-    flame_throwing         = {    28, 1, 11100, 12353 },
-    focus_magic            = {  2211, 1, 54646 },
-    frost_channeling       = {    66, 1, 11160, 12518, 12519 },
-    frost_warding          = {    70, 1, 11189, 28332 },
-    frostbite              = {    38, 1, 11071, 12496, 12497 },
-    frozen_core            = {  1736, 1, 31667, 31668, 31669 },
-    hot_streak             = {  1850, 1, 44445, 44446, 44448 },
+    empowered_fire         = {  1734, 5, 31656, 31657, 31658, 31659, 31660 },
+    empowered_frostbolt    = {  1740, 5, 31682, 31683, 31684, 31685, 31686 },
+    fire_power             = {    35, 5, 11124, 12378, 12398, 12399, 12400 },
+    flame_throwing         = {    28, 2, 11100, 12353 },
+    frost_channeling       = {    66, 3, 11160, 12518, 12519 },
+    frost_warding          = {    70, 2, 11189, 28332 },
+    frostbite              = {    38, 3, 11071, 12496, 12497 },
+    frozen_core            = {  1736, 3, 31667, 31668, 31669 },
     ice_barrier            = {    71, 1, 11426 },
-    ice_floes              = {    62, 1, 31670, 31672, 55094 },
-    ice_shards             = {    73, 1, 11207, 12672, 15047 },
+    ice_floes              = {    62, 2, 11165, 12475 },
+    ice_shards             = {    73, 5, 11207, 12672, 15047, 15052, 15053 },
     icy_veins              = {    69, 1, 12472 },
-    ignite                 = {    34, 1, 11119, 11120, 12846, 12847, 12848 },
-    impact                 = {    30, 1, 11103, 12357, 12358 },
-    improved_blink         = {  1724, 1, 31569, 31570 },
-    improved_blizzard      = {    63, 1, 11185, 12487, 12488 },
-    improved_cone_of_cold  = {    64, 1, 11190, 12489, 12490 },
-    improved_counterspell  = {    88, 1, 11255, 12598 },
-    improved_fire_blast    = {    27, 1, 11078, 11080 },
-    improved_fireball      = {    26, 1, 11069, 12338, 12339, 12340, 12341 },
-    improved_frostbolt     = {    37, 1, 11070, 12473, 16763, 16765, 16766 },
-    improved_scorch        = {    25, 1, 11095, 12872, 12873 },
-    incanters_absorption   = {  1844, 1, 44394, 44395, 44396 },
-    incineration           = {  1141, 1, 18459, 18460, 54734 },
-    living_bomb            = {  1852, 1, 44457 },
-    magic_absorption       = {  1650, 1, 29441, 29444 },
-    magic_attunement       = {    82, 1, 11247, 12606 },
-    master_of_elements     = {  1639, 1, 29074, 29075, 29076 },
-    mind_mastery           = {  1728, 1, 31584, 31585, 31586, 31587, 31588 },
-    missile_barrage        = {  2209, 1, 44404, 54486, 54488, 54489, 54490 },
-    molten_fury            = {  1732, 1, 31679, 31680 },
-    molten_shields         = {    24, 1, 11094, 13043 },
-    netherwind_presence    = {  1846, 1, 44400, 44402, 44403 },
-    permafrost             = {    65, 1, 11175, 12569, 12571 },
-    piercing_ice           = {    61, 1, 11151, 12952, 12953 },
-    playing_with_fire      = {  1730, 1, 31638, 31639, 31640 },
-    precision              = {  1649, 1, 29438, 29439, 29440 },
+    ignite                 = {    34, 5, 11119, 11120, 12846, 12847, 12848 },
+    impact                 = {    30, 5, 11103, 12357, 12358, 12359, 12360 },
+    improved_blink         = {  1724, 2, 31569, 31570 },
+    improved_blizzard      = {    63, 3, 11185, 12487, 12488 },
+    improved_cone_of_cold  = {    64, 3, 11190, 12489, 12490 },
+    improved_counterspell  = {    88, 2, 11255, 12598 },
+    improved_fire_blast    = {    27, 3, 11078, 11080, 12342 },
+    improved_fireball      = {    26, 5, 11069, 12338, 12339, 12340, 12341 },
+    improved_frostbolt     = {    37, 5, 11070, 12473, 16763, 16765, 16766 },
+    improved_scorch        = {    25, 3, 11095, 12872, 12873 },
+    incineration           = {  1141, 2, 18459, 18460 },
+    magic_absorption       = {  1650, 5, 29441, 29444, 29445, 29446, 29447 },
+    magic_attunement       = {    82, 2, 11247, 12606 },
+    master_of_elements     = {  1639, 3, 29074, 29075, 29076 },
+    mind_mastery           = {  1728, 5, 31584, 31585, 31586, 31587, 31588 },
+    molten_fury            = {  1732, 2, 31679, 31680 },
+    molten_shields         = {    24, 2, 11094, 13043 },
+    permafrost             = {    65, 3, 11175, 12569, 12571 },
+    piercing_ice           = {    61, 3, 11151, 12952, 12953 },
+    playing_with_fire      = {  1730, 3, 31638, 31639, 31640 },
+    precision              = {  1649, 3, 29438, 29439, 29440 },
     presence_of_mind       = {    86, 1, 12043 },
-    prismatic_cloak        = {  1726, 1, 31574, 31575, 54354 },
+    prismatic_cloak        = {  1726, 2, 31574, 31575 },
     pyroblast              = {    29, 1, 11366 },
-    pyromaniac             = {  1733, 1, 34293, 34295, 34296 },
-    shatter                = {    67, 1, 11170, 12982, 12983 },
-    shattered_barrier      = {  2214, 1, 44745, 54787 },
+    pyromaniac             = {  1733, 3, 34293, 34295, 34296 },
+    shatter                = {    67, 5, 11170, 12982, 12983, 12984, 12985 },
     slow                   = {  1729, 1, 31589 },
-    spell_impact           = {    81, 1, 11242, 12467, 12469 },
-    spell_power            = {  1826, 1, 35578, 35581 },
-    student_of_the_mind    = {  1845, 1, 44397, 44398, 44399 },
+    spell_impact           = {    81, 3, 11242, 12467, 12469 },
+    spell_power            = {  1826, 2, 35578, 35581 },
     summon_water_elemental = {  1741, 1, 31687 },
-    torment_the_weak       = {  2222, 1, 29447, 55339, 55340 },
-    winters_chill          = {    68, 1, 11180, 28592, 28593 },
-    world_in_flames        = {    31, 1, 11108, 12349, 12350 },
+    winters_chill          = {    68, 5, 11180, 28592, 28593, 28594, 28595 },
+    world_in_flames        = {    31, 3, 11108, 12349, 12350 },
 } )
 
 spec:RegisterAuras( {
 -- Increases magic damage taken by up to $s1 and healing by up to $s2.
     amplify_magic = {
-        id = 43017,
+        id = 33946,
         duration = 600,
         max_stack = 1,
-        copy = { 1008, 8455, 10169, 10170, 27130, 33946, 43017 },
+        copy = { 1008, 8455, 10169, 10170, 27130, 33946 },
 
         -- Effects:
         -- Rank 1 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
@@ -142,7 +123,7 @@ spec:RegisterAuras( {
         id = 36032,
         duration = 6,
         max_stack = 4,
-        copy = { 30451, 42894, 42896, 42897 },
+        copy = { 30451 },
 
         -- Effects:
         -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.714, points_per_level: 5.0, points: 841, addl_points: 137, target: TARGET_UNIT_TARGET_ENEMY
@@ -160,12 +141,12 @@ spec:RegisterAuras( {
     },
     -- Increases Intellect by $s1.
     arcane_brilliance = {
-        id = 43002,
+        id = 27127,
         duration = 3600,
         max_stack = 1,
         shared = "player",
         dot = "buff",
-        copy = { 23028, 27127, 43002 },
+        copy = { 23028, 27127 },
 
         -- Effects:
         -- Rank 1 #0 -- APPLY_AURA, MOD_STAT, points: 31, value: 3, schools: ['physical', 'holy'], radius: 100.0, target: TARGET_UNIT_CASTER_AREA_RAID
@@ -183,12 +164,12 @@ spec:RegisterAuras( {
     },
     -- Increases Intellect by $s1.
     arcane_intellect = {
-        id = 42995,
+        id = 27126,
         duration = 1800,
         max_stack = 1,
         shared = "player",
         dot = "buff",
-        copy = { 1459, 1460, 1461, 10156, 10157, 27126, 42995 },
+        copy = { 1459, 1460, 1461, 10156, 10157, 27126 },
 
         -- Effects:
         -- Rank 1 #0 -- APPLY_AURA, MOD_STAT, points: 2, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
@@ -232,10 +213,10 @@ spec:RegisterAuras( {
     },
     -- Dazed.
     blast_wave = {
-        id = 42945,
+        id = 33933,
         duration = 6,
         max_stack = 1,
-        copy = { 11113, 13018, 13019, 13020, 13021, 27133, 33933, 42944, 42945 },
+        copy = { 11113, 13018, 13019, 13020, 13021, 27133 },
 
         -- Effects:
         -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.0, points: 153, addl_points: 33, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
@@ -322,10 +303,10 @@ spec:RegisterAuras( {
     },
     -- $42938s1 Frost damage every $42938t1 $lsecond:seconds;.
     blizzard = {
-        id = 42940,
+        id = 27085,
         duration = 8,
         max_stack = 1,
-        copy = { 42208, 42209, 42210, 42211, 42212, 42213, 42198, 42939, 42940 },
+        copy = { 42208, 42209, 42210, 42211, 42212, 42213, 42198, 27085 },
 
         -- Effects:
         -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 0.1, points: 36, radius: 8.0, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY
@@ -367,12 +348,6 @@ spec:RegisterAuras( {
         -- talent.world_in_flames[11108] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
         -- talent.world_in_flames[12349] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 4, target: TARGET_UNIT_CASTER
         -- talent.world_in_flames[12350] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 6, target: TARGET_UNIT_CASTER
-    },
-    -- Immune to Interrupt and Silence mechanics.
-    burning_determination = {
-        id = 54748,
-        duration = 20,
-        max_stack = 1,
     },
     -- Movement slowed by $s1% and time between attacks increased by $s2%.
     chilled = {
@@ -443,10 +418,10 @@ spec:RegisterAuras( {
     },
     -- Movement slowed by $s1%.
     cone_of_cold = {
-        id = 42931,
+        id = 27087,
         duration = function() return 8 + talent.permafrost.rank end,
         max_stack = 1,
-        copy = { 120, 8492, 10159, 10160, 10161, 27087, 42930, 42931 },
+        copy = { 120, 8492, 10159, 10160, 10161, 27087 },
 
         -- Effects:
         -- Rank 1 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
@@ -523,68 +498,12 @@ spec:RegisterAuras( {
         -- talent.incineration[18460] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
         -- talent.incineration[54734] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
     },
-    -- Immune to all Curse effects.
-    curse_immunity = {
-        id = 60803,
-        duration = 4,
-        max_stack = 1,
-        shared = "player",
-        dot = "buff",
-
-        -- Effects:
-        -- [60803] #0 -- APPLY_AURA, DISPEL_IMMUNITY, points: 100, value: 2, schools: ['holy'], target: TARGET_UNIT_TARGET_ALLY
-    },
-    -- Increases Intellect by $s1.
-    dalaran_brilliance = {
-        id = 61316,
-        duration = 3600,
-        max_stack = 1,
-        shared = "player",
-        dot = "buff",
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_STAT, points: 60, value: 3, schools: ['physical', 'holy'], radius: 100.0, target: TARGET_UNIT_CASTER_AREA_RAID
-        -- Rank 1 #1 -- TRIGGER_SPELL, NONE, trigger_spell: 61332, radius: 100.0, target: TARGET_UNIT_CASTER_AREA_RAID
-
-        -- Affected by:
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- glyph.arcane_intellect[57924] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -50, target: TARGET_UNIT_CASTER
-    },
-    -- Increases Intellect by $s1.
-    dalaran_intellect = {
-        id = 61024,
-        duration = 1800,
-        max_stack = 1,
-        shared = "player",
-        dot = "buff",
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_STAT, points: 60, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- glyph.arcane_intellect[57924] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -50, target: TARGET_UNIT_CASTER
-    },
     -- Reduces magic damage taken by up to $s1 and healing by up to $s2.
     dampen_magic = {
-        id = 43015,
+        id = 33944,
         duration = 600,
         max_stack = 1,
-        copy = { 604, 8450, 8451, 10173, 10174, 33944, 43015 },
+        copy = { 604, 8450, 8451, 10173, 10174, 33944 },
 
         -- Effects:
         -- Rank 1 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: -10, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
@@ -615,38 +534,12 @@ spec:RegisterAuras( {
         -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
         -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
     },
-    -- Stunned and Frozen.
-    deep_freeze = {
-        id = 44572,
-        duration = 5,
-        max_stack = 1,
-
-        -- Effects:
-        -- [44572] #0 -- APPLY_AURA, MOD_STUN, mechanic: stunned, points: 0, target: TARGET_UNIT_TARGET_ENEMY
-
-        -- Affected by:
-        -- talent.ice_shards[11207] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 33, target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[12672] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 66, target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[15047] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 100, target: TARGET_UNIT_CASTER
-        -- talent.arctic_reach[16757] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, RANGE, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.arctic_reach[16758] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, RANGE, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.fingers_of_frost[44544] #0 -- APPLY_AURA, ABILITY_IGNORE_AURASTATE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.deep_freeze[63090] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 10, target: TARGET_UNIT_CASTER
-    },
-    -- Increased spell power by $w1.
-    demonic_pact = {
-        id = 48090,
-        duration = 45,
-        max_stack = 1,
-        shared = "player",
-        dot = "buff",
-    },
     -- Disoriented.
     dragons_breath = {
-        id = 42950,
+        id = 33043,
         duration = 5,
         max_stack = 1,
-        copy = { 31661, 33041, 33042, 33043, 42949, 42950 },
+        copy = { 31661, 33041, 33042, 33043 },
 
         -- Effects:
         -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.5, points: 369, addl_points: 61, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
@@ -717,7 +610,6 @@ spec:RegisterAuras( {
     },
     -- Disarmed!
     fiery_payback = {
-        id = 64346,
         duration = 6,
         max_stack = 1,
 
@@ -727,7 +619,6 @@ spec:RegisterAuras( {
     },
     -- Your next $s1 spells treat the target as if it were Frozen.
     fingers_of_frost = {
-        id = 74396,
         duration = 15,
         max_stack = 2,
 
@@ -737,10 +628,10 @@ spec:RegisterAuras( {
     },
     -- Absorbs Fire damage.
     fire_ward = {
-        id = 43010,
+        id = 27128,
         duration = 30,
         max_stack = 1,
-        copy = { 543, 8457, 8458, 10223, 10225, 27128, 43010 },
+        copy = { 543, 8457, 8458, 10223, 10225, 27128 },
 
         -- Effects:
         -- Rank 1 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 165, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
@@ -768,11 +659,11 @@ spec:RegisterAuras( {
     },
     -- $s2 Fire damage every $t2 seconds.
     fireball = {
-        id = 42833,
+        id = 38692,
         duration = 8,
         tick_time = 2,
         max_stack = 1,
-        copy = { 133, 143, 145, 3140, 8400, 8401, 8402, 10148, 10149, 10150, 10151, 25306, 27070, 38692, 42832, 42833 },
+        copy = { 133, 143, 145, 3140, 8400, 8401, 8402, 10148, 10149, 10150, 10151, 25306, 27070, 38692 },
         -- Effects:
         -- [ ] 01.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.123, points_per_level: 0.6, points: 13, addl_points: 9, target: TARGET_UNIT_TARGET_ENEMY
         -- [ ] 01.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, target: TARGET_UNIT_TARGET_ENEMY
@@ -877,7 +768,6 @@ spec:RegisterAuras( {
     },
     -- Your next Fireball or Frostfire Bolt spell is instant and costs no mana.
     fireball_proc = {
-        id = 57761,
         duration = 15,
         max_stack = 1,
         copy = "brain_freeze",
@@ -894,17 +784,16 @@ spec:RegisterAuras( {
     },
     -- Your next Flamestrike spell is instant cast and costs no mana.
     firestarter = {
-        id = 54741,
         duration = 10,
         max_stack = 1,
     },
     -- $s2 Fire damage every $t2.
     flamestrike = {
-        id = 42926,
+        id = 27086,
         duration = 8,
         tick_time = 2,
         max_stack = 1,
-        copy = { 2120, 2121, 8422, 8423, 10215, 10216, 27086, 42925, 42926 },
+        copy = { 2120, 2121, 8422, 8423, 10215, 10216, 27086 },
 
         -- Effects:
         -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 0.6, points: 51, addl_points: 17, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
@@ -979,34 +868,6 @@ spec:RegisterAuras( {
         -- talent.living_bomb[55362] #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 690, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
         -- talent.combustion[28682] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
     },
-    -- Increases chance to critically hit with spells by $s1%.
-    focus_magic = {
-        id = 54646,
-        duration = 1800,
-        max_stack = 1,
-    },
-    focus_magic_proc = {
-        id = 54648,
-        duration = 10,
-        max_stack = 1,
-
-        -- Effects:
-        -- [54648] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ANY
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[11222] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12839] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12840] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-    },
     -- Increases Armor by $s1 and may slow attackers.
     frost_armor = {
         id = 7301,
@@ -1038,10 +899,10 @@ spec:RegisterAuras( {
     },
     -- Frozen in place.
     frost_nova = {
-        id = 42917,
+        id = 27088,
         duration = 8,
         max_stack = 1,
-        copy = { 122, 865, 6131, 10230, 27088, 42917 },
+        copy = { 122, 865, 6131, 10230, 27088 },
 
         -- Effects:
         -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.018, points_per_level: 0.5, points: 18, addl_points: 3, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
@@ -1081,10 +942,10 @@ spec:RegisterAuras( {
     },
     -- Absorbs Frost damage.
     frost_ward = {
-        id = 43012,
+        id = 28609,
         duration = 30,
         max_stack = 1,
-        copy = { 6143, 8461, 8462, 10177, 28609, 32796, 43012 },
+        copy = { 6143, 8461, 8462, 10177, 28609, 32796 },
 
         -- Effects:
         -- Rank 1 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 165, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
@@ -1120,10 +981,10 @@ spec:RegisterAuras( {
     },
     -- Movement slowed by $s1%.
     frostbolt = {
-        id = 42842,
+        id = 38697,
         duration = function() return 9 + talent.permafrost.rank end,
         max_stack = 1,
-        copy = { 116, 205, 837, 7322, 8406, 8407, 8408, 10179, 10180, 10181, 25304, 27071, 27072, 38697, 42841, 42842 },
+        copy = { 116, 205, 837, 7322, 8406, 8407, 8408, 10179, 10180, 10181, 25304, 27071, 27072, 38697 },
 
         -- Effects:
         -- Rank 1 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
@@ -1228,81 +1089,12 @@ spec:RegisterAuras( {
         -- glyph.frostbolt[56370] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 5, target: TARGET_UNIT_CASTER
         -- glyph.ice_block[56372] #0 -- APPLY_AURA, DUMMY, points: 5, target: TARGET_UNIT_CASTER
     },
-    -- Movement slowed by $s1%.  $s3 Fire damage every $t3 sec.
-    frostfire_bolt = {
-        id = 47610,
-        duration = function() return 9 + talent.permafrost.rank end,
-        tick_time = 3,
-        max_stack = 1,
-        copy = { 44614, 47610 },
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 1 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 3.9, points: 628, addl_points: 103, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 1 #2 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, points: 20, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 2 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 2 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 4.5, points: 721, addl_points: 117, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 2 #2 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, points: 30, target: TARGET_UNIT_TARGET_ENEMY
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_power[12042] #2 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- aura.presence_of_mind[12043] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.frostbite[11071] #0 -- APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, points: 5, target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[11175] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 1000, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[11175] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -4, target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[11207] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 33, target: TARGET_UNIT_CASTER
-        -- talent.frostbite[12496] #0 -- APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, triggers: frostbite, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.frostbite[12497] #0 -- APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, triggers: frostbite, points: 15, target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[12569] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 2000, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12569] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -7, target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[12571] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 3000, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12571] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -10, target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[12672] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 66, target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[15047] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 100, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44566] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44566] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -2, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44567] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44567] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -4, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44568] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44568] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -6, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44570] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44570] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -8, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44571] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 5, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44571] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -10, target: TARGET_UNIT_CASTER
-        -- talent.burning_soul[11083] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 35, target: TARGET_UNIT_CASTER
-        -- talent.improved_scorch[11095] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[11124] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[11124] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.combustion[11129] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.burning_soul[12351] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 70, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12378] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12378] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12398] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12398] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12399] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12399] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 8, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12400] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12400] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.improved_scorch[12872] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.improved_scorch[12873] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.empowered_fire[31656] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 5, target: TARGET_UNIT_CASTER
-        -- talent.empowered_fire[31657] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.empowered_fire[31658] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 15, target: TARGET_UNIT_CASTER
-        -- glyph.frostfire[61205] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- glyph.frostfire[61205] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2
-        -- glyph.fireball[57761] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- glyph.fireball[57761] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100000, target: TARGET_UNIT_CASTER
-        -- talent.combustion[28682] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
-    },
     heating_up = {
         duration = 3600, -- Heating up is a pseudo buff that has no duration
         max_stack = 1,
     },
     -- Your next Pyroblast spell is instant cast.
     hot_streak = {
-        id = 48108,
         duration = 10,
         max_stack = 1,
     },
@@ -1314,11 +1106,11 @@ spec:RegisterAuras( {
     },
     -- Increases armor by $s1, Frost resistance by $s3 and may slow attackers.
     ice_armor = {
-        id = 43008,
+        id = 27124,
         duration = function() return glyph.frost_armor.enabled and 3600 or 1800 end,
         tick_time = 6,
         max_stack = 1,
-        copy = { 7302, 7320, 10219, 10220, 27124, 43008 },
+        copy = { 7302, 7320, 10219, 10220 },
 
         -- Effects:
         -- Rank 1 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 290, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
@@ -1353,10 +1145,10 @@ spec:RegisterAuras( {
     },
     -- Absorbs damage.
     ice_barrier = {
-        id = 43039,
+        id = 27134,
         duration = 60,
         max_stack = 1,
-        copy = { 11426, 13031, 13032, 13033, 27134, 33405, 43038, 43039 },
+        copy = { 11426, 13031, 13032, 13033, 33405 },
 
         -- Effects:
         -- Rank 1 #0 -- APPLY_AURA, SCHOOL_ABSORB, points_per_level: 2.8, points: 438, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
@@ -1420,7 +1212,7 @@ spec:RegisterAuras( {
     },
     -- Deals Fire damage every $t1 sec.
     ignite = {
-        id = 413841,
+        id = 12654,
         duration = 4,
         tick_time = 2,
         max_stack = 1,
@@ -1437,13 +1229,9 @@ spec:RegisterAuras( {
     },
     -- Next Fire Blast stuns the target for $12355d.
     impact = {
-        id = 64343,
+        id = 12355,
         duration = 10,
         max_stack = 1,
-        copy = { 12355 },
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_STUN, points: 0, target: TARGET_UNIT_TARGET_ENEMY
     },
     -- Chance to be hit by all attacks and spells reduced by $s1%.
     improved_blink = {
@@ -1471,7 +1259,6 @@ spec:RegisterAuras( {
     },
     -- Spell power increased.
     incanters_absorption = {
-        id = 44413,
         duration = 10,
         max_stack = 1,
 
@@ -1517,11 +1304,11 @@ spec:RegisterAuras( {
     },
     -- Causes $s1 Fire damage every $t1 sec.  After $d or when the spell is dispelled, the target explodes causing $55362s1 Fire damage to all enemies within $55362a1 yards.
     living_bomb = {
-        id = 55360,
+        id = 44457,
         duration = 12,
         tick_time = 3,
         max_stack = 1,
-        copy = { 44461, 55361, 55362 },
+        copy = { 44459, 44461 },
 
         -- Effects:
         -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 306, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
@@ -1544,11 +1331,11 @@ spec:RegisterAuras( {
     },
     -- Resistance to all magic schools increased by $s1 and allows $s2% of your mana regeneration to continue while casting.  Duration of all harmful Magic effects reduced by $s3%.
     mage_armor = {
-        id = 43024,
+        id = 27125,
         duration = 1800,
         tick_time = 6,
         max_stack = 1,
-        copy = { 6117, 22782, 22783, 27125, 43023, 43024 },
+        copy = { 6117, 22782, 22783 },
 
         -- Effects:
         -- Rank 1 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 5, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
@@ -1581,10 +1368,10 @@ spec:RegisterAuras( {
     },
     -- Absorbs damage, draining mana instead.
     mana_shield = {
-        id = 43020,
+        id = 27131,
         duration = 60,
         max_stack = 1,
-        copy = { 1463, 8494, 8495, 10191, 10192, 10193, 27131, 43019, 43020 },
+        copy = { 1463, 8494, 8495, 10191, 10192, 10193 },
 
         -- Effects:
         -- Rank 1 #0 -- APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 120, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
@@ -1610,7 +1397,7 @@ spec:RegisterAuras( {
     },
     -- Copies of the caster that attack on their own.
     mirror_image = {
-        id = 55342,
+        id = 36847,
         duration = 30,
         tick_time = 1,
         max_stack = 1,
@@ -1622,7 +1409,6 @@ spec:RegisterAuras( {
     },
     -- Reduces the channeled duration of your next Arcane Missiles spell by $/1000;S1 secs, reduces the mana cost by $s3%, and the missiles fire every .5 secs.
     missile_barrage = {
-        id = 44401,
         duration = 15,
         max_stack = 1,
 
@@ -1639,11 +1425,11 @@ spec:RegisterAuras( {
     },
     -- Causes $43044s1 Fire damage to attackers.  Chance to receive a critical hit reduced by $s2%.  Critical strike rating increased by $s3% of Spirit.
     molten_armor = {
-        id = 43046,
+        id = 30482,
         duration = 1800,
         tick_time = 6,
         max_stack = 1,
-        copy = { 34913, 43045, 43046 },
+        copy = { 34913 },
 
         -- Effects:
         -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, points: 75, target: TARGET_UNIT_TARGET_ENEMY
@@ -1671,10 +1457,10 @@ spec:RegisterAuras( {
     },
     -- Cannot attack or cast spells.  Increased regeneration.
     polymorph = {
-        id = 61780,
+        id = 118,
         duration = 50,
         max_stack = 1,
-        copy = { 118, 12824, 12825, 12826, 28271, 28272, 61025, 61305, 61721, 61780 },
+        copy = { 12824, 12825, 12826, 28271, 28272 },
 
         -- Effects:
         -- Rank 1 #0 -- APPLY_AURA, MOD_CONFUSE, points: 0, target: TARGET_UNIT_TARGET_ENEMY
@@ -1718,11 +1504,11 @@ spec:RegisterAuras( {
     },
     -- $s2 Fire damage every $t2 seconds.
     pyroblast = {
-        id = 42891,
+        id = 33938,
         duration = 12,
         tick_time = 3,
         max_stack = 1,
-        copy = { 11366, 12505, 12522, 12523, 12524, 12525, 12526, 18809, 27132, 33938, 42890, 42891 },
+        copy = { 11366, 12505, 12522, 12523, 12524, 12525, 12526, 18809, 27132, 33938 },
 
         -- Effects:
         -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 1.9, points: 140, addl_points: 47, target: TARGET_UNIT_TARGET_ENEMY
@@ -1808,32 +1594,16 @@ spec:RegisterAuras( {
     },
     -- Replenishes $s1% of maximum mana per 5 sec.
     replenishment = {
-        id = 57669,
         duration = 15,
         max_stack = 1,
         shared = "player",
         dot = "buff",
     },
-    -- Frozen in place.
-    shattered_barrier = {
-        id = 55080,
-        duration = 8,
-        max_stack = 1,
-
-        -- Effects:
-        -- [55080] #0 -- APPLY_AURA, MOD_ROOT, mechanic: rooted, points: 0, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-
-        -- Affected by:
-        -- talent.frost_channeling[11160] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -4, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.frost_channeling[12518] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -7, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.frost_channeling[12519] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -10, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-    },
     -- Silenced.
     silenced_improved_counterspell = {
-        id = 55021,
+        id = 18469,
         duration = function() return 2 * talent.improved_counterspell.rank end,
         max_stack = 1,
-        copy = { 18469, 55021 },
 
         -- Effects:
         -- Rank 1 #0 -- APPLY_AURA, MOD_SILENCE, target: TARGET_UNIT_TARGET_ENEMY
@@ -1983,8 +1753,10 @@ local AURA_REMOVED = {
 
 local FORCED_RESETS = {}
 
-for _, aura in pairs( { "arcane_power", "clearcasting", "fingers_of_frost", "fireball_proc", "firestarter", "hot_streak", "missile_barrage", "presence_of_mind", "deep_freeze", "frost_nova", "frostbite", "shattered_barrier" } ) do
-    FORCED_RESETS[ spec.auras[ aura ].id ] = 1
+for _, aura in pairs( { "arcane_power", "clearcasting", "fireball_proc", "presence_of_mind", "frost_nova", "frostbite" } ) do
+    if spec.auras[ aura ] and spec.auras[ aura ].id then
+        FORCED_RESETS[ spec.auras[ aura ].id ] = 1
+    end
 end
 
 local lastFingersConsumed = 0
@@ -2004,20 +1776,10 @@ spec:RegisterCombatLogEvent( function( _, subtype, _, sourceGUID, sourceName, _,
         return
     end
 
-	if (sourceGUID == state.GUID) then
-        if subtype == 'SPELL_DAMAGE' then
-            if state.talent.hot_streak.enabled and heating_spells[spellID] == 1 then
-                local critical = select(7, ...)
-                if critical then
-                    heatingUp = true
-                else
-                    heatingUp = false
-                end
-            end
-        elseif subtype == 'SPELL_AURA_APPLIED' then
-            if state.talent.hot_streak.enabled and spellID == spec.auras.hot_streak.id then
-                heatingUp = false
-            end
+	if (sourceGUID == state.GUID) and subtype == 'SPELL_DAMAGE' then
+        if heating_spells[spellID] == 1 then
+            local critical = select(7, ...)
+            heatingUp = not not critical
         end
     end
 
@@ -2071,7 +1833,7 @@ spec:RegisterHook( "reset_precast", function()
         frostbolt_remains = max( 0, lastFrostboltCast + ( target.distance / action.frostbolt.velocity ) - query_time )
     end
 
-    if lastFingersConsumed == lastFrostboltCast and frostbolt_remains > 0 and frostbolt_remains < cooldown.deep_freeze.remains then
+    if lastFingersConsumed == lastFrostboltCast and frostbolt_remains > 0 then
         if buff.fingers_of_frost.up then 
             addStack( "fingers_of_frost" )
         else
@@ -2089,7 +1851,7 @@ end )
 spec:RegisterAbilities( {
     -- Amplifies magic used against the targeted party member, increasing damage taken from spells by up to $s1 and healing spells by up to $s2.  Lasts $d.
     amplify_magic = {
-        id = 43017,
+        id = 33946,
         cast = 0,
         cooldown = 0,
         gcd = "spell",
@@ -2132,49 +1894,12 @@ spec:RegisterAbilities( {
         -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
         -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
 
-        copy = { 1008, 8455, 10169, 10170, 27130, 33946, 43017 },
-    },
-
-    -- Launches several missiles at the enemy target, causing $s1 Arcane damage.
-    arcane_barrage = {
-        id = 44781,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = function() return 0.180 * ( 1 - 0.01 * ( talent.precision.rank + talent.arcane_focus.rank ) ) * ( talent.arcane_barrage.enabled and 0.8 or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = true,
-        velocity = 24,
-
-        handler = function()
-            removeDebuff( "player", "arcane_blast" )
-
-            -- Effects:
-            -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.714, points_per_level: 2.5, points: 385, addl_points: 85, target: TARGET_UNIT_TARGET_ENEMY
-            -- Rank 2 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.714, points_per_level: 15.5, points: 708, addl_points: 157, target: TARGET_UNIT_TARGET_ENEMY
-            -- Rank 3 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.714, points_per_level: 6.1, points: 935, addl_points: 209, target: TARGET_UNIT_TARGET_ENEMY
-        end,
-
-        impact = function()
-        end,
-
-        -- Affected by:
-        -- talent.arcane_focus[11222] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12839] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12840] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- [x] talent.arcane_barrage[63092] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -20, target: TARGET_UNIT_CASTER
-        -- aura.mirror_image[63093] #0 -- APPLY_AURA, DUMMY, target: TARGET_UNIT_CASTER
-
-        copy = { 44425, 44780, 44781 },
+        copy = { 1008, 8455, 10169, 10170, 27130, 33946 },
     },
 
     -- Blasts the target with energy, dealing $s1 Arcane damage.  Each time you cast Arcane Blast, the damage of all Arcane spells is increased by $36032s1% and mana cost of Arcane Blast is increased by $36032s2%.  Effect stacks up to $36032u times and lasts $36032d or until any Arcane damage spell except Arcane Blast is cast.
     arcane_blast = {
-        id = 42897,
+        id = 30451,
         cast = function() return ( buff.presence_of_mind.up or buff.clearcasting.up ) and 0 or 2.5 * haste end,
         cooldown = 0,
         gcd = "spell",
@@ -2254,12 +1979,12 @@ spec:RegisterAbilities( {
         -- aura.arcane_blast[36032] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 15, value: 64, schools: ['arcane'], target: TARGET_UNIT_CASTER
         -- [x] aura.arcane_blast[36032] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 175, target: TARGET_UNIT_CASTER
 
-        copy = { 30451, 42894, 42896, 42897 },
+        copy = { 30451 },
     },
 
     -- Infuses all party and raid members with brilliance, increasing their Intellect by $s1 for $d.
     arcane_brilliance = {
-        id = 43002,
+        id = 27127,
         cast = 0,
         cooldown = 0,
         gcd = "spell",
@@ -2291,12 +2016,12 @@ spec:RegisterAbilities( {
         -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
         -- [x] glyph.arcane_intellect[57924] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -50, target: TARGET_UNIT_CASTER
 
-        copy = { 23028, 27127, 43002, 61316, "dalaran_brilliance" },
+        copy = { 23028, 27127 },
     },
 
     -- Causes an explosion of arcane magic around the caster, causing $s1 Arcane damage to all targets within $a1 yards.
     arcane_explosion = {
-        id = 42921,
+        id = 27082,
         cast = 0,
         cooldown = 0,
         gcd = "spell",
@@ -2362,12 +2087,12 @@ spec:RegisterAbilities( {
         -- talent.burnout[44472] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
         -- [x] glyph.arcane_explosion[56360] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -10, target: TARGET_UNIT_CASTER
 
-        copy = { 1449, 8437, 8438, 8439, 10201, 10202, 27080, 27082, 42920, 42921 },
+        copy = { 1449, 8437, 8438, 8439, 10201, 10202, 27080, 27082 },
     },
 
     -- Increases the target's Intellect by $s1 for $d.
     arcane_intellect = {
-        id = 42995,
+        id = 27126,
         cast = 0,
         cooldown = 0,
         gcd = "spell",
@@ -2402,12 +2127,12 @@ spec:RegisterAbilities( {
         -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
         -- [x] glyph.arcane_intellect[57924] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -50, target: TARGET_UNIT_CASTER
 
-        copy = { 1459, 1460, 1461, 10156, 10157, 27126, 42995, 61024, "dalaran_intellect" },
+        copy = { 1459, 1460, 1461, 10156, 10157, 27126 },
     },
 
     -- Launches Arcane Missiles at the enemy, causing $7268s1 Arcane damage every $5143t2 sec for $5143d.
     arcane_missiles = {
-        id = 42846,
+        id = 38704,
         cast = function()
             local base = level < 16 and 3 or level < 24 and 4 or 5
             return ( buff.missile_barrage.up and 2.5 or base ) * haste
@@ -2469,7 +2194,7 @@ spec:RegisterAbilities( {
         -- talent.icy_veins[12472] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
         -- glyph.arcane_missiles[56363] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
 
-        copy = { 5143, 7269, 7270, 8419, 8418, 10273, 10274, 25346, 27076, 38700, 38704, 42844, 42846 },
+        copy = { 5143, 7269, 7270, 8419, 8418, 10273, 10274, 25346, 27076, 38700, 38704 },
     },
 
     -- When activated, your spells deal $s1% more damage while costing $s2% more mana to cast.  This effect lasts $D.
@@ -2502,7 +2227,7 @@ spec:RegisterAbilities( {
 
     -- A wave of flame radiates outward from the caster, damaging all enemies caught within the blast for $s1 Fire damage, knocking them back and dazing them for $d.
     blast_wave = {
-        id = 42945,
+        id = 33933,
         cast = 0,
         cooldown = 0,
         gcd = "spell",
@@ -2578,7 +2303,7 @@ spec:RegisterAbilities( {
         -- [x] glyph.blast_wave[62126] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -15, target: TARGET_UNIT_CASTER
         -- talent.combustion[28682] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
 
-        copy = { 11113, 13018, 13019, 13020, 13021, 27133, 33933, 42944, 42945 },
+        copy = { 11113, 13018, 13019, 13020, 13021, 27133, 33933 },
     },
 
     -- Teleports the caster $a1 yards forward, unless something is in the way.  Also frees the caster from stuns and bonds.
@@ -2620,7 +2345,7 @@ spec:RegisterAbilities( {
 
     -- Ice shards pelt the target area doing ${$42208m1*8*$<mult>} Frost damage over $10d.
     blizzard = {
-        id = 42940,
+        id = 27085,
         cast = 8,
         channeled = true,
         cooldown = 0,
@@ -2698,7 +2423,7 @@ spec:RegisterAbilities( {
         -- talent.burnout[44471] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 40, target: TARGET_UNIT_CASTER
         -- talent.burnout[44472] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
 
-        copy = { 42208, 42209, 42210, 42211, 42212, 42213, 42198, 42939, 42940 },
+        copy = { 42208, 42209, 42210, 42211, 42212, 42213, 42198, 27085 },
     },
 
     -- When activated, this spell finishes the cooldown on all Frost spells you recently cast.
@@ -2747,7 +2472,7 @@ spec:RegisterAbilities( {
 
     -- Targets in a cone in front of the caster take ${$m2*$<mult>} to ${$M2*$<mult>} Frost damage and are slowed by $s1% for $d.
     cone_of_cold = {
-        id = 42931,
+        id = 27087,
         cast = 0,
         cooldown = function() return 10 * ( 1 - min( 0.2, 0.07 * talent.ice_floes.rank ) ) end,
         gcd = "spell",
@@ -2862,7 +2587,7 @@ spec:RegisterAbilities( {
         -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
         -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
 
-        copy = { 120, 8492, 10159, 10160, 10161, 27087, 42930, 42931 },
+        copy = { 120, 8492, 10159, 10160, 10161, 27087 },
     },
 
     -- Conjures $s1 $lmuffin:muffins;, providing the mage and $ghis:her; allies with something to eat.; Conjured items disappear if logged out for more than 15 minutes.
@@ -2903,7 +2628,7 @@ spec:RegisterAbilities( {
 
     -- Conjures a mana agate that can be used to instantly restore $5405s1 mana.
     conjure_mana_gem = {
-        id = 42985,
+        id = 27101,
         cast = function() return buff.presence_of_mind.up and 0 or 3 * haste end,
         cooldown = 0,
         gcd = "spell",
@@ -2942,12 +2667,12 @@ spec:RegisterAbilities( {
         -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
         -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
 
-        copy = { 759, 3552, 10053, 10054, 27101, 42985 },
+        copy = { 759, 3552, 10053, 10054, 27101 },
     },
 
     -- Conjures $s1 Mana Pies providing the mage and $ghis:her; allies with something to eat.; Conjured items disappear if logged out for more than 15 minutes.
     conjure_refreshment = {
-        id = 42956,
+        id = 43988,
         cast = function() return buff.presence_of_mind.up and 0 or 3 * haste end,
         cooldown = 0,
         gcd = "spell",
@@ -2972,7 +2697,7 @@ spec:RegisterAbilities( {
         -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
         -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
 
-        copy = { 42955, 42956 },
+        copy = { 43987, 43988 },
     },
 
     -- Conjures $s1 $lbottle:bottles; of water, providing the mage and $ghis:her; allies with something to drink.; Conjured items disappear if logged out for more than 15 minutes.
@@ -3052,7 +2777,7 @@ spec:RegisterAbilities( {
 
     -- Dampens magic used against the targeted party member, decreasing damage taken from spells by up to $s1 and healing spells by up to $s2.  Lasts $d.
     dampen_magic = {
-        id = 43015,
+        id = 33944,
         cast = 0,
         cooldown = 0,
         gcd = "spell",
@@ -3095,43 +2820,12 @@ spec:RegisterAbilities( {
         -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
         -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
 
-        copy = { 604, 8450, 8451, 10173, 10174, 33944, 43015 },
-    },
-
-    -- Stuns the target for $d.  Only usable on Frozen targets.  Deals ${$71757m1*$<mult>} to ${$71757M1*$<mult>} damage to targets permanently immune to stuns.
-    deep_freeze = {
-        id = 44572,
-        cast = 0,
-        cooldown = 30,
-        gcd = "spell",
-
-        spend = 0.090,
-        spendType = "mana",
-
-        startsCombat = true,
-
-        debuff = function() return buff.fingers_of_frost.down and "frozen" or nil end,
-        handler = function()
-            removeStack( "fingers_of_frost" )
-            applyDebuff( "target", "deep_freeze" )
-
-            -- Effects:
-            -- [x] 0. APPLY_AURA, MOD_STUN, mechanic: stunned, points: 0, target: TARGET_UNIT_TARGET_ENEMY
-        end,
-
-        -- Affected by:
-        -- [x] aura.deep_freeze[63090.0] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 10, target: TARGET_UNIT_CASTER
-        -- [x] aura.fingers_of_frost[44544.0] APPLY_AURA, ABILITY_IGNORE_AURASTATE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_reach[16757.0] APPLY_AURA, ADD_PCT_MODIFIER, RANGE, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_reach[16758.0] APPLY_AURA, ADD_PCT_MODIFIER, RANGE, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[11207.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 33, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[12672.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 66, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[15047.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 100, target: TARGET_UNIT_CASTER
+        copy = { 604, 8450, 8451, 10173, 10174, 33944 },
     },
 
     -- Targets in a cone in front of the caster take $s1 Fire damage and are Disoriented and Snared for $d.  Any direct damaging attack will revive targets.  Turns off your attack when used.
     dragons_breath = {
-        id = 42950,
+        id = 33043,
         cast = 0,
         cooldown = 0,
         gcd = "spell",
@@ -3218,7 +2912,7 @@ spec:RegisterAbilities( {
         -- [ ] talent.world_in_flames[12349.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 4, target: TARGET_UNIT_CASTER
         -- [ ] talent.world_in_flames[12350.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 6, target: TARGET_UNIT_CASTER
 
-        copy = { 31661, 33041, 33042, 33043, 42949, 42950 },
+        copy = { 31661, 33041, 33042, 33043 },
     },
 
     -- While channeling this spell, you gain $o1% of your total mana over $d.
@@ -3263,7 +2957,7 @@ spec:RegisterAbilities( {
 
     -- Blasts the enemy for $s1 Fire damage.
     fire_blast = {
-        id = 42873,
+        id = 27079,
         cast = 0,
         cooldown = function() return 8 - talent.improved_fire_blast.rank end,
         gcd = "spell",
@@ -3343,12 +3037,12 @@ spec:RegisterAbilities( {
         -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
         -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
 
-        copy = { 2136, 2137, 2138, 8412, 8413, 10197, 10199, 27078, 27079, 42872, 42873 },
+        copy = { 2136, 2137, 2138, 8412, 8413, 10197, 10199, 27078, 27079 },
     },
 
     -- Absorbs $s1 Fire damage.  Lasts $d.
     fire_ward = {
-        id = 43010,
+        id = 27128,
         cast = 0,
         cooldown = 30,
         gcd = "spell",
@@ -3387,12 +3081,12 @@ spec:RegisterAbilities( {
         -- [ ] talent.molten_shields[13043.0] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 30, target: TARGET_UNIT_CASTER
         -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
 
-        copy = { 543, 8457, 8458, 10223, 10225, 27128, 43010 },
+        copy = { 543, 8457, 8458, 10223, 10225, 27128 },
     },
 
     -- Hurls a fiery ball that causes $s1 Fire damage and an additional $o2 Fire damage over $d.
     fireball = {
-        id = 42833,
+        id = 38692,
         cast = function()
             if buff.fireball_proc.up or buff.presence_of_mind.up then return 0 end
             local base = level > 23 and 3.5 or level > 17 and 3 or level > 11 and 2.5 or level > 5 and 2 or 1.5
@@ -3539,12 +3233,12 @@ spec:RegisterAbilities( {
         -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
 
 
-        copy = { 133, 143, 145, 3140, 8400, 8401, 8402, 10148, 10149, 10150, 10151, 25306, 27070, 38692, 42832, 42833 },
+        copy = { 133, 143, 145, 3140, 8400, 8401, 8402, 10148, 10149, 10150, 10151, 25306, 27070, 38692 },
     },
 
     -- Calls down a pillar of fire, burning all enemies within the area for $s1 Fire damage and an additional $o2 Fire damage over $d.
     flamestrike = {
-        id = 42926,
+        id = 27086,
         cast = function() return ( buff.firestarter.up or buff.presence_of_mind.up ) and 0 or 2 * haste end,
         cooldown = 0,
         gcd = "spell",
@@ -3660,43 +3354,7 @@ spec:RegisterAbilities( {
         -- [ ] talent.world_in_flames[12349.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 4, target: TARGET_UNIT_CASTER
         -- [ ] talent.world_in_flames[12350.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 6, target: TARGET_UNIT_CASTER
 
-        copy = { 2120, 2121, 8422, 8423, 10215, 10216, 27086, 42925, 42926 },
-    },
-
-    -- Increases the target's chance to critically hit with spells by $s1%.  When the target critically hits the caster's chance to critically hit with spells is increased by $54648s1% for $54648d.  Cannot be cast on self.
-    focus_magic = {
-        id = 54646,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = 0.060,
-        spendType = "mana",
-
-        startsCombat = false,
-
-        usable = function() return group, "cannot cast on self" end,
-        handler = function()
-            active_dot.focus_magic = active_dot.focus_magic + 1
-
-            -- Effects:
-            -- [x] 0. APPLY_AURA, MOD_SPELL_CRIT_CHANCE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ALLY
-            -- [ ] 1. DUMMY, NONE
-        end,
-
-        -- Affected by:
-        -- [ ] talent.arcane_focus[11222.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[12839.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[12840.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[11210.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[11247.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[12606.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31584.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31585.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31586.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
+        copy = { 2120, 2121, 8422, 8423, 10215, 10216, 27086 },
     },
 
     -- Increases Armor by $s1.  If an enemy strikes the caster, they may have their movement slowed by $6136s1% and the time between their attacks increased by $6136s2% for $6136d.  Only one type of Armor spell can be active on the Mage at any time.  Lasts $d.
@@ -3745,7 +3403,7 @@ spec:RegisterAbilities( {
 
     -- Blasts enemies near the caster for ${$m1*$<mult>} to ${$M1*$<mult>} Frost damage and freezes them in place for up to $d.  Damage caused may interrupt the effect.
     frost_nova = {
-        id = 42917,
+        id = 27088,
         cast = 0,
         cooldown = function() return 25 * ( 1 - ( min( 0.2, 0.07 * talent.ice_floes.rank ) ) ) end,
         gcd = "spell",
@@ -3821,12 +3479,12 @@ spec:RegisterAbilities( {
         -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
         -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
 
-        copy = { 122, 865, 6131, 10230, 27088, 42917 },
+        copy = { 122, 865, 6131, 10230, 27088 },
     },
 
     -- Absorbs $s1 Frost damage.  Lasts $d.
     frost_ward = {
-        id = 43012,
+        id = 28609,
         cast = 0,
         cooldown = 30,
         gcd = "spell",
@@ -3864,12 +3522,12 @@ spec:RegisterAbilities( {
         -- [ ] talent.molten_shields[13043.0] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 30, target: TARGET_UNIT_CASTER
         -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
 
-        copy = { 6143, 8461, 8462, 10177, 28609, 32796, 43012 },
+        copy = { 6143, 8461, 8462, 10177, 28609, 32796 },
     },
 
     -- Launches a bolt of frost at the enemy, causing ${$m2*$<mult>} to ${$M2*$<mult>} Frost damage and slowing movement speed by $s1% for $d.
     frostbolt = {
-        id = 42842,
+        id = 38697,
         cast = function() return buff.presence_of_mind.up and 0 or 1.5 - ( 0.1 * ( talent.improved_frostbolt.rank + talent.empowered_frostbolt.rank ) ) end,
         cooldown = 0,
         gcd = "spell",
@@ -4015,98 +3673,12 @@ spec:RegisterAbilities( {
         -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
         -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
 
-        copy = { 116, 205, 837, 7322, 8406, 8407, 8408, 10179, 10180, 10181, 25304, 27071, 27072, 38697, 42841, 42842 },
-    },
-
-    -- Launches a bolt of frostfire at the enemy, causing ${$m2*$<mult>} to ${$M2*$<mult>} Frostfire damage, slowing movement speed by $s1% and causing an additional $o3 Frostfire damage over $d. This spell will be checked against the lower of the target's Frost and Fire resists.
-    frostfire_bolt = {
-        id = 47610,
-        cast = function() return ( buff.fireball_proc.up or buff.presence_of_mind.up ) and 0 or 3 * haste end,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = function() return buff.fireball_proc.up and 0 or 0.140 * ( buff.arcane_power.up and 1.2 or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = true,
-        velocity = 28,
-
-        handler = function()
-            if buff.fireball_proc.up then removeBuff( "fireball_proc" )
-            elseif buff.presence_of_mind.up then removeBuff( "presence_of_mind" ) end
-            if buff.fingers_of_frost.up then removeStack( "fingers_of_frost" ) end
-        end,
-
-        impact = function()
-            applyDebuff( "frostfire_bolt" )
-
-            -- Effects:
-            -- [x] 1.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 1.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 3.9, points: 628, addl_points: 103, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 1.2 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, points: 20, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 2.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 2.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 4.5, points: 721, addl_points: 117, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 2.2 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, points: 30, target: TARGET_UNIT_TARGET_ENEMY
-        end,
-
-        -- Affected by:
-        -- [x] aura.arcane_power[12042.2] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[11129.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[28682.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
-        -- [x] aura.fireball_proc[57761.0] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- [x] aura.fireball_proc[57761.1] APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100000, target: TARGET_UNIT_CASTER
-        -- [ ] aura.frostbite[11071.0] APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, points: 5, target: TARGET_UNIT_CASTER
-        -- [ ] aura.frostbite[12496.0] APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, triggers: frostbite, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] aura.frostbite[12497.0] APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, triggers: frostbite, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] aura.frostfire[61205.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] aura.frostfire[61205.1] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2
-        -- [ ] aura.improved_scorch[11095.1] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- [ ] aura.improved_scorch[12872.1] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] aura.improved_scorch[12873.1] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- [x] aura.presence_of_mind[12043.0] APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[11210.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burning_soul[11083.0] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 35, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burning_soul[12351.0] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 70, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44566.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44566.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44567.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44567.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44568.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44568.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44570.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44570.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44571.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 5, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44571.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.empowered_fire[31656.0] APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 5, target: TARGET_UNIT_CASTER
-        -- [ ] talent.empowered_fire[31657.0] APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.empowered_fire[31658.0] APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[11124.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[11124.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12378.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12378.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12398.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12398.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12399.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12399.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12400.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12400.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[11207.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 33, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[12672.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 66, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[15047.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 100, target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[11175.0] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 1000, target: TARGET_UNIT_CASTER
-        -- [ ] talent.permafrost[11175.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -4, target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[12569.0] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 2000, target: TARGET_UNIT_CASTER
-        -- [ ] talent.permafrost[12569.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -7, target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[12571.0] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 3000, target: TARGET_UNIT_CASTER
-        -- [ ] talent.permafrost[12571.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -10, target: TARGET_UNIT_CASTER
-
-        copy = { 44614, 47610 },
+        copy = { 116, 205, 837, 7322, 8406, 8407, 8408, 10179, 10180, 10181, 25304, 27071, 27072, 38697 },
     },
 
     -- Increases Armor by $s1 and Frost resistance by $s3.   If an enemy strikes the caster, they may have their movement slowed by $7321s1% and the time between their attacks increased by $7321s2% for $7321d.  Only one type of Armor spell can be active on the Mage at any time.  Lasts $d.
     ice_armor = {
-        id = 43008,
+        id = 27124,
         cast = 0,
         cooldown = 0,
         gcd = "spell",
@@ -4158,12 +3730,12 @@ spec:RegisterAbilities( {
         -- [ ] talent.shatter[12982.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
         -- [ ] talent.shatter[12983.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
 
-        copy = { 7302, 7320, 10219, 10220, 27124, 43008 },
+        copy = { 7302, 7320, 10219, 10220, 27124 },
     },
 
     -- Instantly shields you, absorbing $s1 damage.  Lasts $d.  While the shield holds, spellcasting will not be delayed by damage.
     ice_barrier = {
-        id = 43039,
+        id = 27134,
         cast = 0,
         cooldown = function() return 30 * ( 1 - 0.01 * talent.precision.rank ) * ( 1 - 0.1 * talent.cold_as_ice.rank ) * ( talent.frost_channeling.enabled and ( 0.99 - 0.03 * talent.frost_channeling.rank ) or 1 ) end,
         gcd = "spell",
@@ -4203,7 +3775,7 @@ spec:RegisterAbilities( {
         -- [x] talent.frost_channeling[12519.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -10, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
         -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
 
-        copy = { 11426, 13031, 13032, 13033, 27134, 33405, 43038, 43039 },
+        copy = { 11426, 13031, 13032, 13033, 27134, 33405 },
     },
 
     -- You become encased in a block of ice, protecting you from all physical attacks and spells for $d, but during that time you cannot attack, move or cast spells.  Also causes Hypothermia, preventing you from recasting Ice Block for $41425d.
@@ -4239,7 +3811,7 @@ spec:RegisterAbilities( {
 
     -- Deals ${$m1*$<mult>} to ${$M1*$<mult>} Frost damage to an enemy target.  Causes triple damage against Frozen targets.
     ice_lance = {
-        id = 42914,
+        id = 30455,
         cast = 0,
         cooldown = 0,
         gcd = "spell",
@@ -4304,7 +3876,7 @@ spec:RegisterAbilities( {
         -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
         -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
 
-        copy = { 30455, 42913, 42914 },
+        copy = { 30455 },
     },
 
     -- Hastens your spellcasting, increasing spell casting speed by $s1% and reduces the pushback suffered from damaging attacks while casting by $s2%.  Lasts $d.
@@ -4383,7 +3955,7 @@ spec:RegisterAbilities( {
 
     -- The target becomes a Living Bomb, taking $o1 Fire damage over $d.  After $d or when the spell is dispelled, the target explodes dealing $44461s1 Fire damage to all enemies within $44461a1 yards.
     living_bomb = {
-        id = 55362,
+        id = 44461,
         cast = 0,
         cooldown = 0,
         gcd = "spell",
@@ -4416,12 +3988,12 @@ spec:RegisterAbilities( {
         -- [ ] talent.flame_throwing[11100.0] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
         -- [ ] talent.flame_throwing[12353.0] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
 
-        copy = { 44461, 55361, 55362 },
+        copy = { 44457, 44459, 44461 },
     },
 
     -- Increases your resistance to all magic by $s1 and allows $s2% of your mana regeneration to continue while casting.  Only one type of Armor spell can be active on the Mage at any time.  Lasts $d.
     mage_armor = {
-        id = 43024,
+        id = 27125,
         cast = 0,
         cooldown = 0,
         gcd = "spell",
@@ -4466,12 +4038,12 @@ spec:RegisterAbilities( {
         -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
         -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
 
-        copy = { 6117, 22782, 22783, 27125, 43023, 43024 },
+        copy = { 6117, 22782, 22783, 27125 },
     },
 
     -- Absorbs $s1 damage, draining mana instead.  Drains $e mana per damage absorbed.  Lasts $d.
     mana_shield = {
-        id = 43020,
+        id = 27131,
         cast = 0,
         cooldown = 0,
         gcd = "spell",
@@ -4507,12 +4079,12 @@ spec:RegisterAbilities( {
         -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
         -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
 
-        copy = { 1463, 8494, 8495, 10191, 10192, 10193, 27131, 43019, 43020 },
+        copy = { 1463, 8494, 8495, 10191, 10192, 10193, 27131 },
     },
 
     -- Creates $<images> copies of the caster nearby, which cast spells and attack the mage's enemies.  Lasts $55342d.
     mirror_image = {
-        id = 55342,
+        id = 36847,
         cast = 0,
         cooldown = 180,
         gcd = "spell",
@@ -4535,7 +4107,7 @@ spec:RegisterAbilities( {
 
     -- Causes $34913s1 Fire damage when hit, increases your critical strike rating by $30482s3% of your Spirit, and reduces the chance you are critically hit by $30482s2%.  Only one type of Armor spell can be active on the Mage at any time.  Lasts $30482d.
     molten_armor = {
-        id = 43046,
+        id = 30482,
         cast = 0,
         cooldown = 0,
         gcd = "spell",
@@ -4580,7 +4152,7 @@ spec:RegisterAbilities( {
         -- [ ] talent.torment_the_weak[55339.0] APPLY_AURA, DUMMY, points: 8, target: TARGET_UNIT_CASTER
         -- [ ] talent.torment_the_weak[55340.0] APPLY_AURA, DUMMY, points: 12, target: TARGET_UNIT_CASTER
 
-        copy = { 34913, 43045, 43046 },
+        copy = { 30482, 34913 },
     },
 
     -- Transforms the enemy into a sheep, forcing it to wander around for up to $d.  While wandering, the sheep cannot attack or cast spells but will regenerate very quickly.  Any damage will transform the target back into its normal form.  Only one target can be polymorphed at a time.  Only works on Beasts, Humanoids and Critters.
@@ -4626,7 +4198,7 @@ spec:RegisterAbilities( {
         -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
         -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
 
-        copy = { 118, 12824, 12825, 12826, 28271, 28272, 61025, 61305, 61721, 61780 },
+        copy = { 118, 12824, 12825, 12826, 28271, 28272 },
     },
 
     -- When activated, your next Mage spell with a casting time less than 10 sec becomes an instant cast spell.
@@ -4656,9 +4228,9 @@ spec:RegisterAbilities( {
 
     -- Hurls an immense fiery boulder that causes $s1 Fire damage and an additional $o2 Fire damage over $d.
     pyroblast = {
-        id = 42891,
-        cast = function() return buff.presence_of_mind.up and 0 or 5 - ( talent.fiery_payback.enabled and health.pct < 35 and ( 1.75 * buff.fiery_payback.rank ) or 0 ) end,
-        cooldown = function() return ( talent.fiery_payback.enabled and health.pct < 35 and ( 2.5 * buff.fiery_payback.rank ) or 0 ) end,
+        id = 33938,
+        cast = function() return buff.presence_of_mind.up and 0 or 5 end,
+        cooldown = 0,
         gcd = "spell",
 
         spend = function() return ( buff.clearcasting.up or buff.hot_streak.up ) and 0 or 0.220 * ( 1 - 0.01 * talent.precision.rank ) * ( buff.arcane_power.up and 1.2 or 1 ) end,
@@ -4783,7 +4355,7 @@ spec:RegisterAbilities( {
         -- [ ] talent.world_in_flames[12349.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 4, target: TARGET_UNIT_CASTER
         -- [ ] talent.world_in_flames[12350.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 6, target: TARGET_UNIT_CASTER
 
-        copy = { 11366, 12505, 12522, 12523, 12524, 12525, 12526, 18809, 27132, 33938, 42890, 42891 },
+        copy = { 11366, 12505, 12522, 12523, 12524, 12525, 12526, 18809, 27132, 33938 },
     },
 
     -- Removes $m1 Curse from a friendly target.
@@ -4822,7 +4394,7 @@ spec:RegisterAbilities( {
     -- TODO: Replace with Use Mana Gem.
     -- Restores $s1 mana.
     replenish_mana = {
-        id = 42987,
+        id = 27103,
         name = "|cff00ccff[Mana Gem]|r",
         link = "|cff00ccff[Mana Gem]|r",
         known = function()
@@ -4864,12 +4436,12 @@ spec:RegisterAbilities( {
         -- talent.icy_veins[12472] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
         -- glyph.mana_gem[56367] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 40, target: TARGET_UNIT_CASTER
 
-        copy = { 5405, 10052, 10057, 10058, 27103, 42987, "mana_gem", "use_mana_gem" },
+        copy = { 5405, 10052, 10057, 10058, 27103, "mana_gem", "use_mana_gem" },
     },
 
     -- Scorch the enemy for $s1 Fire damage.
     scorch = {
-        id = 42859,
+        id = 27074,
         cast = function() return buff.presence_of_mind.up and 0 or 1.5 * haste end,
         cooldown = 0,
         gcd = "spell",
@@ -4968,7 +4540,7 @@ spec:RegisterAbilities( {
         -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
         -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
 
-        copy = { 2948, 8444, 8445, 8446, 10205, 10206, 10207, 27073, 27074, 42858, 42859 },
+        copy = { 2948, 8444, 8445, 8446, 10205, 10206, 10207, 27073, 27074 },
     },
 
     -- Reduces target's movement speed by $s1%, increases the time between ranged attacks by $s2% and increases casting time by $s3%.  Lasts $d.  Slow can only affect one target at a time.

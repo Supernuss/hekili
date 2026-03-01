@@ -8,10 +8,10 @@ actions+=/run_action_list,name=st,if=active_enemies<2
 actions+=/run_action_list,name=aoe,if=active_enemies>1
 actions+=/run_action_list,name=life,if=health.pct<25	
 
-actions.st+=/group_curse,if=debuff.my_curse.down&curse_grouped
+actions.st+=/curse_of_the_elements,if=debuff.my_curse.down&curse_grouped
 actions.st+=/immolate,if=!ticking|dot.immolate.remains<1
 actions.st+=/conflagrate
-actions.st+=/solo_curse,if=debuff.my_curse.down
+actions.st+=/curse_of_agony,if=debuff.my_curse.down&!curse_grouped
 actions.st+=/life_tap,if=glyph.life_tap.enabled&buff.life_tap.down
 actions.st+=/chaos_bolt
 actions.st+=/corruption,if=!ticking|dot.corruption.remains<2

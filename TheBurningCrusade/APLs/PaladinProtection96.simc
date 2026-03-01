@@ -26,7 +26,6 @@ actions+=/seal_of_vengeance,if=buff.seal.down&active_enemies=1
 actions+=/avenging_wrath
 actions+=/use_items
 actions+=/potion
-actions+=/hyperspeed_acceleration,use_off_gcd=1
 
 actions+=/hammer_of_wrath,if=target.health.pct<=20&(action.shield_of_righteousness.time_since<?action.hammer_of_the_righteous.time_since)<settings.min_six_delay
 actions+=/run_action_list,name=nine,if=(action.shield_of_righteousness.time_since<?action.hammer_of_the_righteous.time_since)<settings.min_six_delay-settings.max_wait_for_six&!(cooldown.hammer_of_the_righteous.up&cooldown.shield_of_righteousness.up)
@@ -46,7 +45,7 @@ actions.nine+=/consecration,if=!buff.active_consecration.up&active_enemies>1
 actions.nine+=/avengers_shield,if=active_enemies>1
 actions.nine+=/judgement_of_wisdom,if=!debuff.judgement.up
 actions.nine+=/avengers_shield,if=glyph.avengers_shield.enabled
-actions.nine+=/consecration,if=!buff.active_consecration.up&ttd>4&mana.percent>(settings.judgement_of_wisdom_threshold/4)
+actions.nine+=/consecration,if=!buff.active_consecration.up&ttd>4&mana.percent>(settings.judgement_of_wisdom_threshold*0.25)
 actions.nine+=/holy_wrath,if=(target.is_demon|target.is_undead)&((settings.squeezeHolyWrath&(cooldown.consecration.remains>6.85))|active_enemies>=settings.holy_wrath_threshold)
 actions.nine+=/judgement_of_wisdom,if=mana.percent<settings.judgement_of_wisdom_threshold
 actions.nine+=/judgement_of_light

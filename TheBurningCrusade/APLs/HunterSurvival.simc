@@ -10,7 +10,7 @@ actions+=/hunters_mark,if=down
 actions+=/rapid_fire
 actions+=/call_of_the_wild
 actions+=/kill_command
-## actions+=/furious_howl
+## furious_howl intentionally omitted
 actions+=/potion
 actions+=/use_items
 actions+=/explosive_shot,if=debuff.explosive_shot.down
