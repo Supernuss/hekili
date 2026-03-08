@@ -1,0 +1,16 @@
+actions.precombat+=/stealth
+actions.precombat+=/potion
+
+actions+=/use_items,use_off_gcd=1
+actions+=/potion,use_off_gcd=1
+actions+=/kick,use_off_gcd=1
+actions+=/shiv,if=wowsim_rogue_deadly_poison_refresh
+actions+=/slice_and_dice,if=wowsim_rogue_snd_start
+actions+=/expose_armor,if=wowsim_rogue_expose_urgent
+actions+=/slice_and_dice,if=wowsim_rogue_snd_refresh
+actions+=/expose_armor,if=wowsim_rogue_expose_pool_window
+actions+=/slice_and_dice,if=wowsim_rogue_snd_pool_window
+actions+=/rupture,if=wowsim_rogue_rupture_window
+actions+=/eviscerate,if=wowsim_rogue_execute_finisher
+actions+=/eviscerate,if=combo_points.current=5&buff.slice_and_dice.remains>2&wowsim_rogue_finisher_expose_gate
+actions+=/hemorrhage,if=combo_points.current<5

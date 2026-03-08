@@ -133,6 +133,14 @@ spec:RegisterAuras( {
         -- Aura targets: TARGET_UNIT_LASTTARGET_AREA_PARTY, TARGET_UNIT_TARGET_ALLY
     },
 
+    arcane_blast = {
+        id = 36032,
+        duration = 8,
+        max_stack = 3,
+        -- Aura effects: ADD_PCT_MODIFIER, MOD_DECREASE_SPEED
+        -- Aura targets: TARGET_UNIT_CASTER
+    },
+
     arcane_intellect = {
         id = 1459,
         duration = 1800,
@@ -552,6 +560,39 @@ spec:RegisterAbilities( {
         handler = function ()
             applyBuff( "arcane_brilliance" )
         end,
+    },
+
+-- Arcane Blast - Blasts the target with energy, dealing Arcane damage. Each time you cast Arcane Blast, damage is increased and mana cost is increased while cast time is reduced.
+    arcane_blast = {
+        id = 30451,
+        cast = function () return max( 0, 2.5 + -0.333 * ( buff.arcane_blast.stack or 0 ) ) end,
+        gcd = "spell",
+        school = "arcane",
+        texture = 136096,
+        range = 30,
+        spend = function ()
+            if has_arcane_concentration() then return 0 end
+            return 195 * ( 1 + 0.75 * ( buff.arcane_blast.stack or 0 ) )
+        end,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 30451 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 668, addl_points: 105, points_per_level: 0, sp_bonus: 0.714, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 30451 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            if buff.arcane_blast.up then
+                applyBuff( "arcane_blast", nil, min( buff.arcane_blast.max_stack, ( buff.arcane_blast.stack or 0 ) + 1 ) )
+            else
+                applyBuff( "arcane_blast", nil, 1 )
+            end
+            consume_arcane_concentration()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "arcane_blast" ) end
+        end,
+
+        proc_chance = 100,
     },
 
 -- Arcane Explosion - Causes an explosion of arcane magic around the caster, causing 32-377 Arcane damage to all targets within $a1 yards.
@@ -2655,6 +2696,31 @@ if spec.RegisterResource then
 end
 
 spec:RegisterRanges( "fire_blast", "flamestrike", "frostbolt", "scorch", "fireball", "pyroblast" )
+
+spec:RegisterStateExpr( "wowsim_mage_arcane_drop_stack_window", function()
+    return mana.pct < 30 and buff.arcane_blast.remains < cast_time.arcane_blast and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_mage_arcane_regen_missiles", function()
+    return mana.pct < 30 and buff.arcane_blast.remains >= cast_time.arcane_blast and buff.arcane_blast.stack >= 3 and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_mage_arcane_regen_frostbolt", function()
+    return mana.pct < 30 and buff.arcane_blast.remains >= cast_time.arcane_blast and buff.arcane_blast.stack < 3 and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_mage_fire_maintain_vulnerability_stacks", function()
+    return debuff.fire_vulnerability.stack < 5 and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_mage_fire_refresh_vulnerability", function()
+    return debuff.fire_vulnerability.remains < 5.5 and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_mage_fire_flamestrike_aoe", function()
+    return active_enemies >= 3 and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_mage_fire_blast_single_target", function()
+    return active_enemies < 3 and cooldown.fire_blast.remains == 0 and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_mage_frost_blizzard_aoe", function()
+    return active_enemies >= 3 and 1 or 0
+end )
 
 spec:RegisterOptions( {
     enabled = true,

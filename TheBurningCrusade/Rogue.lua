@@ -1926,6 +1926,34 @@ end
 
 spec:RegisterRanges( "envenom", "eviscerate", "garrote", "gouge", "kick", "rupture" )
 
+spec:RegisterStateExpr( "wowsim_rogue_expose_urgent", function()
+    return settings.maintain_expose and combo_points.current == 5 and ( not debuff.major_armor_reduction.up or debuff.expose_armor.remains < 1 ) and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_rogue_expose_pool_window", function()
+    return settings.maintain_expose and combo_points.current == 5 and debuff.expose_armor.remains < 2 and energy.current >= 50 and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_rogue_snd_pool_window", function()
+    return combo_points.current == 5 and buff.slice_and_dice.remains < 2 and energy.current >= 50 and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_rogue_finisher_expose_gate", function()
+    return ( not settings.maintain_expose or debuff.expose_armor.remains > 3 or not debuff.major_armor_reduction.up ) and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_rogue_rupture_window", function()
+    return combo_points.current >= 4 and not dot.rupture.ticking and target.time_to_die >= 10 and buff.slice_and_dice.remains > 2 and wowsim_rogue_finisher_expose_gate and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_rogue_deadly_poison_refresh", function()
+    return debuff.deadly_poison.up and debuff.deadly_poison.remains < 2 and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_rogue_snd_start", function()
+    return buff.slice_and_dice.down and combo_points.current >= 1 and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_rogue_snd_refresh", function()
+    return buff.slice_and_dice.remains < 1 and combo_points.current >= 1 and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_rogue_execute_finisher", function()
+    return combo_points.current >= 3 and target.time_to_die < 10 and 1 or 0
+end )
+
 spec:RegisterOptions( {
     enabled = true,
 

@@ -1,0 +1,15 @@
+actions.precombat+=/aspect_of_the_hawk,if=buff.aspect_of_the_hawk.down
+actions.precombat+=/aimed_shot,if=talent.aimed_shot.enabled
+actions.precombat+=/potion
+
+actions+=/use_items,use_off_gcd=1
+actions+=/potion,use_off_gcd=1
+actions+=/aspect_of_the_viper,if=wowsim_hunter_bm_swap_to_viper
+actions+=/aspect_of_the_hawk,if=wowsim_hunter_bm_swap_to_hawk
+actions+=/serpent_sting,if=!dot.serpent_sting.ticking
+actions+=/bestial_wrath
+actions+=/rapid_fire
+actions+=/kill_command
+actions+=/auto_shot,if=wowsim_hunter_bm_auto_window
+actions+=/multi_shot,if=wowsim_hunter_bm_multishot_window
+actions+=/auto_shot

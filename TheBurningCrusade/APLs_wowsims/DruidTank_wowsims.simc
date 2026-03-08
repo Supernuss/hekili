@@ -1,0 +1,13 @@
+actions.precombat+=/dire_bear_form,if=buff.dire_bear_form.down
+actions.precombat+=/mark_of_the_wild,if=buff.mark_of_the_wild.down
+actions.precombat+=/thorns,if=buff.thorns.down
+actions.precombat+=/enrage
+
+actions+=/dire_bear_form,if=buff.dire_bear_form.down
+actions+=/lacerate,if=debuff.lacerate.stack=5&dot.lacerate.remains<1.5
+actions+=/faerie_fire_feral,if=debuff.faerie_fire_feral.remains<3
+actions+=/demoralizing_roar,if=debuff.demoralizing_roar.remains<2
+actions+=/mangle_bear
+actions+=/swipe,if=wowsim_druid_tank_swipe_ap
+actions+=/lacerate,if=rage.current>=action.lacerate.spend
+actions+=/maul,if=rage.current>=wowsim_tank_maul_rage_threshold

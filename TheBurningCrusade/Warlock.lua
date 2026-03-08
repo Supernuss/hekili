@@ -2641,6 +2641,25 @@ end
 
 spec:RegisterRanges( "shadowburn", "conflagrate", "corruption", "curse_of_agony", "curse_of_doom", "drain_life" )
 
+spec:RegisterStateExpr( "wowsim_warlock_dot_doom_window", function()
+    return target.time_to_die >= 60 and debuff.curse_of_doom.down and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_warlock_dot_agony_window", function()
+    return target.time_to_die < 60 and target.time_to_die > 30 and debuff.curse_of_agony.down and debuff.curse_of_doom.down and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_warlock_dot_immolate_upkeep", function()
+    return debuff.immolate.down and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_warlock_shadowburn_finish_threshold", function()
+    return 20
+end )
+spec:RegisterStateExpr( "wowsim_warlock_life_tap_urgent_mana", function()
+    return mana.pct < 20 and target.time_to_die > 20 and cooldown.inferno.remains < 15 and 1 or 0
+end )
+spec:RegisterStateExpr( "wowsim_warlock_life_tap_fill_mana", function()
+    return mana.pct < 60 and target.time_to_die > 20 and cooldown.inferno.remains >= 2 and cooldown.inferno.remains < 15 and 1 or 0
+end )
+
 spec:RegisterOptions( {
     enabled = true,
 

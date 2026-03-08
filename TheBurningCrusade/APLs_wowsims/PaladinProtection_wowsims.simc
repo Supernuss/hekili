@@ -1,0 +1,16 @@
+actions.precombat+=/blessing_of_kings,if=buff.blessing_of_kings.down
+actions.precombat+=/righteous_fury,if=buff.righteous_fury.down
+actions.precombat+=/retribution_aura,if=buff.retribution_aura.down
+actions.precombat+=/seal_of_righteousness,if=buff.seal_of_righteousness.down
+
+actions+=/use_items,use_off_gcd=1
+actions+=/potion,use_off_gcd=1
+actions+=/seal_of_wisdom,if=wowsim_paladin_prot_apply_sow_jow_ready
+actions+=/judgement_of_wisdom,if=buff.seal_of_wisdom.up
+actions+=/seal_of_wisdom,if=wowsim_paladin_prot_apply_sow_jow_wait
+actions+=/seal_of_righteousness,if=wowsim_paladin_prot_swap_to_sor
+actions+=/consecration
+actions+=/judgement_of_righteousness,if=wowsim_paladin_prot_judge_sor
+actions+=/seal_of_righteousness,if=buff.seal_of_righteousness.down
+actions+=/exorcism,if=wowsim_paladin_prot_exorcism_mana
+actions+=/holy_shield,if=buff.holy_shield.down

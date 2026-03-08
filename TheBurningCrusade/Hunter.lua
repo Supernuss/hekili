@@ -2921,6 +2921,48 @@ spec:RegisterOptions( {
     package = "Beast\ Mastery\ \(wowtbc\.gg\)",
 } )
 
+spec:RegisterStateExpr( "wowsim_hunter_bm_swap_to_viper", function()
+    if mana.pct <= 20 and buff.aspect_of_the_viper.down then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_hunter_bm_swap_to_hawk", function()
+    if mana.pct >= 30 and buff.aspect_of_the_hawk.down then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_hunter_bm_auto_window", function()
+    if cooldown.auto_shot.remains <= gcd.remains or mana.pct <= 20 then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_hunter_bm_multishot_window", function()
+    if cooldown.auto_shot.remains > gcd.remains then return 1 end
+    return 0
+end )
+
+spec:RegisterStateExpr( "wowsim_hunter_sv_swap_to_viper", function()
+    if mana.pct <= 30 and buff.aspect_of_the_viper.down then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_hunter_sv_swap_to_hawk", function()
+    if mana.pct >= 50 and buff.aspect_of_the_hawk.down then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_hunter_sv_weave_proxy_raptor", function()
+    if cooldown.auto_shot.remains > 0.5 and cooldown.auto_shot.remains > gcd.remains and target.time_to_die > 15 then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_hunter_sv_auto_window", function()
+    if cooldown.auto_shot.remains <= gcd.remains or mana.pct <= 30 then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_hunter_sv_multishot_window", function()
+    if cooldown.auto_shot.remains > gcd.remains then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_hunter_sv_arcane_window", function()
+    if cooldown.auto_shot.remains > gcd.remains and cooldown.auto_shot.remains < 1.5 then return 1 end
+    return 0
+end )
+
 --[[
 spec:RegisterSetting( "scaffold_strict_range", false, {
     name = "Scaffold: Strict Range Checks",

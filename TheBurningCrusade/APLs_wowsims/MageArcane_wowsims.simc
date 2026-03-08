@@ -1,0 +1,15 @@
+actions.precombat+=/arcane_intellect,if=buff.arcane_intellect.down&buff.arcane_brilliance.down
+actions.precombat+=/mage_armor,if=buff.mage_armor.down
+actions.precombat+=/potion
+
+actions+=/use_items,use_off_gcd=1
+actions+=/potion,use_off_gcd=1
+actions+=/arcane_explosion,if=active_enemies>=3
+actions+=/arcane_power,if=mana.pct>=30&active_enemies<3
+actions+=/presence_of_mind,if=buff.arcane_power.up&mana.pct>=30&active_enemies<3
+actions+=/icy_veins,if=mana.pct>=30&active_enemies<3
+actions+=/arcane_blast,if=mana.pct>=20|buff.bloodlust.up&mana.pct>=10
+actions+=/arcane_blast,if=wowsim_mage_arcane_drop_stack_window=1
+actions+=/arcane_missiles,if=wowsim_mage_arcane_regen_missiles=1
+actions+=/frostbolt,if=wowsim_mage_arcane_regen_frostbolt=1
+actions+=/arcane_blast

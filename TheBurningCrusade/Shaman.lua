@@ -2310,6 +2310,64 @@ spec:RegisterOptions( {
     package = "Enhancement",
 } )
 
+spec:RegisterStateExpr( "wowsim_shaman_ele_maintain_earth_totem", function()
+    if totem.earth.down then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_shaman_ele_maintain_air_totem", function()
+    if totem.air.down then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_shaman_ele_maintain_water_totem", function()
+    if totem.water.down then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_shaman_ele_maintain_fire_totem", function()
+    if totem.fire.down then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_shaman_ele_chain_lightning_aoe", function()
+    if active_enemies >= 2 then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_shaman_ele_chain_lightning_clearcasting", function()
+    if buff.clearcasting.react and cooldown.chain_lightning.ready then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_shaman_ele_chain_lightning_mana", function()
+    if mana.pct > 70 and cooldown.chain_lightning.ready then return 1 end
+    return 0
+end )
+
+spec:RegisterStateExpr( "wowsim_shaman_enh_maintain_earth_totem", function()
+    if totem.earth.down then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_shaman_enh_maintain_air_totem", function()
+    if totem.air.down then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_shaman_enh_maintain_water_totem", function()
+    if totem.water.down then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_shaman_enh_maintain_fire_totem", function()
+    if totem.fire.down then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_shaman_enh_flame_shock_refresh", function()
+    if dot.flame_shock.ticking then return 0 end
+    return 1
+end )
+spec:RegisterStateExpr( "wowsim_shaman_enh_shamanistic_rage_mana", function()
+    if mana.pct < 30 then return 1 end
+    return 0
+end )
+spec:RegisterStateExpr( "wowsim_shaman_enh_fire_nova_mana", function()
+    if mana.pct >= 20 then return 1 end
+    return 0
+end )
+
 --[[
 spec:RegisterSetting( "scaffold_strict_range", false, {
     name = "Scaffold: Strict Range Checks",

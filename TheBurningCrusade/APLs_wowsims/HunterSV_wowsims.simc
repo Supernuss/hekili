@@ -1,0 +1,14 @@
+actions.precombat+=/aspect_of_the_hawk,if=buff.aspect_of_the_hawk.down
+actions.precombat+=/potion
+
+actions+=/use_items,use_off_gcd=1
+actions+=/potion,use_off_gcd=1
+actions+=/aspect_of_the_viper,if=wowsim_hunter_sv_swap_to_viper
+actions+=/aspect_of_the_hawk,if=wowsim_hunter_sv_swap_to_hawk
+actions+=/rapid_fire
+actions+=/kill_command
+actions+=/raptor_strike,if=wowsim_hunter_sv_weave_proxy_raptor
+actions+=/auto_shot,if=wowsim_hunter_sv_auto_window
+actions+=/multi_shot,if=wowsim_hunter_sv_multishot_window
+actions+=/arcane_shot,if=wowsim_hunter_sv_arcane_window
+actions+=/auto_shot

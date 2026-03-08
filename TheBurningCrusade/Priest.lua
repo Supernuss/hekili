@@ -2649,6 +2649,22 @@ spec:RegisterOptions( {
     package = "Shadow",
 } )
 
+spec:RegisterStateExpr( "wowsim_priest_shadow_precast_vt", function() return 1 end )
+spec:RegisterStateExpr( "wowsim_priest_shadow_use_starshards", function() return 0 end )
+spec:RegisterStateExpr( "wowsim_priest_shadow_use_dev_plague", function() return 0 end )
+spec:RegisterStateExpr( "wowsim_priest_shadow_latency", function() return 0.05 end )
+spec:RegisterStateExpr( "wowsim_priest_shadow_next_nuke_cd", function() return min( cooldown.mind_blast.remains, cooldown.shadow_word_death.remains ) end )
+spec:RegisterStateExpr( "wowsim_priest_shadow_mind_flay_clip_1tick", function() return wowsim_priest_shadow_next_nuke_cd >= gcd and wowsim_priest_shadow_next_nuke_cd < action.mind_flay.tick_time * 2 + wowsim_priest_shadow_latency end )
+spec:RegisterStateExpr( "wowsim_priest_shadow_mind_flay_clip_2tick", function() return wowsim_priest_shadow_next_nuke_cd >= gcd and ( wowsim_priest_shadow_next_nuke_cd < action.mind_flay.tick_time * 3 + wowsim_priest_shadow_latency or ( wowsim_priest_shadow_next_nuke_cd >= action.mind_flay.tick_time * 4 + wowsim_priest_shadow_latency and wowsim_priest_shadow_next_nuke_cd < action.mind_flay.tick_time * 5 + wowsim_priest_shadow_latency ) ) end )
+spec:RegisterStateExpr( "wowsim_priest_shadow_mind_flay_cast", function() return wowsim_priest_shadow_next_nuke_cd >= gcd end )
+
+spec:RegisterStateExpr( "wowsim_priest_smite_use_starshards", function() return 0 end )
+spec:RegisterStateExpr( "wowsim_priest_smite_use_dev_plague", function() return 0 end )
+spec:RegisterStateExpr( "wowsim_priest_smite_use_mind_blast", function() return 0 end )
+spec:RegisterStateExpr( "wowsim_priest_smite_use_shadow_word_death", function() return 0 end )
+spec:RegisterStateExpr( "wowsim_priest_smite_holy_fire_weave", function() return 0 end )
+spec:RegisterStateExpr( "wowsim_priest_smite_holy_fire_window", function() return dot.shadow_word_pain.remains > action.smite.cast_time and dot.shadow_word_pain.remains < action.holy_fire.cast_time end )
+
 --[[
 spec:RegisterSetting( "scaffold_strict_range", false, {
     name = "Scaffold: Strict Range Checks",

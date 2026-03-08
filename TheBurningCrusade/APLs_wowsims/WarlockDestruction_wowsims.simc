@@ -1,0 +1,14 @@
+actions.precombat+=/fel_armor,if=buff.fel_armor.down
+actions.precombat+=/summon_imp,if=!pet.present
+actions.precombat+=/potion
+
+actions+=/use_items,use_off_gcd=1
+actions+=/potion,use_off_gcd=1
+actions+=/curse_of_doom,if=wowsim_warlock_dot_doom_window
+actions+=/curse_of_agony,if=wowsim_warlock_dot_agony_window
+actions+=/immolate,if=wowsim_warlock_dot_immolate_upkeep
+actions+=/life_tap,if=wowsim_warlock_life_tap_urgent_mana
+actions+=/life_tap,if=wowsim_warlock_life_tap_fill_mana
+actions+=/conflagrate,if=dot.immolate.ticking
+actions+=/incinerate,if=dot.immolate.ticking
+actions+=/shadow_bolt

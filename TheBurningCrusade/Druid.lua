@@ -2768,6 +2768,33 @@ end
 
 spec:RegisterRanges( "ferocious_bite", "lacerate", "pounce_bleed", "rake", "rip", "swipe" )
 
+spec:RegisterStateExpr( "wowsim_balance_use_faerie_fire", function() return 1 end )
+spec:RegisterStateExpr( "wowsim_balance_use_hurricane", function() return 0 end )
+spec:RegisterStateExpr( "wowsim_balance_use_insect_swarm", function() return 0 end )
+spec:RegisterStateExpr( "wowsim_balance_use_moonfire", function() return 1 end )
+spec:RegisterStateExpr( "wowsim_balance_primary_wrath", function() return 0 end )
+spec:RegisterStateExpr( "wowsim_druid_balance_ff_refresh", function() return wowsim_balance_use_faerie_fire == 1 and debuff.faerie_fire.remains < 3 end )
+spec:RegisterStateExpr( "wowsim_druid_balance_insect_swarm_refresh", function() return wowsim_balance_use_insect_swarm == 1 and not dot.insect_swarm.ticking end )
+spec:RegisterStateExpr( "wowsim_druid_balance_moonfire_refresh", function() return wowsim_balance_use_moonfire == 1 and not dot.moonfire.ticking end )
+spec:RegisterStateExpr( "wowsim_feral_rip_end_thresh", function() return 10 end )
+spec:RegisterStateExpr( "wowsim_feral_max_wait_time", function() return 1 end )
+spec:RegisterStateExpr( "wowsim_feral_bite_trick_max", function() return 39 end )
+spec:RegisterStateExpr( "wowsim_feral_rip_trick_min", function() return 52 end )
+spec:RegisterStateExpr( "wowsim_feral_bite_trick_cp", function() return 2 end )
+spec:RegisterStateExpr( "wowsim_druid_feral_shifted_rip", function() return mana.current < action.cat_form.spend and combo_points.current >= 5 and not dot.rip.ticking and ( energy.current >= 30 or buff.clearcasting.up ) and target.time_to_die >= wowsim_feral_rip_end_thresh end )
+spec:RegisterStateExpr( "wowsim_druid_feral_shifted_mangle", function() return mana.current < action.cat_form.spend and debuff.mangle.remains < 1.5 and ( energy.current >= action.mangle_cat.spend or buff.clearcasting.up ) end )
+spec:RegisterStateExpr( "wowsim_druid_feral_shifted_bite", function() return mana.current < action.cat_form.spend and combo_points.current >= 5 and ( energy.current >= 35 or buff.clearcasting.up ) end )
+spec:RegisterStateExpr( "wowsim_druid_feral_shifted_shred", function() return mana.current < action.cat_form.spend and ( energy.current >= 42 or buff.clearcasting.up ) end )
+spec:RegisterStateExpr( "wowsim_druid_feral_bite_execute", function() return combo_points.current >= 5 and ( target.time_to_die < wowsim_feral_rip_end_thresh or ( dot.rip.ticking and dot.rip.remains < wowsim_feral_rip_end_thresh ) ) end )
+spec:RegisterStateExpr( "wowsim_druid_feral_bite_rip_mangle", function() return combo_points.current >= 5 and dot.rip.ticking and debuff.mangle.remains >= 1.5 and energy.current >= 35 end )
+spec:RegisterStateExpr( "wowsim_druid_feral_mangle_weave_window", function() return energy.current >= 2 * action.mangle_cat.spend - 20 and energy.current < 22 + action.mangle_cat.spend and energy.time_to_max <= 1 end )
+spec:RegisterStateExpr( "wowsim_druid_feral_mangle_builder", function() return energy.current >= action.mangle_cat.spend and energy.time_to_max > 1 end )
+spec:RegisterStateExpr( "wowsim_druid_feral_powershift_rip", function() return energy.current < action.mangle_cat.spend - 20 and dot.rip.remains < wowsim_feral_rip_end_thresh and mana.current >= action.cat_form.spend end )
+spec:RegisterStateExpr( "wowsim_druid_feral_powershift_low_energy", function() return energy.current < 10 and mana.current >= action.cat_form.spend end )
+spec:RegisterStateExpr( "wowsim_tank_maul_rage_threshold", function() return 50 end )
+spec:RegisterStateExpr( "wowsim_tank_swipe_ap_threshold", function() return 2700 end )
+spec:RegisterStateExpr( "wowsim_druid_tank_swipe_ap", function() return debuff.lacerate.stack == 5 and dot.lacerate.remains > 3 and attack_power >= wowsim_tank_swipe_ap_threshold end )
+
 spec:RegisterOptions( {
     enabled = true,
 

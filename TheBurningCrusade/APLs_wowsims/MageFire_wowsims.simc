@@ -1,0 +1,13 @@
+actions.precombat+=/arcane_intellect,if=buff.arcane_intellect.down&buff.arcane_brilliance.down
+actions.precombat+=/mage_armor,if=buff.mage_armor.down
+actions.precombat+=/potion
+
+actions+=/use_items,use_off_gcd=1
+actions+=/potion,use_off_gcd=1
+actions+=/combustion
+actions+=/icy_veins
+actions+=/scorch,if=wowsim_mage_fire_maintain_vulnerability_stacks=1
+actions+=/scorch,if=wowsim_mage_fire_refresh_vulnerability=1
+actions+=/flamestrike,if=wowsim_mage_fire_flamestrike_aoe=1
+actions+=/fire_blast,if=wowsim_mage_fire_blast_single_target=1
+actions+=/fireball
