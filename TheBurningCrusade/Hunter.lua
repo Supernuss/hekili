@@ -10,6 +10,11 @@ local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
 local spec = Hekili:NewSpecialization( 3 )
 
+spec:RegisterGear( "tier4", 29081, 29082, 29083, 29084, 29085 )
+spec:RegisterGear( "tier5", 30139, 30140, 30141, 30142, 30143 )
+spec:RegisterGear( "tier6", 31001, 31003, 31004, 31005, 31006 )
+spec:RegisterGear( "sunwell", 34443, 34549, 34570 )
+
 local function clear_hunter_aspects()
     removeBuff( "aspect_of_the_beast" )
     removeBuff( "aspect_of_the_cheetah" )

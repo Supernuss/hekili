@@ -10,6 +10,30 @@ local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
 local spec = Hekili:NewSpecialization( 11 )
 
+spec:RegisterGear( "tier4",
+    29086, 29087, 29088, 29089, 29090,
+    29091, 29092, 29093, 29094, 29095,
+    29096, 29097, 29098, 29099, 29100
+)
+
+spec:RegisterGear( "tier5",
+    30216, 30217, 30219, 30220, 30221,
+    30222, 30223, 30228, 30229, 30230,
+    30231, 30232, 30233, 30234, 30235
+)
+
+spec:RegisterGear( "tier6",
+    31032, 31034, 31035, 31037, 31039,
+    31040, 31041, 31042, 31043, 31044,
+    31045, 31046, 31047, 31048, 31049
+)
+
+spec:RegisterGear( "sunwell",
+    34444, 34445, 34446,
+    34554, 34555, 34556,
+    34571, 34572, 34573
+)
+
 local function clear_druid_forms()
     removeBuff( "aquatic_form" )
     removeBuff( "bear_form" )

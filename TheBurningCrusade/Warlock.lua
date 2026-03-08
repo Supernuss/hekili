@@ -10,6 +10,11 @@ local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
 local spec = Hekili:NewSpecialization( 9 )
 
+spec:RegisterGear( "tier4", 28963, 28968, 28966, 28967, 28964 )
+spec:RegisterGear( "tier5", 30211, 30212, 30213, 30215, 30214 )
+spec:RegisterGear( "tier6", 31050, 31051, 31053, 31054, 31052 )
+spec:RegisterGear( "sunwell", 34436, 34541, 34564 )
+
 local function clear_warlock_armor()
     removeBuff( "demon_armor" )
     removeBuff( "demon_skin" )

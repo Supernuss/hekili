@@ -10,6 +10,30 @@ local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
 local spec = Hekili:NewSpecialization( 7 )
 
+spec:RegisterGear( "tier4",
+    29028, 29029, 29030, 29031, 29032,
+    29033, 29034, 29035, 29036, 29037,
+    29038, 29039, 29040, 29042, 29043
+)
+
+spec:RegisterGear( "tier5",
+    30164, 30165, 30166, 30167, 30168,
+    30169, 30170, 30171, 30172, 30173,
+    30185, 30189, 30190, 30192, 30194
+)
+
+spec:RegisterGear( "tier6",
+    31007, 31008, 31011, 31012, 31014,
+    31015, 31016, 31017, 31018, 31019,
+    31020, 31021, 31022, 31023, 31024
+)
+
+spec:RegisterGear( "sunwell",
+    34437, 34438, 34439,
+    34542, 34543, 34545,
+    34565, 34566, 34567
+)
+
 local function consume_flurry_stack()
     if not class.auras.flurry or not buff.flurry or not buff.flurry.up then return end
 

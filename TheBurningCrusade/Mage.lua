@@ -10,6 +10,11 @@ local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
 local spec = Hekili:NewSpecialization( 8 )
 
+spec:RegisterGear( "tier4", 29076, 29080, 29078, 29079, 29077 )
+spec:RegisterGear( "tier5", 30206, 30205, 30207, 30210, 30196 )
+spec:RegisterGear( "tier6", 31056, 31055, 31058, 31059, 31057 )
+spec:RegisterGear( "sunwell", 34557, 34574, 34447 )
+
 local function has_arcane_concentration()
     return class.auras.arcane_concentration and buff.arcane_concentration and buff.arcane_concentration.up
 end

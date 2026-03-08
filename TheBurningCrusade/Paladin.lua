@@ -10,6 +10,30 @@ local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
 local spec = Hekili:NewSpecialization( 2 )
 
+spec:RegisterGear( "tier4",
+    29061, 29062, 29063, 29064, 29065,
+    29066, 29067, 29068, 29069, 29070,
+    29071, 29072, 29073, 29074, 29075
+)
+
+spec:RegisterGear( "tier5",
+    30123, 30124, 30125, 30126, 30127,
+    30129, 30130, 30131, 30132, 30133,
+    30134, 30135, 30136, 30137, 30138
+)
+
+spec:RegisterGear( "tier6",
+    30982, 30983, 30985, 30987, 30988,
+    30989, 30990, 30991, 30992, 30993,
+    30994, 30995, 30996, 30997, 30998
+)
+
+spec:RegisterGear( "sunwell",
+    34431, 34432, 34433,
+    34485, 34487, 34488,
+    34559, 34560, 34561
+)
+
 local function clear_paladin_seals()
     removeBuff( "seal_of_blood" )
     removeBuff( "seal_of_command" )

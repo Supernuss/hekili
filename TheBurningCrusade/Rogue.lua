@@ -10,6 +10,11 @@ local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
 local spec = Hekili:NewSpecialization( 4 )
 
+spec:RegisterGear( "tier4", 29044, 29045, 29046, 29047, 29048 )
+spec:RegisterGear( "tier5", 30144, 30145, 30146, 30148, 30149 )
+spec:RegisterGear( "tier6", 31026, 31027, 31028, 31029, 31030 )
+spec:RegisterGear( "sunwell", 34448, 34558, 34575 )
+
 
 -- Effect implementation status (class-wide):
 -- Profile: mvp
