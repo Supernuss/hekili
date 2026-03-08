@@ -10,6 +10,54 @@ local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
 local spec = Hekili:NewSpecialization( 9 )
 
+local function clear_warlock_armor()
+    removeBuff( "demon_armor" )
+    removeBuff( "demon_skin" )
+    removeBuff( "fel_armor" )
+end
+
+local life_tap_base_by_id = {
+    [1454] = 20,
+    [1455] = 65,
+    [1456] = 130,
+    [11687] = 210,
+    [11688] = 300,
+    [11689] = 420,
+    [27222] = 580,
+}
+
+local function get_life_tap_base_amount()
+    local spell_id
+
+    if action and action.life_tap and action.life_tap.id then
+        spell_id = action.life_tap.id
+    elseif class and class.abilities and class.abilities.life_tap and class.abilities.life_tap.id then
+        spell_id = class.abilities.life_tap.id
+    end
+
+    local base = spell_id and life_tap_base_by_id[ spell_id ]
+
+    if not base and class and class.abilities and class.abilities.life_tap and type( class.abilities.life_tap.copy ) == "table" then
+        local copies = class.abilities.life_tap.copy
+
+        for i = #copies, 1, -1 do
+            local rank_base = life_tap_base_by_id[ copies[ i ] ]
+            if rank_base then
+                base = rank_base
+                break
+            end
+        end
+    end
+
+    return base or 200
+end
+
+local function maybe_apply_shadow_trance()
+    if class and class.auras and class.auras.shadow_trance and buff and buff.shadow_trance then
+        applyBuff( "shadow_trance" )
+    end
+end
+
 
 -- Effect implementation status (class-wide):
 -- Profile: mvp
@@ -727,6 +775,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             applyDebuff( "target", "corruption" )
+            maybe_apply_shadow_trance()
         end,
 
         proc_chance = 100,
@@ -1191,6 +1240,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 27260 #2 -- effect: APPLY_AURA, aura: MOD_HEALTH_REGEN_IN_COMBAT, points: 17, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_warlock_armor()
             applyBuff( "demon_armor" )
         end,
     },
@@ -1215,6 +1265,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 696 #1 -- effect: APPLY_AURA, aura: MOD_HEALTH_REGEN_IN_COMBAT, points: 4, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_warlock_armor()
             applyBuff( "demon_skin" )
         end,
     },
@@ -1295,6 +1346,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             applyDebuff( "target", "drain_life" )
+            maybe_apply_shadow_trance()
         end,
 
         proc_chance = 100,
@@ -1453,6 +1505,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 28189 #2 -- effect: APPLY_AURA, aura: MOD_DAMAGE_DONE, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_warlock_armor()
             applyBuff( "fel_armor" )
         end,
 
@@ -1729,6 +1782,28 @@ spec:RegisterAbilities( {
         -- [ ] Rank 27222 #0 -- effect: DUMMY, aura: NONE, points: 579, addl_points: 1, points_per_level: 1, sp_bonus: 0, radius_idx: 28, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         radius = 50000,
+
+        handler = function ()
+            local amount = max( 0, math.floor( get_life_tap_base_amount() * ( 1 + ( 0.1 * ( talent.improved_life_tap.rank or 0 ) ) ) + 0.5 ) )
+
+            if amount <= 0 then return end
+
+            if type( state.spend ) == "function" then
+                state.spend( amount, "health", true )
+            elseif type( spend ) == "function" then
+                spend( amount, "health" )
+            elseif health then
+                health.current = max( 0, health.current - amount )
+            end
+
+            if type( state.gain ) == "function" then
+                state.gain( amount, "mana" )
+            elseif type( gain ) == "function" then
+                gain( amount, "mana" )
+            elseif mana then
+                mana.current = min( mana.max or mana.current, mana.current + amount )
+            end
+        end,
 
         proc_chance = 100,
     },

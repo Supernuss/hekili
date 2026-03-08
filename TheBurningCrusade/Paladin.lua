@@ -10,6 +10,33 @@ local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
 local spec = Hekili:NewSpecialization( 2 )
 
+local function clear_paladin_seals()
+    removeBuff( "seal_of_blood" )
+    removeBuff( "seal_of_command" )
+    removeBuff( "seal_of_corruption" )
+    removeBuff( "seal_of_justice" )
+    removeBuff( "seal_of_light" )
+    removeBuff( "seal_of_righteousness" )
+    removeBuff( "seal_of_the_crusader" )
+    removeBuff( "seal_of_the_martyr" )
+    removeBuff( "seal_of_vengeance" )
+    removeBuff( "seal_of_wisdom" )
+end
+
+local function consume_paladin_seal()
+    clear_paladin_seals()
+end
+
+local function clear_paladin_auras()
+    removeBuff( "concentration_aura" )
+    removeBuff( "devotion_aura" )
+    removeBuff( "fire_resistance_aura" )
+    removeBuff( "frost_resistance_aura" )
+    removeBuff( "retribution_aura" )
+    removeBuff( "sanctity_aura" )
+    removeBuff( "shadow_resistance_aura" )
+end
+
 
 -- Effect implementation status (class-wide):
 -- Profile: mvp
@@ -970,6 +997,11 @@ spec:RegisterAbilities( {
         -- [ ] Rank 19746 #1 -- effect: APPLY_AREA_AURA_PARTY, aura: MECHANIC_DURATION_MOD_NOT_STACK, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
         -- [ ] Rank 19746 #2 -- effect: APPLY_AREA_AURA_PARTY, aura: MECHANIC_DURATION_MOD_NOT_STACK, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
+        handler = function ()
+            clear_paladin_auras()
+            applyBuff( "concentration_aura" )
+        end,
+
         radius = 30,
     },
 
@@ -1062,6 +1094,11 @@ spec:RegisterAbilities( {
         -- [ ] Rank 10292 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE, points: 619, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
         -- [ ] Rank 10293 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE, points: 734, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
         -- [ ] Rank 27149 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE, points: 860, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            clear_paladin_auras()
+            applyBuff( "devotion_aura" )
+        end,
 
         radius = 30,
     },
@@ -1271,6 +1308,11 @@ spec:RegisterAbilities( {
         -- [ ] Rank 19900 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 59, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
         -- [ ] Rank 27153 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 69, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
+        handler = function ()
+            clear_paladin_auras()
+            applyBuff( "fire_resistance_aura" )
+        end,
+
         radius = 30,
     },
 
@@ -1312,6 +1354,11 @@ spec:RegisterAbilities( {
         -- [ ] Rank 19897 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
         -- [ ] Rank 19898 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 59, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
         -- [ ] Rank 27152 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 69, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            clear_paladin_auras()
+            applyBuff( "frost_resistance_aura" )
+        end,
 
         radius = 30,
     },
@@ -1737,6 +1784,10 @@ spec:RegisterAbilities( {
         -- Effects:
         -- [ ] Rank 20271 #0 -- effect: SCRIPT_EFFECT, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
 
+        handler = function ()
+            consume_paladin_seal()
+        end,
+
         -- Aura restrictions: caster_state=5
     },
 
@@ -1754,6 +1805,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            consume_paladin_seal()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "judgement_of_blood" ) end
         end,
     },
@@ -1772,6 +1824,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            consume_paladin_seal()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "judgement_of_corruption" ) end
         end,
 
@@ -1796,6 +1849,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            consume_paladin_seal()
             applyDebuff( "target", "judgement_of_justice" )
         end,
     },
@@ -1820,6 +1874,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            consume_paladin_seal()
             applyDebuff( "target", "judgement_of_light" )
         end,
 
@@ -1860,6 +1915,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            consume_paladin_seal()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "judgement_of_righteousness" ) end
         end,
     },
@@ -1893,6 +1949,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            consume_paladin_seal()
             applyDebuff( "target", "judgement_of_the_crusader" )
         end,
     },
@@ -1911,6 +1968,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            consume_paladin_seal()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "judgement_of_vengeance" ) end
         end,
 
@@ -1936,6 +1994,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            consume_paladin_seal()
             applyDebuff( "target", "judgement_of_wisdom" )
         end,
 
@@ -2121,6 +2180,11 @@ spec:RegisterAbilities( {
         -- [ ] Rank 10301 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: DAMAGE_SHIELD, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
         -- [ ] Rank 27150 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: DAMAGE_SHIELD, points: 25, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
+        handler = function ()
+            clear_paladin_auras()
+            applyBuff( "retribution_aura" )
+        end,
+
         radius = 30,
     },
 
@@ -2186,6 +2250,11 @@ spec:RegisterAbilities( {
         -- [ ] Rank 20218 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_DAMAGE_PERCENT_DONE, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
         -- [ ] Rank 20218 #1 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_DAMAGE_PERCENT_DONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
+        handler = function ()
+            clear_paladin_auras()
+            applyBuff( "sanctity_aura" )
+        end,
+
         radius = 30,
 
         -- Related talents:
@@ -2214,6 +2283,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            clear_paladin_seals()
             applyBuff( "seal_of_blood" )
         end,
 
@@ -2242,6 +2312,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 27170 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 27171, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_paladin_seals()
             applyBuff( "seal_of_command" )
         end,
 
@@ -2271,6 +2342,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 348704 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 356112, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_paladin_seals()
             applyBuff( "seal_of_corruption" )
         end,
 
@@ -2299,6 +2371,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 31895 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 31895, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_paladin_seals()
             applyBuff( "seal_of_justice" )
         end,
 
@@ -2333,6 +2406,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 27160 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 27161, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_paladin_seals()
             applyBuff( "seal_of_light" )
         end,
 
@@ -2376,6 +2450,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 27155 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 27156, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_paladin_seals()
             applyBuff( "seal_of_righteousness" )
         end,
 
@@ -2421,6 +2496,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 27158 #2 -- effect: APPLY_AURA, aura: MOD_ATTACKSPEED, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_paladin_seals()
             applyBuff( "seal_of_the_crusader" )
         end,
     },
@@ -2447,6 +2523,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            clear_paladin_seals()
             applyBuff( "seal_of_the_martyr" )
         end,
 
@@ -2472,6 +2549,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 31801 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 31803, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_paladin_seals()
             applyBuff( "seal_of_vengeance" )
         end,
 
@@ -2504,6 +2582,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 27166 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 27163, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_paladin_seals()
             applyBuff( "seal_of_wisdom" )
         end,
 
@@ -2544,6 +2623,11 @@ spec:RegisterAbilities( {
         -- [ ] Rank 19895 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
         -- [ ] Rank 19896 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 59, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
         -- [ ] Rank 27151 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 69, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            clear_paladin_auras()
+            applyBuff( "shadow_resistance_aura" )
+        end,
 
         radius = 30,
     },

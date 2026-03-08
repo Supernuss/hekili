@@ -157,6 +157,11 @@ spec:RegisterAuras( {
         -- Aura targets: TARGET_UNIT_CASTER_AREA_PARTY
     },
 
+    cleave_queue = {
+        duration = 5,
+        max_stack = 1,
+    },
+
     concussion_blow = {
         id = 12809,
         duration = 5,
@@ -206,6 +211,11 @@ spec:RegisterAuras( {
         -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
 
+    heroic_strike_queue = {
+        duration = 5,
+        max_stack = 1,
+    },
+
     intervene = {
         id = 3411,
         duration = 10,
@@ -229,6 +239,11 @@ spec:RegisterAuras( {
         copy = { 694, 7400, 7402, 20559, 20560, 25266 },
         -- Aura effects: MOD_TAUNT
         -- Aura targets: TARGET_UNIT_TARGET_ENEMY
+    },
+
+    overpower_ready = {
+        duration = 5,
+        max_stack = 1,
     },
 
     mortal_strike = {
@@ -660,6 +675,11 @@ spec:RegisterAbilities( {
         -- [ ] Rank 25231 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 69, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         startsCombat = true,
 
+        handler = function ()
+            removeBuff( "heroic_strike_queue" )
+            applyBuff( "cleave_queue", swings and swings.time_to_next_mainhand or nil )
+        end,
+
         proc_chance = 100,
     },
 
@@ -963,6 +983,11 @@ spec:RegisterAbilities( {
         -- [ ] Rank 30324 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 207, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         startsCombat = true,
 
+        handler = function ()
+            removeBuff( "cleave_queue" )
+            applyBuff( "heroic_strike_queue", swings and swings.time_to_next_mainhand or nil )
+        end,
+
         proc_chance = 100,
     },
 
@@ -1185,6 +1210,12 @@ spec:RegisterAbilities( {
         -- [ ] Rank 7887 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 14, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         -- [ ] Rank 11584 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 24, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         -- [ ] Rank 11585 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 34, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+
+        usable = function () return buff.overpower_ready.up end,
+
+        handler = function ()
+            removeBuff( "overpower_ready" )
+        end,
     },
 
 -- Piercing Howl - Causes all enemies within $a1 yards to be Dazed, reducing movement speed by 50% for 6 sec.
@@ -1836,6 +1867,18 @@ spec:RegisterAbilities( {
     },
 
 } )
+
+spec:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED", function()
+    if not class.auras.overpower_ready then return end
+
+    local _, subtype, _, sourceGUID, _, _, _, _, _, _, _, missType = CombatLogGetCurrentEventInfo()
+
+    if sourceGUID ~= state.GUID then return end
+    if missType ~= "DODGE" then return end
+    if subtype ~= "SWING_MISSED" and subtype ~= "SPELL_MISSED" and subtype ~= "RANGE_MISSED" then return end
+
+    applyBuff( "overpower_ready" )
+end )
 
 -- Resources
 if spec.RegisterResource then

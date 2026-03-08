@@ -10,6 +10,27 @@ local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
 local spec = Hekili:NewSpecialization( 8 )
 
+local function has_arcane_concentration()
+    return class.auras.arcane_concentration and buff.arcane_concentration and buff.arcane_concentration.up
+end
+
+local function consume_arcane_concentration()
+    if has_arcane_concentration() then
+        removeBuff( "arcane_concentration" )
+    end
+end
+
+local function apply_ignite_stack()
+    if not talent.ignite.enabled then return end
+    if not class.auras.ignite or not debuff.ignite then return end
+
+    if debuff.ignite.up then
+        applyDebuff( "target", "ignite", nil, min( debuff.ignite.max_stack or 1, ( debuff.ignite.stack or 0 ) + 1 ) )
+    else
+        applyDebuff( "target", "ignite", nil, 1 )
+    end
+end
+
 
 -- Effect implementation status (class-wide):
 -- Profile: mvp
@@ -540,7 +561,7 @@ spec:RegisterAbilities( {
         gcd = "spell",
         school = "arcane",
         texture = 136116,
-        spend = 75,
+        spend = function () return has_arcane_concentration() and 0 or 75 end,
         spendType = "Mana",
         max_stack = 1,
         copy = { 1449, 8437, 8438, 8439, 10201, 10202, 27080, 27082 },
@@ -558,6 +579,7 @@ spec:RegisterAbilities( {
         radius = 10,
 
         handler = function ()
+            consume_arcane_concentration()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "arcane_explosion" ) end
         end,
 
@@ -600,7 +622,10 @@ spec:RegisterAbilities( {
         school = "arcane",
         texture = 136096,
         range = 30,
-        spend = function () return max( 0, 85 * ( 1 + 0.02 * ( talent.empowered_arcane_missiles.rank or 0 ) ) ) end,
+        spend = function ()
+            if has_arcane_concentration() then return 0 end
+            return max( 0, 85 * ( 1 + 0.02 * ( talent.empowered_arcane_missiles.rank or 0 ) ) )
+        end,
         -- Talent spend scaling: empowered_arcane_missiles (2% per rank)
         spendType = "Mana",
         max_stack = 1,
@@ -635,6 +660,7 @@ spec:RegisterAbilities( {
         handler = function ()
             applyDebuff( "target", "arcane_missiles" )
             applyBuff( "arcane_missiles" )
+            consume_arcane_concentration()
         end,
 
         proc_chance = 100,
@@ -1221,7 +1247,7 @@ spec:RegisterAbilities( {
         cooldown_category_id = 19,
         cooldown_category = "Quick Damage - Spell",
         range = 20,
-        spend = 40,
+        spend = function () return has_arcane_concentration() and 0 or 40 end,
         -- Talent cooldown scaling (category source): improved_fire_blast (-0.5s per rank)
         spendType = "Mana",
         max_stack = 1,
@@ -1240,6 +1266,8 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            apply_ignite_stack()
+            consume_arcane_concentration()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "fire_blast" ) end
         end,
 
@@ -1317,7 +1345,7 @@ spec:RegisterAbilities( {
         school = "fire",
         texture = 135812,
         range = 35,
-        spend = 30,
+        spend = function () return has_arcane_concentration() and 0 or 30 end,
         -- Talent cast scaling: improved_fireball (-0.1s per rank)
         spendType = "Mana",
         max_stack = 1,
@@ -1356,6 +1384,8 @@ spec:RegisterAbilities( {
 
         handler = function ()
             applyDebuff( "target", "fireball" )
+            apply_ignite_stack()
+            consume_arcane_concentration()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "fireball" ) end
         end,
 
@@ -1549,7 +1579,10 @@ spec:RegisterAbilities( {
         school = "frost",
         texture = 135846,
         range = 30,
-        spend = function () return max( 0, 25 * ( 1 + -0.05 * ( talent.frost_channeling.rank or 0 ) ) ) end,
+        spend = function ()
+            if has_arcane_concentration() then return 0 end
+            return max( 0, 25 * ( 1 + -0.05 * ( talent.frost_channeling.rank or 0 ) ) )
+        end,
         -- Talent cast scaling: improved_frostbolt (-0.1s per rank)
         -- Talent spend scaling: frost_channeling (-5% per rank, frost school)
         spendType = "Mana",
@@ -1596,6 +1629,7 @@ spec:RegisterAbilities( {
                     applyDebuff( "target", "winters_chill", nil, 1 )
                 end
             end
+            consume_arcane_concentration()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "frostbolt" ) end
         end,
 
@@ -2218,7 +2252,7 @@ spec:RegisterAbilities( {
         school = "fire",
         texture = 135808,
         range = 35,
-        spend = 125,
+        spend = function () return has_arcane_concentration() and 0 or 125 end,
         spendType = "Mana",
         max_stack = 1,
         copy = { 11366, 12505, 12522, 12523, 12524, 12525, 12526, 18809, 27132, 33938 },
@@ -2248,6 +2282,8 @@ spec:RegisterAbilities( {
 
         handler = function ()
             applyDebuff( "target", "pyroblast" )
+            apply_ignite_stack()
+            consume_arcane_concentration()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "pyroblast" ) end
         end,
 
@@ -2305,7 +2341,7 @@ spec:RegisterAbilities( {
         school = "fire",
         texture = 135827,
         range = 30,
-        spend = 50,
+        spend = function () return has_arcane_concentration() and 0 or 50 end,
         spendType = "Mana",
         max_stack = 1,
         copy = { 2948, 8444, 8445, 8446, 10205, 10206, 10207, 27073, 27074 },
@@ -2323,6 +2359,8 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            apply_ignite_stack()
+            consume_arcane_concentration()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "scorch" ) end
         end,
 

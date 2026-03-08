@@ -503,6 +503,32 @@ spec:RegisterAuras( {
 
 } )
 
+local shadowform_conflicts = {
+    "spirit_of_redemption",
+}
+
+local function clearShadowformConflicts()
+    if not buff then return end
+
+    for i = 1, #shadowform_conflicts do
+        local conflict = shadowform_conflicts[ i ]
+        if buff[ conflict ] then
+            removeBuff( conflict )
+        end
+    end
+end
+
+local function applyShadowWeavingStack()
+    if not debuff or not debuff.shadow_weaving then return end
+    if talent and talent.shadow_weaving and talent.shadow_weaving.enabled == false then return end
+
+    if debuff.shadow_weaving.up then
+        applyDebuff( "target", "shadow_weaving", nil, min( debuff.shadow_weaving.max_stack or 1, ( debuff.shadow_weaving.stack or 0 ) + 1 ) )
+    else
+        applyDebuff( "target", "shadow_weaving", nil, 1 )
+    end
+end
+
 -- Abilities (Hekili-style scaffold)
 spec:RegisterAbilities( {
 
@@ -1551,6 +1577,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "mind_blast" ) end
+            applyShadowWeavingStack()
         end,
 
         proc_chance = 100,
@@ -1625,7 +1652,10 @@ spec:RegisterAbilities( {
 
         handler = function ()
             applyDebuff( "target", "mind_flay" )
+            applyShadowWeavingStack()
         end,
+
+        channeled = true,
 
         proc_chance = 100,
 
@@ -2216,6 +2246,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             applyDebuff( "target", "shadow_word_pain" )
+            applyShadowWeavingStack()
         end,
 
         proc_chance = 100,
@@ -2264,6 +2295,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 15473 #2 -- effect: APPLY_AURA, aura: MOD_DAMAGE_PERCENT_TAKEN, points: -16, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clearShadowformConflicts()
             applyBuff( "shadowform" )
         end,
 

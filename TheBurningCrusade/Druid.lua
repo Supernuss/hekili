@@ -10,6 +10,46 @@ local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
 local spec = Hekili:NewSpecialization( 11 )
 
+local function clear_druid_forms()
+    removeBuff( "aquatic_form" )
+    removeBuff( "bear_form" )
+    removeBuff( "cat_form" )
+    removeBuff( "dire_bear_form" )
+    removeBuff( "flight_form" )
+    removeBuff( "moonkin_form" )
+    removeBuff( "swift_flight_form" )
+    removeBuff( "travel_form" )
+    removeBuff( "tree_of_life" )
+end
+
+local function spend_cat_combo_points()
+    local points = state.combo_points and state.combo_points.current or 0
+
+    if points <= 0 then return end
+
+    if type( state.spend ) == "function" then
+        state.spend( points, "combo_points" )
+    elseif type( spend ) == "function" then
+        spend( points, "combo_points" )
+    elseif combo_points then
+        combo_points.current = max( 0, combo_points.current - points )
+    end
+end
+
+local function gain_bear_rage( amount )
+    amount = amount or 1
+
+    if amount <= 0 then return end
+
+    if type( state.gain ) == "function" then
+        state.gain( amount, "rage" )
+    elseif type( gain ) == "function" then
+        gain( amount, "rage" )
+    elseif rage then
+        rage.current = min( rage.max or rage.current, rage.current + amount )
+    end
+end
+
 
 -- Effect implementation status (class-wide):
 -- Profile: mvp
@@ -612,6 +652,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 1066 #1 -- effect: APPLY_AURA, aura: MECHANIC_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_druid_forms()
             applyBuff( "aquatic_form" )
         end,
 
@@ -687,6 +728,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 5487 #1 -- effect: APPLY_AURA, aura: MECHANIC_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_druid_forms()
             applyBuff( "bear_form" )
         end,
 
@@ -725,6 +767,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 768 #2 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_druid_forms()
             applyBuff( "cat_form" )
         end,
 
@@ -942,6 +985,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 9634 #1 -- effect: APPLY_AURA, aura: MECHANIC_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_druid_forms()
             applyBuff( "dire_bear_form" )
         end,
 
@@ -1157,6 +1201,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "ferocious_bite" ) end
+            spend_cat_combo_points()
         end,
     },
 
@@ -1178,6 +1223,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 33943 #2 -- effect: APPLY_AURA, aura: FLY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_druid_forms()
             applyBuff( "flight_form" )
         end,
 
@@ -1648,6 +1694,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             applyDebuff( "target", "mangle_bear" )
+            gain_bear_rage( 1 )
         end,
 
         proc_chance = 100,
@@ -1750,6 +1797,10 @@ spec:RegisterAbilities( {
         -- [ ] Rank 26996 #0 -- effect: WEAPON_DAMAGE, aura: NONE, points: 175, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         startsCombat = true,
 
+        handler = function ()
+            gain_bear_rage( 1 )
+        end,
+
         proc_chance = 100,
     },
 
@@ -1834,6 +1885,7 @@ spec:RegisterAbilities( {
         -- [ ] Rank 24858 #2 -- effect: TRIGGER_SPELL, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 24907
 
         handler = function ()
+            clear_druid_forms()
             applyBuff( "moonkin_form" )
         end,
 
@@ -2288,6 +2340,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             applyDebuff( "target", "rip" )
+            spend_cat_combo_points()
         end,
 
         proc_chance = 100,
@@ -2408,6 +2461,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 40120 #2 -- effect: APPLY_AURA, aura: FLY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_druid_forms()
             applyBuff( "swift_flight_form" )
         end,
 
@@ -2462,6 +2516,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "swipe" ) end
+            gain_bear_rage( 1 )
         end,
 
         proc_chance = 100,
@@ -2607,6 +2662,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 783 #1 -- effect: APPLY_AURA, aura: MECHANIC_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_druid_forms()
             applyBuff( "travel_form" )
         end,
 
@@ -2629,6 +2685,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 33891 #1 -- effect: APPLY_AURA, aura: MECHANIC_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_druid_forms()
             applyBuff( "tree_of_life" )
         end,
 

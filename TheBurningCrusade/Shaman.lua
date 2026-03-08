@@ -10,6 +10,32 @@ local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
 local spec = Hekili:NewSpecialization( 7 )
 
+local function consume_flurry_stack()
+    if not class.auras.flurry or not buff.flurry or not buff.flurry.up then return end
+
+    local stacks = buff.flurry.stack or 1
+
+    if stacks <= 1 then
+        removeBuff( "flurry" )
+        return
+    end
+
+    applyBuff( "flurry", nil, stacks - 1 )
+end
+
+local function consume_elemental_focus_stack()
+    if not class.auras.elemental_focus or not buff.elemental_focus or not buff.elemental_focus.up then return end
+
+    local stacks = buff.elemental_focus.stack or 1
+
+    if stacks <= 1 then
+        removeBuff( "elemental_focus" )
+        return
+    end
+
+    applyBuff( "elemental_focus", nil, stacks - 1 )
+end
+
 local totem_element = {
     disease_cleansing_totem = "water",
     earth_elemental_totem = "earth",
@@ -577,6 +603,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            consume_elemental_focus_stack()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "chain_lightning" ) end
         end,
 
@@ -753,6 +780,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            consume_elemental_focus_stack()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "earth_shock" ) end
         end,
 
@@ -951,6 +979,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            consume_elemental_focus_stack()
             applyDebuff( "target", "flame_shock" )
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "flame_shock" ) end
         end,
@@ -1111,6 +1140,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            consume_elemental_focus_stack()
             applyDebuff( "target", "frost_shock" )
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "frost_shock" ) end
         end,
@@ -1413,6 +1443,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            consume_elemental_focus_stack()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "lightning_bolt" ) end
         end,
 
@@ -1907,6 +1938,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            consume_flurry_stack()
             applyDebuff( "target", "stormstrike" )
         end,
 

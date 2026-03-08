@@ -10,6 +10,16 @@ local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
 local spec = Hekili:NewSpecialization( 3 )
 
+local function clear_hunter_aspects()
+    removeBuff( "aspect_of_the_beast" )
+    removeBuff( "aspect_of_the_cheetah" )
+    removeBuff( "aspect_of_the_hawk" )
+    removeBuff( "aspect_of_the_monkey" )
+    removeBuff( "aspect_of_the_pack" )
+    removeBuff( "aspect_of_the_viper" )
+    removeBuff( "aspect_of_the_wild" )
+end
+
 
 -- Effect implementation status (class-wide):
 -- Profile: mvp
@@ -649,6 +659,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 13161 #0 -- effect: APPLY_AURA, aura: UNTRACKABLE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_hunter_aspects()
             applyBuff( "aspect_of_the_beast" )
         end,
     },
@@ -669,6 +680,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 5118 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 15571
 
         handler = function ()
+            clear_hunter_aspects()
             applyBuff( "aspect_of_the_cheetah" )
         end,
 
@@ -708,6 +720,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 27044 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 6150
 
         handler = function ()
+            clear_hunter_aspects()
             applyBuff( "aspect_of_the_hawk" )
         end,
 
@@ -730,6 +743,7 @@ spec:RegisterAbilities( {
         -- [x] Rank 13163 #0 -- effect: APPLY_AURA, aura: MOD_DODGE_PERCENT, points: 7, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_hunter_aspects()
             applyBuff( "aspect_of_the_monkey" )
         end,
     },
@@ -750,6 +764,11 @@ spec:RegisterAbilities( {
         -- [ ] Rank 13159 #1 -- effect: APPLY_AREA_AURA_PARTY, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 15571
 
         radius = 30,
+
+        handler = function ()
+            clear_hunter_aspects()
+            applyBuff( "aspect_of_the_pack" )
+        end,
 
         proc_chance = 100,
         proc_type_mask = { 139944, 0 },
@@ -772,6 +791,7 @@ spec:RegisterAbilities( {
         -- [ ] Rank 34074 #1 -- effect: DUMMY, aura: NONE, points: 34, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            clear_hunter_aspects()
             applyBuff( "aspect_of_the_viper" )
         end,
 
@@ -796,6 +816,11 @@ spec:RegisterAbilities( {
         -- [ ] Rank 27045 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 69, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         radius = 30,
+
+        handler = function ()
+            clear_hunter_aspects()
+            applyBuff( "aspect_of_the_wild" )
+        end,
 
         proc_chance = 100,
     },
@@ -894,6 +919,9 @@ spec:RegisterAbilities( {
         -- [ ] Rank 19574 #2 -- effect: APPLY_AURA, aura: MECHANIC_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_PET, target2: NONE, mechanic: 0
 
         handler = function ()
+            if not buff.bestial_wrath or not buff.bestial_wrath.up then
+                applyBuff( "bestial_wrath" )
+            end
         end,
 
         -- Related talents:
@@ -1783,6 +1811,20 @@ spec:RegisterAbilities( {
         -- [ ] Rank 34026 #1 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_PET, target2: NONE, mechanic: 0
         startsCombat = true,
 
+        usable = function ()
+            if class.auras.kill_command and buff.kill_command then
+                return buff.kill_command.up
+            end
+
+            return true
+        end,
+
+        handler = function ()
+            if class.auras.kill_command and buff.kill_command and buff.kill_command.up then
+                removeBuff( "kill_command" )
+            end
+        end,
+
         proc_chance = 100,
 
         -- Aura restrictions: caster_state=10
@@ -2065,7 +2107,9 @@ spec:RegisterAbilities( {
         -- [x] Rank 3045 #0 -- effect: APPLY_AURA, aura: MOD_RANGED_HASTE, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
-            applyBuff( "rapid_fire" )
+            if not buff.rapid_fire or not buff.rapid_fire.up then
+                applyBuff( "rapid_fire" )
+            end
         end,
     },
 

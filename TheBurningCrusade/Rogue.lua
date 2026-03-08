@@ -973,7 +973,14 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
-            applyDebuff( "target", "expose_armor" )
+            local points = state.combo_points and state.combo_points.current or 0
+
+            if points > 0 then
+                applyDebuff( "target", "expose_armor", 6 * points )
+                if type( state.spend ) == "function" then state.spend( points, "combo_points" ) end
+            else
+                applyDebuff( "target", "expose_armor" )
+            end
         end,
 
         proc_chance = 100,
@@ -1729,7 +1736,14 @@ spec:RegisterAbilities( {
         -- [x] Rank 6774 #1 -- effect: APPLY_AURA, aura: MOD_MELEE_HASTE, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
-            applyBuff( "slice_and_dice" )
+            local points = state.combo_points and state.combo_points.current or 0
+
+            if points > 0 then
+                applyBuff( "slice_and_dice", 6 + ( 3 * points ) )
+                if type( state.spend ) == "function" then state.spend( points, "combo_points" ) end
+            else
+                applyBuff( "slice_and_dice" )
+            end
         end,
     },
 
@@ -1832,6 +1846,10 @@ spec:RegisterAbilities( {
         -- [ ] Rank 26889 #0 -- effect: TRIGGER_SPELL, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 26888
         -- [ ] Rank 26889 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 18461
         -- [ ] Rank 26889 #2 -- effect: SANCTUARY, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "stealth" )
+        end,
 
         proc_chance = 100,
         proc_charges = 1,
