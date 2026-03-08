@@ -16,5 +16,5 @@ actions+=/whirlwind,if=wowsim_warrior_fury_non_execute_phase
 actions+=/overpower,if=wowsim_warrior_fury_overpower_condition
 actions+=/berserker_rage,if=wowsim_warrior_fury_non_execute_phase&buff.berserker_rage.down
 actions+=/hamstring,if=wowsim_warrior_fury_hamstring_condition
-actions+=/heroic_strike,if=wowsim_warrior_fury_hs_condition
 actions+=/cleave,if=wowsim_warrior_fury_cleave_condition
+actions+=/heroic_strike,if=wowsim_warrior_fury_hs_condition

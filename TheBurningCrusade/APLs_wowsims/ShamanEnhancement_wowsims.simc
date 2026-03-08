@@ -12,7 +12,7 @@ actions+=/shamanistic_rage,if=wowsim_shaman_enh_shamanistic_rage_mana
 actions+=/stormstrike
 actions+=/flame_shock,if=wowsim_shaman_enh_flame_shock_refresh
 actions+=/earth_shock
-actions+=/fire_nova_totem,if=wowsim_shaman_enh_fire_nova_mana
+actions+=/fire_nova_totem,if=wowsim_shaman_enh_fire_nova_window
 actions+=/magma_totem,if=wowsim_shaman_enh_maintain_fire_totem
 actions+=/strength_of_earth_totem,if=wowsim_shaman_enh_maintain_earth_totem
 actions+=/windfury_totem,if=wowsim_shaman_enh_maintain_air_totem

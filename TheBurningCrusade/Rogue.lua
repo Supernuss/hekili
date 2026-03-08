@@ -1941,6 +1941,9 @@ end )
 spec:RegisterStateExpr( "wowsim_rogue_rupture_window", function()
     return combo_points.current >= 4 and not dot.rupture.ticking and target.time_to_die >= 10 and buff.slice_and_dice.remains > 2 and wowsim_rogue_finisher_expose_gate and 1 or 0
 end )
+spec:RegisterStateExpr( "wowsim_rogue_rupture_cleave_gate", function()
+    return ( active_enemies < 2 or not buff.blade_flurry.up ) and 1 or 0
+end )
 spec:RegisterStateExpr( "wowsim_rogue_deadly_poison_refresh", function()
     return debuff.deadly_poison.up and debuff.deadly_poison.remains < 2 and 1 or 0
 end )

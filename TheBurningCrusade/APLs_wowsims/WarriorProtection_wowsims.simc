@@ -18,5 +18,5 @@ actions+=/devastate
 actions+=/sunder_armor
 actions+=/shield_block,if=wowsim_warrior_prot_shield_block_on_cd_condition
 actions+=/shield_block,if=wowsim_warrior_prot_shield_block_revenge_condition
-actions+=/heroic_strike,if=wowsim_warrior_prot_hs_condition
 actions+=/cleave,if=wowsim_warrior_prot_cleave_condition
+actions+=/heroic_strike,if=wowsim_warrior_prot_hs_condition

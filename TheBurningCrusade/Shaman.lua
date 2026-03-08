@@ -2359,12 +2359,20 @@ spec:RegisterStateExpr( "wowsim_shaman_enh_flame_shock_refresh", function()
     if dot.flame_shock.ticking then return 0 end
     return 1
 end )
+spec:RegisterStateExpr( "wowsim_shaman_enh_shock_mana_reserve", function()
+    return max( action.earth_shock.spend or 0, action.flame_shock.spend or 0 )
+end )
 spec:RegisterStateExpr( "wowsim_shaman_enh_shamanistic_rage_mana", function()
-    if mana.pct < 30 then return 1 end
+    local dynamic_floor = ( action.shamanistic_rage.spend or 0 ) + wowsim_shaman_enh_shock_mana_reserve
+    local fallback_floor = mana.max * 0.30
+
+    if mana.current <= max( dynamic_floor, fallback_floor ) then return 1 end
     return 0
 end )
-spec:RegisterStateExpr( "wowsim_shaman_enh_fire_nova_mana", function()
-    if mana.pct >= 20 then return 1 end
+spec:RegisterStateExpr( "wowsim_shaman_enh_fire_nova_window", function()
+    local fire_nova_floor = ( action.fire_nova_totem.spend or 0 ) + wowsim_shaman_enh_shock_mana_reserve + ( action.stormstrike.spend or 0 )
+
+    if active_enemies > 1 and buff.magma_totem.up and mana.current >= fire_nova_floor then return 1 end
     return 0
 end )
 

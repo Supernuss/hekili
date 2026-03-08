@@ -1924,8 +1924,9 @@ spec:RegisterStateExpr( "wowsim_warrior_fury_ww_execute_condition", function() r
 spec:RegisterStateExpr( "wowsim_warrior_fury_overpower_condition", function() return wowsim_warrior_fury_non_execute_phase and buff.overpower_ready.up and rage.current < wowsim_warrior_fury_overpower_rage_threshold end )
 spec:RegisterStateExpr( "wowsim_warrior_fury_hamstring_condition", function() return wowsim_warrior_fury_non_execute_phase and rage.current >= wowsim_warrior_fury_hamstring_rage_threshold and debuff.hamstring.remains < 2 end )
 spec:RegisterStateExpr( "wowsim_warrior_fury_hs_phase_condition", function() return wowsim_warrior_fury_non_execute_phase or wowsim_warrior_fury_use_hs_execute == 1 end )
-spec:RegisterStateExpr( "wowsim_warrior_fury_hs_condition", function() return rage.current >= wowsim_warrior_fury_hs_rage_threshold and wowsim_warrior_fury_hs_phase_condition end )
-spec:RegisterStateExpr( "wowsim_warrior_fury_cleave_condition", function() return active_enemies >= 2 and wowsim_warrior_fury_hs_condition end )
+spec:RegisterStateExpr( "wowsim_warrior_fury_on_next_swing_condition", function() return rage.current >= wowsim_warrior_fury_hs_rage_threshold and wowsim_warrior_fury_hs_phase_condition end )
+spec:RegisterStateExpr( "wowsim_warrior_fury_hs_condition", function() return active_enemies < 2 and wowsim_warrior_fury_on_next_swing_condition end )
+spec:RegisterStateExpr( "wowsim_warrior_fury_cleave_condition", function() return active_enemies >= 2 and wowsim_warrior_fury_on_next_swing_condition end )
 
 spec:RegisterStateExpr( "wowsim_warrior_prot_hs_rage_threshold", function() return 30 end )
 spec:RegisterStateExpr( "wowsim_warrior_prot_thunder_mode_maintain", function() return 1 end )
@@ -1940,8 +1941,9 @@ spec:RegisterStateExpr( "wowsim_warrior_prot_demo_maintain_condition", function(
 spec:RegisterStateExpr( "wowsim_warrior_prot_demo_filler_condition", function() return wowsim_warrior_prot_demo_mode_filler == 1 end )
 spec:RegisterStateExpr( "wowsim_warrior_prot_shield_block_on_cd_condition", function() return wowsim_warrior_prot_shield_block_on_cd == 1 and buff.shield_block.down end )
 spec:RegisterStateExpr( "wowsim_warrior_prot_shield_block_revenge_condition", function() return wowsim_warrior_prot_shield_block_revenge == 1 and cooldown.revenge.remains == 0 and buff.shield_block.down end )
-spec:RegisterStateExpr( "wowsim_warrior_prot_hs_condition", function() return rage.current >= wowsim_warrior_prot_hs_rage_threshold end )
-spec:RegisterStateExpr( "wowsim_warrior_prot_cleave_condition", function() return active_enemies >= 2 and wowsim_warrior_prot_hs_condition end )
+spec:RegisterStateExpr( "wowsim_warrior_prot_on_next_swing_condition", function() return rage.current >= wowsim_warrior_prot_hs_rage_threshold end )
+spec:RegisterStateExpr( "wowsim_warrior_prot_hs_condition", function() return active_enemies < 2 and wowsim_warrior_prot_on_next_swing_condition end )
+spec:RegisterStateExpr( "wowsim_warrior_prot_cleave_condition", function() return active_enemies >= 2 and wowsim_warrior_prot_on_next_swing_condition end )
 
 spec:RegisterOptions( {
     enabled = true,
