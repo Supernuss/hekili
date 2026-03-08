@@ -3605,6 +3605,83 @@ do
 
         usable = function () return false, "your equipped major essence is supported elsewhere in the priority or is not an active ability" end
     } )
+
+    if Hekili.IsTBC() then
+        local function register_tbc_trinket_use( key, item, buff_name, duration, cooldown, spellID )
+            all:RegisterAbility( key, {
+                cast = 0,
+                cooldown = cooldown,
+                gcd = "off",
+
+                item = item,
+                toggle = "cooldowns",
+
+                handler = function ()
+                    applyBuff( buff_name )
+                end,
+            } )
+
+            local aura = {
+                duration = duration,
+                max_stack = 1,
+            }
+
+            if spellID then
+                aura.id = spellID
+            end
+
+            all:RegisterAura( buff_name, aura )
+        end
+
+        local function register_tbc_trinket_proc( key, item, buff_name, duration, spellID )
+            all:RegisterAbility( key, {
+                cast = 0,
+                cooldown = 45,
+                gcd = "off",
+                unlisted = true,
+
+                item = item,
+                aura = buff_name,
+            } )
+
+            local aura = {
+                duration = duration,
+                max_stack = 1,
+            }
+
+            if spellID then
+                aura.id = spellID
+            end
+
+            all:RegisterAura( buff_name, aura )
+        end
+
+        register_tbc_trinket_use( "icon_of_the_silver_crescent", 29370, "icon_of_the_silver_crescent", 20, 120, 35163 )
+        register_tbc_trinket_use( "skull_of_guldan", 32483, "skull_of_guldan", 20, 120, 40396 )
+        register_tbc_trinket_use( "hex_shrunken_head", 33829, "hex_shrunken_head", 20, 120, 43712 )
+        register_tbc_trinket_use( "bloodlust_brooch", 29383, "bloodlust_brooch", 20, 120, 35166 )
+        register_tbc_trinket_use( "berserkers_call", 33831, "berserkers_call", 20, 120, 43716 )
+        register_tbc_trinket_use( "abacus_of_violent_odds", 28288, "abacus_of_violent_odds", 10, 120, 33807 )
+        register_tbc_trinket_use( "slayers_crest", 23041, "slayers_crest", 20, 120, 28777 )
+
+        register_tbc_trinket_proc( "quagmirrans_eye", 27683, "quagmirrans_eye", 6, 33297 )
+        register_tbc_trinket_proc( "sextant_of_unstable_currents", 30626, "sextant_of_unstable_currents", 15, 38347 )
+        register_tbc_trinket_proc( "dragonspine_trophy", 28830, "dragonspine_trophy", 10, 34774 )
+        register_tbc_trinket_proc( "tsunami_talisman", 30627, "tsunami_talisman", 10, 42083 )
+        register_tbc_trinket_proc( "hourglass_of_the_unraveller", 28034, "hourglass_of_the_unraveller", 10, 33648 )
+        register_tbc_trinket_proc( "madness_of_the_betrayer", 32505, "madness_of_the_betrayer", 10, 40475 )
+        register_tbc_trinket_proc( "shard_of_contempt", 34472, "shard_of_contempt", 20, 45354 )
+
+        register_tbc_trinket_proc( "ashtongue_talisman_of_valor", 32485, "ashtongue_talisman_of_valor", 12, 40458 )
+        register_tbc_trinket_proc( "ashtongue_talisman_of_equilibrium", 32486, "ashtongue_talisman_of_equilibrium", 8, 40442 )
+        register_tbc_trinket_proc( "ashtongue_talisman_of_swiftness", 32487, "ashtongue_talisman_of_swiftness", 8, 40485 )
+        register_tbc_trinket_proc( "ashtongue_talisman_of_insight", 32488, "ashtongue_talisman_of_insight", 5, 40482 )
+        register_tbc_trinket_proc( "ashtongue_talisman_of_zeal", 32489, "ashtongue_talisman_of_zeal", 8, 40470 )
+        register_tbc_trinket_proc( "ashtongue_talisman_of_acumen", 32490, "ashtongue_talisman_of_acumen", 10, 40438 )
+        register_tbc_trinket_proc( "ashtongue_talisman_of_vision", 32491, "ashtongue_talisman_of_vision", 5, 40463 )
+        register_tbc_trinket_proc( "ashtongue_talisman_of_lethality", 32492, "ashtongue_talisman_of_lethality", 10, 40460 )
+        register_tbc_trinket_proc( "ashtongue_talisman_of_insight_warlock", 32493, "ashtongue_talisman_of_insight_warlock", 5, 40478 )
+    end
 end
 
 all:RegisterAbility( "grim_toll", {
