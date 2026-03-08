@@ -1,16 +1,14 @@
 ## Precombat
 actions.precombat+=/arcane_brilliance,if=raid&buff.arcane_brilliance.down
 actions.precombat+=/arcane_intellect,if=!raid&buff.arcane_brilliance.down&buff.arcane_intellect.down
-actions.precombat+=/conjure_mana_gem,if=mana_gem_charges<2
+actions.precombat+=/potion,if=mana.pct<100
 actions.precombat+=/molten_armor,if=buff.unique_armor.down
 actions.precombat+=/summon_water_elemental,if=!pet.active&glyph.eternal_water.enabled
 actions.precombat+=/pyroblast,if=boss
 
 ## Default
 actions+=/counterspell
-actions+=/spellsteal,line_cd=spellsteal_cooldown
 ## Cooldowns
-actions+=/mirror_image
 actions+=/summon_water_elemental,if=!glyph.eternal_water.enabled
 actions+=/icy_veins
 actions+=/arcane_power
@@ -23,6 +21,6 @@ actions+=/cone_of_cold,if=active_enemies>2&target.within10&moving
 actions+=/arcane_explosion,if=active_enemies>2&target.within10&moving
 actions+=/fire_blast,if=moving&target.within20
 actions+=/potion,use_off_gcd=1
-actions+=/replenish_mana,use_off_gcd=1,if=mana.pct<70
-actions+=/evocation,if=mana.pct<30
+actions+=/potion,use_off_gcd=1,if=mana.pct<70
+actions+=/potion,if=mana.pct<30
 actions+=/frostbolt

@@ -15,7 +15,7 @@ actions+=/run_action_list,name=cleave,if=active_enemies>1
 actions+=/run_action_list,name=single
 
 ## Cleave
-actions.cleave+=/mind_sear,if=active_enemies>=8
+actions.cleave+=/mind_flay,if=active_enemies>=8
 actions.cleave+=/devouring_plague,if=!dot.devouring_plague.remains
 actions.cleave+=/mind_flay,cycle_targets=1,max_cycle_targets=7,interrupt_if=!buff.inner_focus.up&ticks>=2,if=!moving&(dot.shadow_word_pain.remains<1.5&dot.shadow_word_pain.remains>=action.mind_flay.tick_time+latency)
 actions.cleave+=/shadowfiend,if=target.time_to_die>0
@@ -24,11 +24,11 @@ actions.cleave+=/shadow_word_pain,cycle_targets=1,max_cycle_targets=7,if=!tickin
 actions.cleave+=/mind_blast,if=target.time_to_die>=cast_time&(flay_over_blast|buff.replenishment.remains<3)
 actions.cleave+=/inner_fire,if=!buff.inner_fire.up&target.time_to_die>=10
 actions.cleave+=/vampiric_embrace,if=!up&target.time_to_die>=10
-actions.cleave+=/mind_sear,if=target.time_to_die>=cast_time*0.5&!moving&active_enemies>=3
+actions.cleave+=/mind_flay,if=target.time_to_die>=cast_time*0.5&!moving&active_enemies>=3
 actions.cleave+=/mind_flay,interrupt_if=!buff.inner_focus.up&ticks>=2,if=target.time_to_die>=cast_time&!moving
 actions.cleave+=/shadow_word_death,if=moving
 actions.cleave+=/devouring_plague,if=moving
-actions.cleave+=/dispersion,if=mana.percent<=60
+actions.cleave+=/shadowfiend,if=mana.percent<=60
 
 ## Single
 actions.single+=/devouring_plague,if=target.time_to_die<=action.mind_flay.duration|(moving&!dot.devouring_plague.remains)
@@ -46,4 +46,4 @@ actions.single+=/vampiric_embrace,if=!up&target.time_to_die>=10
 actions.single+=/mind_flay,interrupt_if=!buff.inner_focus.up&ticks>=2,if=!moving
 actions.single+=/shadow_word_death,if=moving
 actions.single+=/devouring_plague,if=moving
-actions.single+=/dispersion,if=mana.percent<=60
+actions.single+=/shadowfiend,if=mana.percent<=60

@@ -1249,6 +1249,11 @@ local function summonTotem( name, elem, duration )
         state.totem[ elem ].name = name
         state.totem[ elem ].expires = state.query_time + duration
         summonPet( elem, duration )
+
+        local elementAura = elem .. "_totem"
+        if class.auras[ elementAura ] then
+            applyBuff( elementAura, duration )
+        end
     end
 
     summonPet( name, duration )

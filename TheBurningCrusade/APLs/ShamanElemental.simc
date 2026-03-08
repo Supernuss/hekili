@@ -12,7 +12,7 @@ actions+=/totem_of_wrath,if=talent.totem_of_wrath.enabled&buff.fire_totem.remain
 actions+=/searing_totem,if=!talent.totem_of_wrath.enabled&active_enemies<3&buff.fire_totem.remains<=latency
 actions+=/magma_totem,if=active_enemies>=3&buff.fire_totem.remains<=latency&buff.fire_elemental_totem.down
 actions+=/fire_nova_totem,if=active_enemies>=3&buff.magma_totem.up
-actions+=/fire_elemental_totem,if=target.time_to_die>120
+actions+=/totem_of_wrath,if=target.time_to_die>120
 actions+=/bloodlust,if=target.time_to_die>40
 actions+=/use_items
 actions+=/potion

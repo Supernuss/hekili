@@ -20,6 +20,7 @@ local getSpecializationKey = ns.getSpecializationKey
 local tableCopy = ns.tableCopy
 
 local strformat = string.format
+local strfind = string.find
 local insert, wipe = table.insert, table.wipe
 
 local mt_resource = ns.metatables.mt_resource
@@ -147,6 +148,34 @@ local protectedFunctions = {
     handler = true, -- Cast finish.
     impact = true,  -- Projectile impact.
 }
+
+
+local ignored_imported_abilities = {
+    activate_primary_spec = true,
+    activate_secondary_spec = true,
+
+    ancestral_spirit = true,
+    mass_resurrection = true,
+    redemption = true,
+    resurrection = true,
+    revive = true,
+    revive_pet = true,
+
+    conjure_food = true,
+    conjure_water = true,
+    ritual_of_refreshment = true,
+    ritual_of_souls = true,
+}
+
+local function ShouldFilterImportedAbility( ability )
+    if ignored_imported_abilities[ ability ] then return true end
+
+    if strfind( ability, "_goggles", 1, true ) then return true end
+    if strfind( ability, "_lens", 1, true ) then return true end
+    if strfind( ability, "conjure_", 1, true ) then return true end
+
+    return false
+end
 
 
 local HekiliSpecMixin = {
@@ -528,6 +557,10 @@ local HekiliSpecMixin = {
     end,
 
     RegisterAbility = function( self, ability, data )
+        if Hekili.IsTBC() and ShouldFilterImportedAbility( ability ) then
+            return
+        end
+
         CommitKey( ability )
 
         local a = setmetatable( {

@@ -10,10 +10,8 @@ actions+=/run_action_list,name=fish,if=!buff.eclipse_lunar.up&!buff.eclipse_sola
 actions.fish+=/starfire,if=buff.elunes_wrath.up&(buff.elunes_wrath.remains<action.starfire.gcd|moving)
 actions.fish+=/moonfire,if=!debuff.moonfire.up&moving
 actions.fish+=/force_of_nature
-actions.fish+=/starfall
 actions.fish+=/faerie_fire,if=!up&(talent.improved_faerie_fire.enabled|group_members>=5|moving)
 actions.fish+=/insect_swarm,if=!debuff.insect_swarm.up
-actions.fish+=/typhoon,if=moving&glyph.typhoon.enabled
 actions.fish+=/moonfire,if=!debuff.moonfire.up&debuff.moonfire.remains<3
 actions.fish+=/wrath,if=buff.eclipse_lunar.last_applied=0|query_time-buff.eclipse_lunar.last_applied>=30
 actions.fish+=/starfire,if=buff.eclipse_solar.last_applied=0|query_time-buff.eclipse_solar.last_applied>=30
@@ -25,6 +23,4 @@ actions.spam+=/insect_swarm,if=!debuff.insect_swarm.up&(!buff.eclipse_lunar.up|b
 actions.spam+=/wrath,if=buff.eclipse_solar.up
 actions.spam+=/starfire,if=buff.eclipse_lunar.up
 
-actions.aoe+=/typhoon,if=glyph.typhoon.enabled
-actions.aoe+=/starfall
 actions.aoe+=/hurricane

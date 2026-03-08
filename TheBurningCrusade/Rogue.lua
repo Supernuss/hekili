@@ -1,1525 +1,1940 @@
-if UnitClassBase( 'player' ) ~= 'ROGUE' then return end
+-- Rogue.lua
+-- Auto-generated class spell blocks
+-- Build: 2.5.5.66150
+-- Class: Rogue (#4)
+
+if UnitClassBase( "player" ) ~= "ROGUE" then return end
 
 local addon, ns = ...
 local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
-
 local spec = Hekili:NewSpecialization( 4 )
 
 
--- TODO:  Check gains from Cold Blood, Seal Fate; i.e., guaranteed crits.
-
-
-spec:RegisterResource( Enum.PowerType.ComboPoints )
-spec:RegisterResource( Enum.PowerType.Energy )
+-- Effect implementation status (class-wide):
+-- Profile: mvp
+-- [x] TALENT_SPEC_SELECT (points 0/1 => primary/secondary)
+-- [x] CREATE_ITEM (basic item creation counter)
+-- [x] SCHOOL_DAMAGE (basic damage event tracking)
+-- [x] SUMMON_PET (basic active pet tracking)
+-- [x] SUMMON (basic summon event tracking)
+-- [x] APPLY_AURA (basic aura tracking for caster/enemy/ally)
 
 -- Talents
 spec:RegisterTalents( {
-    adrenaline_rush            = {   205, 1, 13750 },
-    aggression                 = {  1122, 5, 18427, 18428, 18429, 61330, 61331 },
-    blade_flurry               = {   223, 1, 13877 },
-    blade_twisting             = {  1706, 2, 31124, 31126 },
-    blood_spatter              = {  2068, 2, 51632, 51633 },
-    camouflage                 = {   244, 3, 13975, 14062, 14063 },
-    cheat_death                = {  1722, 3, 31228, 31229, 31230 },
-    close_quarters_combat      = {   182, 5, 13706, 13804, 13805, 13806, 13807 },
-    cold_blood                 = {   280, 1, 14177 },
-    combat_potency             = {  1825, 5, 35541, 35550, 35551, 35552, 35553 },
-    cut_to_the_chase           = {  2070, 5, 51664, 51665, 51667, 51668, 51669 },
-    deadened_nerves            = {  1723, 3, 31380, 31382, 31383 },
-    deadliness                 = {  1702, 5, 30902, 30903, 30904, 30905, 30906 },
-    deadly_brew                = {  2065, 2, 51625, 51626 },
-    deflection                 = {   187, 3, 13713, 13853, 13854 },
-    dirty_deeds                = {   265, 2, 14082, 14083 },
-    dirty_tricks               = {   262, 2, 14076, 14094 },
-    dual_wield_specialization  = {   221, 5, 13715, 13848, 13849, 13851, 13852 },
-    elusiveness                = {   247, 2, 13981, 14066 },
-    endurance                  = {   204, 2, 13742, 13872 },
-    enveloping_shadows         = {  1711, 3, 31211, 31212, 31213 },
-    filthy_tricks              = {  2079, 2, 58414, 58415 },
-    find_weakness              = {  1718, 3, 31234, 31235, 31236 },
-    fleet_footed               = {  1721, 2, 31208, 31209 },
-    focused_attacks            = {  2069, 3, 51634, 51635, 51636 },
-    ghostly_strike             = {   303, 1, 14278 },
-    hack_and_slash             = {   242, 5, 13960, 13961, 13962, 13963, 13964 },
-    heightened_senses          = {  1701, 2, 30894, 30895 },
-    hemorrhage                 = {   681, 1, 16511 },
-    honor_among_thieves        = {  2078, 3, 51698, 51700, 51701 },
-    hunger_for_blood           = {  2071, 1, 51662 },
-    improved_ambush            = {   263, 2, 14079, 14080 },
-    improved_eviscerate        = {   276, 3, 14162, 14163, 14164 },
-    improved_expose_armor      = {   278, 2, 14168, 14169 },
-    improved_gouge             = {   203, 3, 13741, 13793, 13792 },
-    improved_kick              = {   206, 2, 13754, 13867 },
-    improved_kidney_shot       = {   279, 3, 14174, 14175, 14176 },
-    improved_poisons           = {   268, 5, 14113, 14114, 14115, 14116, 14117 },
-    improved_sinister_strike   = {   201, 2, 13732, 13863 },
-    improved_slice_and_dice    = {  1827, 2, 14165, 14166 },
-    improved_sprint            = {   222, 2, 13743, 13875 },
-    initiative                 = {   245, 3, 13976, 13979, 13980 },
-    killing_spree              = {  2076, 1, 51690 },
-    lethality                  = {   269, 5, 14128, 14132, 14135, 14136, 14137 },
-    lightning_reflexes         = {   186, 3, 13712, 13788, 13789 },
-    mace_specialization        = {   184, 5, 13709, 13800, 13801, 13802, 13803 },
-    malice                     = {   270, 5, 14138, 14139, 14140, 14141, 14142 },
-    master_of_deception        = {   241, 3, 13958, 13970, 13971 },
-    master_of_subtlety         = {  1713, 3, 31221, 31222, 31223 },
-    master_poisoner            = {  1715, 3, 31226, 31227, 58410 },
-    murder                     = {   274, 2, 14158, 14159 },
-    mutilate                   = {  1719, 1,  1329 },
-    nerves_of_steel            = {  1707, 2, 31130, 31131 },
-    opportunity                = {   261, 2, 14057, 14072 },
-    overkill                   = {   281, 1, 58426 },
-    precision                  = {   181, 5, 13705, 13832, 13843, 13844, 13845 },
-    premeditation              = {   381, 1, 14183 },
-    preparation                = {   284, 1, 14185 },
-    prey_on_the_weak           = {  2075, 5, 51685, 51686, 51687, 51688, 51689 },
-    puncturing_wounds          = {   277, 3, 13733, 13865, 13866 },
-    quick_recovery             = {  1762, 2, 31244, 31245 },
-    relentless_strikes         = {  2244, 5, 14179, 58422, 58423, 58424, 58425 },
-    remorseless_attacks        = {   272, 2, 14144, 14148 },
-    riposte                    = {   301, 1, 14251 },
-    ruthlessness               = {   273, 3, 14156, 14160, 14161 },
-    savage_combat              = {  2074, 2, 51682, 58413 },
-    seal_fate                  = {   283, 5, 14186, 14190, 14193, 14194, 14195 },
-    serrated_blades            = {  1123, 3, 14171, 14172, 14173 },
-    setup                      = {   246, 3, 13983, 14070, 14071 },
-    shadow_dance               = {  2081, 1, 51713 },
-    shadowstep                 = {  1714, 1, 36554 },
-    sinister_calling           = {  1712, 5, 31216, 31217, 31218, 31219, 31220 },
-    slaughter_from_the_shadows = {  2080, 5, 51708, 51709, 51710, 51711, 51712 },
-    sleight_of_hand            = {  1700, 2, 30892, 30893 },
-    surprise_attacks           = {  1709, 1, 32601 },
-    throwing_specialization    = {  2072, 2,  5952, 51679 },
-    turn_the_tables            = {  2066, 3, 51627, 51628, 51629 },
-    unfair_advantage           = {  2073, 2, 51672, 51674 },
-    vigor                      = {   382, 1, 14983 },
-    vile_poisons               = {   682, 3, 16513, 16514, 16515 },
-    vitality                   = {  1705, 3, 31122, 31123, 61329 },
-    waylay                     = {  2077, 2, 51692, 51696 },
-    weapon_expertise           = {  1703, 2, 30919, 30920 },
+    adrenaline_rush = { 205, 1, 13750 },
+    aggression = { 1122, 3, 18427, 18428, 18429 },
+    blade_flurry = { 223, 1, 13877 },
+    blade_twisting = { 1706, 2, 31124, 31126 },
+    camouflage = { 244, 5, 13975, 14062, 14063, 14064, 14065 },
+    cheat_death = { 1722, 3, 31228, 31229, 31230 },
+    cold_blood = { 280, 1, 14177 },
+    combat_potency = { 1825, 5, 35541, 35550, 35551, 35552, 35553 },
+    dagger_specialization = { 182, 5, 13706, 13804, 13805, 13806, 13807 },
+    deadened_nerves = { 1723, 5, 31380, 31382, 31383, 31384, 31385 },
+    deadliness = { 1702, 5, 30902, 30903, 30904, 30905, 30906 },
+    deflection = { 187, 5, 13713, 13853, 13854, 13855, 13856 },
+    dirty_deeds = { 265, 2, 14082, 14083 },
+    dirty_tricks = { 262, 2, 14076, 14094 },
+    dual_wield_specialization = { 221, 5, 13715, 13848, 13849, 13851, 13852 },
+    elusiveness = { 247, 2, 13981, 14066 },
+    endurance = { 204, 2, 13742, 13872 },
+    enveloping_shadows = { 1711, 3, 31211, 31212, 31213 },
+    find_weakness = { 1718, 5, 31233, 31239, 31240, 31241, 31242 },
+    fist_weapon_specialization = { 183, 5, 13707, 13966, 13967, 13968, 13969 },
+    fleet_footed = { 1721, 2, 31208, 31209 },
+    ghostly_strike = { 303, 1, 14278 },
+    heightened_senses = { 1701, 2, 30894, 30895 },
+    hemorrhage = { 681, 1, 16511 },
+    improved_ambush = { 263, 3, 14079, 14080, 14081 },
+    improved_eviscerate = { 276, 3, 14162, 14163, 14164 },
+    improved_expose_armor = { 278, 2, 14168, 14169 },
+    improved_gouge = { 203, 3, 13741, 13793, 13792 },
+    improved_kick = { 206, 2, 13754, 13867 },
+    improved_kidney_shot = { 279, 3, 14174, 14175, 14176 },
+    improved_poisons = { 268, 5, 14113, 14114, 14115, 14116, 14117 },
+    improved_sinister_strike = { 201, 2, 13732, 13863 },
+    improved_slice_and_dice = { 1827, 3, 14165, 14166, 14167 },
+    improved_sprint = { 222, 2, 13743, 13875 },
+    initiative = { 245, 3, 13976, 13979, 13980 },
+    lethality = { 269, 5, 14128, 14132, 14135, 14136, 14137 },
+    lightning_reflexes = { 186, 5, 13712, 13788, 13789, 13790, 13791 },
+    mace_specialization = { 184, 5, 13709, 13800, 13801, 13802, 13803 },
+    malice = { 270, 5, 14138, 14139, 14140, 14141, 14142 },
+    master_of_deception = { 241, 5, 13958, 13970, 13971, 13972, 13973 },
+    master_of_subtlety = { 1713, 3, 31221, 31222, 31223 },
+    master_poisoner = { 1715, 2, 31226, 31227 },
+    murder = { 274, 2, 14158, 14159 },
+    mutilate = { 1719, 1, 1329 },
+    nerves_of_steel = { 1707, 2, 31130, 31131 },
+    opportunity = { 261, 5, 14057, 14072, 14073, 14074, 14075 },
+    precision = { 181, 5, 13705, 13832, 13843, 13844, 13845 },
+    premeditation = { 381, 1, 14183 },
+    preparation = { 284, 1, 14185 },
+    puncturing_wounds = { 277, 3, 13733, 13865, 13866 },
+    quick_recovery = { 1762, 2, 31244, 31245 },
+    relentless_strikes = { 281, 1, 14179 },
+    remorseless_attacks = { 272, 2, 14144, 14148 },
+    riposte = { 301, 1, 14251 },
+    ruthlessness = { 273, 3, 14156, 14160, 14161 },
+    seal_fate = { 283, 5, 14186, 14190, 14193, 14194, 14195 },
+    serrated_blades = { 1123, 3, 14171, 14172, 14173 },
+    setup = { 246, 3, 13983, 14070, 14071 },
+    shadowstep = { 1714, 1, 36554 },
+    sinister_calling = { 1712, 5, 31216, 31217, 31218, 31219, 31220 },
+    sleight_of_hand = { 1700, 2, 30892, 30893 },
+    surprise_attacks = { 1709, 1, 32601 },
+    sword_specialization = { 242, 5, 13960, 13961, 13962, 13963, 13964 },
+    vigor = { 382, 1, 14983 },
+    vile_poisons = { 682, 5, 16513, 16514, 16515, 16719, 16720 },
+    vitality = { 1705, 2, 31122, 31123 },
+    weapon_expertise = { 1703, 2, 30919, 30920 },
 } )
 
-
--- Glyphs
-spec:RegisterGlyphs( {
-    [56808] = "adrenaline_rush",
-    [56813] = "ambush",
-    [56800] = "backstab",
-    [56818] = "blade_flurry",
-    [58039] = "blurred_speed",
-    [63269] = "cloak_of_shadows",
-    [56820] = "crippling_poison",
-    [56806] = "deadly_throw",
-    [58032] = "distract",
-    [64199] = "envenom",
-    [56799] = "evasion",
-    [56802] = "eviscerate",
-    [56803] = "expose_armor",
-    [63254] = "fan_of_knives",
-    [56804] = "feint",
-    [56812] = "garrote",
-    [56814] = "ghostly_strike",
-    [56809] = "gouge",
-    [56807] = "hemorrhage",
-    [63249] = "hunger_for_blood",
-    [63252] = "killing_spree",
-    [63268] = "mutilate",
-    [58027] = "pick_lock",
-    [58017] = "pick_pocket",
-    [56819] = "preparation",
-    [56801] = "rupture",
-    [58033] = "safe_fall",
-    [56798] = "sap",
-    [63253] = "shadow_dance",
-    [56821] = "sinister_strike",
-    [56810] = "slice_and_dice",
-    [56811] = "sprint",
-    [63256] = "tricks_of_the_trade",
-    [58038] = "vanish",
-    [56805] = "vigor",
-} )
-
-
--- Auras
+-- Auras (Hekili-style scaffold)
 spec:RegisterAuras( {
-    -- Energy regeneration increased by $s1%.
+
     adrenaline_rush = {
         id = 13750,
-        duration = function() return glyph.adrenaline_rush.enabled and 21 or 15 end,
+        duration = 15,
         max_stack = 1,
+        -- Aura effects: MOD_POWER_REGEN_PERCENT
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Attack speed increased by $s1%.  Weapon attacks strike an additional nearby opponent.
+
+    arcane_torrent = {
+        id = 25046,
+        duration = 2,
+        max_stack = 1,
+        -- Aura effects: MOD_SILENCE
+        -- Aura targets: TARGET_SRC_CASTER, TARGET_UNIT_SRC_AREA_ENEMY
+    },
+
     blade_flurry = {
         id = 13877,
         duration = 15,
         max_stack = 1,
+        -- Aura effects: MOD_MELEE_HASTE
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Dazed.
-    blade_twisting = {
-        id = 51585,
-        duration = 8,
-        max_stack = 1,
-        copy = { 51585, 31125 },
-    },
-    -- Disoriented.
+
     blind = {
         id = 2094,
         duration = 10,
         max_stack = 1,
+        -- Aura effects: MOD_CONFUSE, MOD_DECREASE_SPEED
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Stunned.
+
+    blood_fury = {
+        id = 20572,
+        duration = 15,
+        max_stack = 1,
+        -- Aura effects: MOD_ATTACK_POWER, MOD_RANGED_ATTACK_POWER
+        -- Aura targets: TARGET_UNIT_CASTER
+    },
+
     cheap_shot = {
         id = 1833,
         duration = 4,
         max_stack = 1,
+        -- Aura effects: MOD_STUN
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    cheating_death = {
-        id = 45182,
-        duration = 3,
-        max_stack = 1,
-    },
-    -- Increases chance to resist spells by $s1%.
+
     cloak_of_shadows = {
         id = 31224,
         duration = 5,
         max_stack = 1,
+        -- Aura effects: MOD_ATTACKER_SPELL_HIT_CHANCE
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Critical strike chance of your next offensive ability increased by $s1%.
+
     cold_blood = {
         id = 14177,
-        duration = 3600,
         max_stack = 1,
+        -- Aura effects: ADD_FLAT_MODIFIER
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    deadly_poison = {
-        id = 2818,
-        duration = 12,
-        max_stack = 5,
-        copy = { 2819, 11353, 11354, 25349, 26968, 27187, 57970, 57969 },
+
+    dazed = {
+        id = 31125,
+        duration = 8,
+        max_stack = 1,
+        -- Aura effects: MOD_DECREASE_SPEED
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Movement slowed by $s2%.
+
     deadly_throw = {
-        id = 48674,
+        id = 26679,
         duration = 6,
         max_stack = 1,
-        copy = { 26679, 48673, 48674 },
+        -- Aura effects: MOD_DECREASE_SPEED
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Detecting traps.
-    detect_traps = {
-        id = 2836,
-        duration = 3600,
+
+    evasion = {
+        id = 5277,
+        duration = 15,
         max_stack = 1,
+        copy = { 5277, 26669 },
+        -- Aura effects: MOD_ATTACKER_RANGED_HIT_CHANCE, MOD_DODGE_PERCENT
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Disarmed.
-    dismantle = {
-        id = 51722,
+
+    expose_armor = {
+        id = 8647,
+        duration = 30,
+        max_stack = 1,
+        copy = { 8647, 8649, 8650, 11197, 11198, 26866 },
+        -- Aura effects: MOD_RESISTANCE
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
+    },
+
+    find_weakness = {
+        id = 31233,
         duration = 10,
         max_stack = 1,
+        copy = { 31233, 31234, 31235, 31236, 31237, 31238, 31239, 31240, 31241, 31242 },
+        -- Aura effects: ADD_PCT_MODIFIER, PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Chance to apply Deadly Poison increased by $s3% and frequency of applying Instant Poison increased by $s2%.
-    envenom = {
-        id = 57993,
-        duration = 1,
-        max_stack = 1,
-        copy = { 32645, 32684, 57992, 57993 },
-    },
-    -- Dodge chance increased by $s1% and chance ranged attacks hit you reduced by $s2%.
-    evasion = {
-        id = 26669,
-        duration = function() return glyph.evasion.enabled and 20 or 15 end,
-        max_stack = 1,
-        copy = { 5277, 26669, 67354, 67378, 67380 },
-    },
-    -- $s2% reduced damage taken from area of effect attacks.
-    feint = {
-        id = 48659,
-        duration = 6,
-        max_stack = 1,
-        copy = { 48659 },
-    },
-    -- $s1 damage every $t1 seconds.
+
     garrote = {
-        id = 48676,
-        duration = function() return glyph.garrote.enabled and 21 or 18 end,
+        id = 703,
+        duration = 18,
         tick_time = 3,
         max_stack = 1,
-        copy = { 703, 8631, 8632, 8633, 8818, 11289, 11290, 26839, 26884, 48675, 48676 },
+        copy = { 703, 8631, 8632, 8633, 11289, 11290, 26839, 26884 },
+        -- Aura effects: PERIODIC_DAMAGE
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Silenced.
-    garrote_silence = {
-        id = 1330,
-        duration = 3,
-        max_stack = 1,
-    },
-    -- Dodge chance increased by $s2%.
+
     ghostly_strike = {
         id = 14278,
-        duration = function() return glyph.ghostly_strike.enabled and 11 or 7 end,
+        duration = 7,
         max_stack = 1,
+        -- Aura effects: MOD_DODGE_PERCENT
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Incapacitated.
+
     gouge = {
         id = 1776,
-        duration = function() return 4 + 0.5 * talent.improved_gouge.rank end,
+        duration = 4,
         max_stack = 1,
+        copy = { 1776, 1777, 8629, 11285, 11286, 38764 },
+        -- Aura effects: MOD_STUN
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Increases damage taken by $s3.
+
     hemorrhage = {
         id = 16511,
         duration = 15,
         max_stack = 1,
-        copy = { 16511, 17347, 17348, 26864, 48660 },
+        copy = { 16511, 17347, 17348, 26864 },
+        -- Aura effects: MOD_DAMAGE_TAKEN
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    hunger_for_blood = {
-        id = 63848,
-        duration = 60,
-        max_stack = 1,
-    },
-    -- Stunned.
+
     kidney_shot = {
-        id = 8643,
+        id = 408,
         duration = 1,
         max_stack = 1,
-        copy = { 408, 8643, 27615, 30621 },
+        copy = { 408, 8643 },
+        -- Aura effects: MOD_DAMAGE_PERCENT_TAKEN, MOD_STUN
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Attacking an enemy every $t1 sec.  Damage dealt increased by $61851s3%.
-    killing_spree = {
-        id = 51690,
-        duration = 2,
-        tick_time = 0.5,
-        max_stack = 1,
-    },
-    master_of_subtlety = {
-        id = 31665,
-        duration = 6,
-        max_stack = 1,
-    },
-    overkill = {
-        id = 58427,
-        duration = 20,
-        max_stack = 1,
-    },
-    -- Critical strike chance for your next Sinister Strike, Backstab, Mutilate, Ambush, Hemorrhage, or Ghostly strike increased by $s1%.
-    remorseless = {
-        id = 14149,
-        duration = 20,
-        max_stack = 1,
-        copy = { 14143, 14149 },
-    },
-    -- Melee attack speed slowed by $s2%.
-    riposte = {
-        id = 14251,
-        duration = 30,
-        max_stack = 1,
-    },
-    -- Causes damage every $t1 seconds.
-    rupture = {
-        id = 48672,
-        duration = function() return ( glyph.rupture.enabled and 10 or 6 ) + ( 2 * combo_points.current ) end,
-        tick_time = 2,
-        max_stack = 1,
-        copy = { 1943, 8639, 8640, 11273, 11274, 11275, 26867, 48671, 48672 },
-    },
-    -- Sapped.
-    sap = {
-        id = 51724,
-        duration = function() return glyph.sap.enabled and 80 or 60 end,
-        max_stack = 1,
-        copy = { 2070, 6770, 11297, 51724 },
-    },
-    -- Increases physical damage taken by $s1%.
-    savage_combat = {
-        id = 58684,
-        duration = 3600,
-        max_stack = 1,
-        copy = { 58683, 58684 },
-    },
-    -- Can use opening abilities without being stealthed.
-    shadow_dance = {
-        id = 51713,
-        duration = function() return glyph.sap.enabled and 8 or 6 end,
-        max_stack = 1,
-    },
-    shadowstep = {
-        id = 36563,
+
+    premeditation = {
+        id = 14183,
         duration = 10,
         max_stack = 1,
+        -- Aura effects: RETAIN_COMBO_POINTS
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    shadowstep_sprint = {
+
+    riposte = {
+        id = 14251,
+        duration = 6,
+        max_stack = 1,
+        -- Aura effects: MOD_DISARM
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
+    },
+
+    rupture = {
+        id = 1943,
+        duration = 6,
+        tick_time = 2,
+        max_stack = 1,
+        copy = { 1943, 8639, 8640, 11273, 11274, 11275, 26867 },
+        -- Aura effects: PERIODIC_DAMAGE
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
+    },
+
+    sap = {
+        id = 2070,
+        duration = 45,
+        max_stack = 1,
+        copy = { 2070, 6770, 11297 },
+        -- Aura effects: MOD_STUN
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
+    },
+
+    shadowstep = {
         id = 36554,
         duration = 3,
         max_stack = 1,
+        -- Aura effects: MOD_INCREASE_SPEED
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Silenced.
-    silenced_improved_kick = {
-        id = 18425,
-        duration = 2,
-        max_stack = 1,
-    },
-    -- Melee attack speed increased by $s2%.
+
     slice_and_dice = {
-        id = 6774,
-        duration = function() return ( ( glyph.slice_and_dice.enabled and 9 or 6 ) + ( 3 * combo_points.current ) ) * ( 1 + 0.25 * talent.improved_slice_and_dice.rank ) end,
+        id = 5171,
+        duration = 6,
         max_stack = 1,
-        copy = { 5171, 6434, 6774, 60847 },
+        copy = { 5171, 6774 },
+        -- Aura effects: MOD_MELEE_HASTE
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Movement speed increased by $w1%.
+
     sprint = {
-        id = 11305,
+        id = 2983,
         duration = 15,
         max_stack = 1,
-        copy = { 2983, 8696, 11305, 48594, 56354 },
+        copy = { 2983, 8696, 11305 },
+        -- Aura effects: MOD_INCREASE_SPEED
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Stealthed.  Movement slowed by $s3%.
+
     stealth = {
         id = 1784,
-        duration = 3600,
         max_stack = 1,
+        copy = { 1784, 1785, 1786, 1787 },
+        -- Aura effects: MOD_DECREASE_SPEED, MOD_SHAPESHIFT, MOD_STEALTH
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- $s1% increased critical strike chance with combo moves.
-    turn_the_tables = {
-        id = 52915,
-        duration = 8,
-        max_stack = 1,
-        copy = { 52915, 52914, 52910 },
-    },
-    vanish = {
-        id = 11327,
-        duration = 10,
-        max_stack = 1,
-    },
-    -- Time between melee and ranged attacks increased by $s1%.    Movement speed reduced by $s2%.
-    waylay = {
-        id = 51693,
-        duration = 8,
-        max_stack = 1,
-    },
-    -- $s1 damage every $t sec
-    lacerate = {
-        id = 48568,
-        duration = 15,
-        tick_time = 3,
-        max_stack = 5,
-        copy = { 33745, 48567, 48568 },
-    },
-    -- Bleeding for $s1 damage every $t1 seconds.
-    pounce_bleed = {
-        id = 49804,
-        duration = 18,
-        tick_time = 3,
-        max_stack = 1,
-        copy = { 9007, 9824, 9826, 27007, 49804 },
-    },
-    -- Bleeding for $s2 damage every $t2 seconds.
-    rake = {
-        id = 48574,
-        duration = function() return 9 + ((set_bonus.tier9_2pc == 1 and 3) or 0) end,
-        max_stack = 1,
-        copy = { 1822, 1823, 1824, 9904, 27003, 48573, 48574, 59881, 59882, 59883, 59884, 59885, 59886 },
-    },
-    -- Bleed damage every $t1 seconds.
-    rip = {
-        id = 49800,
-        duration = function() return 12 + ((glyph.rip.enabled and 4) or 0) + ((set_bonus.tier7_2pc == 1 and 4) or 0) end,
-        tick_time = 2,
-        max_stack = 1,
-        copy = { 1079, 9492, 9493, 9752, 9894, 9896, 27008, 49799, 49800 },
-    },
-    rend = {
-        id = 47465,
-        duration = 15,
-        max_stack = 1,
-        shared = "target",
-        copy = { 772, 6546, 6547, 6548, 11572, 11573, 11574, 25208 }
-    },
-    deep_wound = {
-        id = 43104,
-        duration = 12,
-        max_stack = 1,
-        shared = "target"
-    },
-    bleed = {
-        alias = { "lacerate", "pounce_bleed", "rip", "rake", "deep_wound", "rend", "garrote", "rupture" },
-        aliasType = "debuff",
-        aliasMode = "longest"
-    }
+
 } )
 
-
-spec:RegisterStateExpr( "cp_max_spend", function ()
-    return combo_points.max
-end )
-
-
-local stealth = {
-    rogue   = { "stealth", "vanish", "shadow_dance" },
-    mantle  = { "stealth", "vanish" },
-    all     = { "stealth", "vanish", "shadow_dance", "shadowmeld" }
-}
-
-local enchant_ids = {
-    [7] = "deadly",
-    [8] = "deadly",
-    [626] = "deadly",
-    [627] = "deadly",
-    [3771] = "deadly",
-    [2630] = "deadly",
-    [2642] = "deadly",
-    [2643] = "deadly",
-    [3770] = "deadly",
-    [323] = "instant",
-    [324] = "instant",
-    [325] = "instant",
-    [623] = "instant",
-    [3769] = "instant",
-    [624] = "instant",
-    [625] = "instant",
-    [2641] = "instant",
-    [3768] = "instant",
-    [2640] = "anesthetic",
-    [3774] = "anesthetic",
-    [703] = "wound",
-    [704] = "wound",
-    [705] = "wound",
-    [706] = "wound",
-    [2644] = "wound",
-    [3772] = "wound",
-    [3773] = "wound",
-    [35] = "mind",
-    [22] = "crippling",
-}
-
-
-spec:RegisterStateTable( "stealthed", setmetatable( {}, {
-    __index = function( t, k )
-        if k == "rogue" then
-            return buff.stealth.up or buff.vanish.up or buff.shadow_dance.up
-        elseif k == "rogue_remains" then
-            return max( buff.stealth.remains, buff.vanish.remains, buff.shadow_dance.remains )
-
-        elseif k == "mantle" then
-            return buff.stealth.up or buff.vanish.up
-        elseif k == "mantle_remains" then
-            return max( buff.stealth.remains, buff.vanish.remains )
-
-        elseif k == "all" then
-            return buff.stealth.up or buff.vanish.up or buff.shadow_dance.up or buff.shadowmeld.up
-        elseif k == "remains" or k == "all_remains" then
-            return max( buff.stealth.remains, buff.vanish.remains, buff.shadow_dance.remains, buff.shadowmeld.remains )
-        end
-
-        return false
-    end
-} ) )
-
-
-spec:RegisterHook( "spend", function( amt, resource )
-    if resource == "combo_points" and amt * talent.relentless_strikes.rank * 4 >= 100 then
-        gain( 25, "energy" )
-    end
-end )
-
-
--- We need to break stealth when we start combat from an ability.
-spec:RegisterHook( "runHandler", function( action )
-    local a = class.abilities[ action ]
-
-    if stealthed.all and ( not a or a.startsCombat ) then
-        if buff.stealth.up then
-            setCooldown( "stealth", 10 )
-            if talent.master_of_subtlety.enabled then applyBuff( "master_of_subtlety", 6 ) end
-            if talent.overkill.enabled then applyBuff( "overkill", 20 ) end
-        end
-
-        removeBuff( "stealth" )
-        removeBuff( "shadowmeld" )
-        removeBuff( "vanish" )
-    end
-
-    if ( not a or a.startsCombat ) then
-        if buff.cold_blood.up then removeBuff( "cold_blood" ) end
-        if buff.shadowstep.up then removeBuff( "shadowstep" ) end
-    end
-end )
-
-
-spec:RegisterHook( "reset_precast", function()
-    if buff.killing_spree.up then setCooldown( "global_cooldown", max( gcd.remains, buff.killing_spree.remains ) ) end
-
-    local mh, mh_expires, _, mh_id, oh, oh_expires, _, oh_id = GetWeaponEnchantInfo()
-
-end )
-
-
--- Abilities
+-- Abilities (Hekili-style scaffold)
 spec:RegisterAbilities( {
-    -- Increases your Energy regeneration rate by 100% for 15 sec.
+
+-- Activate Primary Spec - Switch to your Primary Talent Specialization.
+    activate_primary_spec = {
+        id = 63645,
+        cast = 5,
+        texture = 236544,
+        range = 50000,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 63645 #0 -- effect: TALENT_SPEC_SELECT, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Activate Secondary Spec - Switch to your Secondary Talent Specialization.
+    activate_secondary_spec = {
+        id = 63644,
+        cast = 5,
+        texture = 236544,
+        range = 50000,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 63644 #0 -- effect: TALENT_SPEC_SELECT, aura: NONE, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Adrenaline Rush - Increases your Energy regeneration rate by 100% for 15 sec.
     adrenaline_rush = {
         id = 13750,
         cast = 0,
-        cooldown = 180,
-        gcd = "totem",
-
-        talent = "adrenaline_rush",
-        startsCombat = false,
+        duration = 15,
+        cooldown = 300,
+        gcd = "spell",
+        school = "physical",
         texture = 136206,
+        spendType = "Energy",
+        max_stack = 1,
 
-        toggle = "cooldowns",
+        -- Effects:
+        -- [x] Rank 13750 #0 -- effect: APPLY_AURA, aura: MOD_POWER_REGEN_PERCENT, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
             applyBuff( "adrenaline_rush" )
-            energy.regen = energy.regen * 2
         end,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Ambush the target, causing 275% weapon damage plus 509 to the target.  Must be stealthed and behind the target.  Requires a dagger in the main hand.  Awards 2 combo points.
+-- Ambush - Ambush the target, causing 275% weapon damage plus 70 to the target. Must be stealthed and behind the target. Requires a dagger in the main hand. Awards 1 combo $lpoint:points;.
     ambush = {
         id = 8676,
         cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = function() return 60 - 4 * talent.slaughter_from_the_shadows.rank end,
-        spendType = "energy",
-
-        startsCombat = true,
+        gcd = "spell",
+        school = "physical",
         texture = 132282,
+        range = 5,
+        spend = 60,
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 8676, 8724, 8725, 11267, 11268, 11269, 27441 },
 
-        usable = function() return stealthed.all, "must be in stealth" end,
+        -- Effects:
+        -- [ ] Rank 8676 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 27, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8676 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 274, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8676 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8724 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8724 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 274, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8724 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8725 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 49, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8725 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 274, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8725 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11267 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 73, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11267 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 274, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11267 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11268 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 91, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11268 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 274, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11268 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11269 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 115, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11269 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 274, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11269 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 27441 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 133, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 27441 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 274, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 27441 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
 
-        handler = function ()
-            -- TODO: Use fail positioning from Burning Crusade.
-            gain( talent.initiative.rank == 3 and 3 or 2, "combo_points" )
-            removeBuff( "remorseless" )
-            if talent.waylay.rank == 2 then applyDebuff( "target", "waylay" ) end
-        end,
-
-        copy = { 8676, 8724, 8725, 11267, 11268, 11269, 27441, 48689, 48690, 48691 },
+        proc_chance = 100,
     },
 
+-- Anesthetic Poison - Coats a weapon with poison that lasts for 1 hour. Each strike has a $26785h% chance of poisoning the enemy which instantly inflicts 134 Nature damage, but causes no additional threat.
+    anesthetic_poison = {
+        id = 26786,
+        cast = 3,
+        texture = 136093,
+        max_stack = 1,
 
-    -- Backstab the target, causing 150% weapon damage plus 255 to the target.  Must be behind the target.  Requires a dagger in the main hand.  Awards 1 combo point.
+        -- Effects:
+        -- [x] Rank 26786 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Arcane Torrent - Silence all enemies within $a1 yards for 2 sec. In addition, you gain 10 Energy for each Mana Tap charge currently affecting you.
+    arcane_torrent = {
+        id = 25046,
+        cast = 0,
+        duration = 2,
+        cooldown = 120,
+        gcd = "spell",
+        school = "arcane",
+        texture = 136222,
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 25046 #0 -- effect: APPLY_AURA, aura: MOD_SILENCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        startsCombat = true,
+
+        radius = 8,
+
+        handler = function ()
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Backstab - Backstab the target, causing 150% weapon damage plus 15 to the target. Must be behind the target. Requires a dagger in the main hand. Awards 1 combo $lpoint:points;.
     backstab = {
         id = 53,
         cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = function() return 60 - 4 * talent.slaughter_from_the_shadows.rank end,
-        spendType = "energy",
-
-        startsCombat = true,
+        gcd = "spell",
+        school = "physical",
         texture = 132090,
+        range = 5,
+        spend = 60,
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 53, 2589, 2590, 2591, 8721, 11279, 11280, 11281, 25300, 26863 },
 
-        usable = function() return stealthed.all, "must be in stealth" end,
+        -- Effects:
+        -- [ ] Rank 53 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 53 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 53 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 2589 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 2589 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 2589 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 2590 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 31, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 2590 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 2590 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 2591 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 45, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 2591 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 2591 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8721 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 59, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8721 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8721 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11279 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 89, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11279 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11279 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11280 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 109, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11280 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11280 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11281 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 139, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11281 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11281 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25300 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25300 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25300 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26863 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 169, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26863 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26863 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
-        handler = function ()
-            if glyph.backstab.enabled and debuff.rupture.up then debuff.rupture.expires = debuff.rupture.expires + 2 end
-            gain( 1, "combo_points" )
-            removeBuff( "remorseless" )
-            if talent.waylay.rank == 2 then applyDebuff( "target", "waylay" ) end
-        end,
-
-        copy = { 53, 2589, 2590, 2591, 8721, 11279, 11280, 11281, 25300, 26863, 48656, 48657 },
+        proc_chance = 100,
     },
 
+-- Berserking - Increases your attack speed by $26635m1% to $26635M1%. At full health the speed increase is $26635m1% with a greater effect up to $26635M1% if you are badly hurt when you activate Berserking. Lasts $26635d.
+    berserking = {
+        id = 26297,
+        cast = 0,
+        cooldown = 180,
+        school = "physical",
+        texture = 135727,
+        spend = 10,
+        spendType = "Energy",
+        max_stack = 1,
 
-    -- Increases your attack speed by 20%.  In addition, attacks strike an additional nearby opponent.  Lasts 15 sec.
+        -- Effects:
+        -- [ ] Rank 26297 #0 -- effect: DUMMY, aura: NONE, points: 4, addl_points: 21, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Blade Flurry - Increases your attack speed by 20%. In addition, attacks strike an additional nearby opponent. Lasts 15 sec.
     blade_flurry = {
         id = 13877,
         cast = 0,
+        duration = 15,
         cooldown = 120,
-        gcd = "totem",
-
-        spend = function() return glyph.blade_flurry.enabled and 0 or 25 end,
-        spendType = "energy",
-
-        talent = "blade_flurry",
-        startsCombat = false,
+        gcd = "spell",
+        school = "physical",
         texture = 132350,
+        spend = 25,
+        spendType = "Energy",
+        max_stack = 1,
 
-        toggle = "cooldowns",
+        -- Effects:
+        -- [x] Rank 13877 #0 -- effect: APPLY_AURA, aura: MOD_MELEE_HASTE, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
             applyBuff( "blade_flurry" )
         end,
+
+        proc_chance = 100,
+        proc_type_mask = { 20, 0 },
+        -- Proc type flags: mask0: Deal Melee Swing; Deal Melee Ability
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Blinds the target, causing it to wander disoriented for up to 10 sec.  Any damage caused will remove the effect.
+-- Blind - Blinds the target, causing it to wander disoriented for up to 10 sec. Any damage caused will remove the effect.
     blind = {
         id = 2094,
         cast = 0,
-        cooldown = function() return 180 - 30 * talent.elusiveness.rank end,
-        gcd = "totem",
-
-        spend = function() return 30 * ( 1 - 0.25 * talent.dirty_tricks.rank ) end,
-        spendType = "energy",
-
-        startsCombat = true,
+        duration = 10,
+        cooldown = 180,
+        category_cooldown = 20,
+        gcd = "spell",
+        school = "physical",
         texture = 136175,
+        cooldown_category_id = 1187,
+        cooldown_category = "Blind",
+        range = 10,
+        spend = 30,
+        spendType = "Energy",
+        max_stack = 1,
 
-        toggle = "interrupts",
+        -- Effects:
+        -- [x] Rank 2094 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -61, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 2094 #1 -- effect: APPLY_AURA, aura: MOD_CONFUSE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
         handler = function ()
             applyDebuff( "target", "blind" )
         end,
+
+        proc_chance = 100,
     },
 
+-- Blood Fury - Increases attack power by 6, but reduces healing effects on you by 50%. Lasts 15 sec.
+    blood_fury = {
+        id = 20572,
+        cast = 0,
+        duration = 15,
+        cooldown = 120,
+        school = "physical",
+        texture = 135726,
+        max_stack = 1,
 
-    -- Stuns the target for 4 sec.  Must be stealthed.  Awards 2 combo points.
+        -- Effects:
+        -- [x] Rank 20572 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 5, addl_points: 1, points_per_level: 4, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20572 #1 -- effect: APPLY_AURA, aura: MOD_RANGED_ATTACK_POWER, points: 5, addl_points: 1, points_per_level: 4, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "blood_fury" )
+        end,
+    },
+
+-- Cheap Shot - Stuns the target for 4 sec. Must be stealthed. Awards 2 combo $lpoint:points;.
     cheap_shot = {
         id = 1833,
         cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = function() return 60 - 10 * talent.dirty_deeds.rank end,
-        spendType = "energy",
-
-        startsCombat = true,
+        duration = 4,
+        gcd = "spell",
+        school = "physical",
         texture = 132092,
+        range = 5,
+        spend = 60,
+        spendType = "Energy",
+        max_stack = 1,
 
-        usable = function() return stealthed.all, "must be in stealth" end,
+        -- Effects:
+        -- [x] Rank 1833 #0 -- effect: APPLY_AURA, aura: MOD_STUN, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1833 #1 -- effect: 328, aura: NONE, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
 
         handler = function ()
-            applyDebuff( "tagret", "cheap_shot" )
-            gain( talent.initiative.rank == 3 and 3 or 2, "combo_points" )
+            applyDebuff( "target", "cheap_shot" )
         end,
+
+        proc_chance = 100,
     },
 
-
-    -- Instantly removes all existing harmful spell effects and increases your chance to resist all spells by 90% for 5 sec.  Does not remove effects that prevent you from using Cloak of Shadows.
+-- Cloak of Shadows - Instantly removes all existing harmful spell effects and increases your chance to resist all spells by 90% for 5 sec. Does not remove effects that prevent you from using Cloak of Shadows.
     cloak_of_shadows = {
         id = 31224,
         cast = 0,
-        cooldown = function() return 180 - 15 * talent.elusiveness.rank end,
-        gcd = "totem",
-
-        startsCombat = false,
+        duration = 5,
+        cooldown = 60,
+        gcd = "spell",
+        school = "physical",
         texture = 136177,
+        max_stack = 1,
 
-        toggle = "defensives",
-
-        buff = "dispellable_magic",
+        -- Effects:
+        -- [x] Rank 31224 #0 -- effect: APPLY_AURA, aura: MOD_ATTACKER_SPELL_HIT_CHANCE, points: -91, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 31224 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 35729
 
         handler = function ()
-            removeBuff( "dispellable_magic" )
             applyBuff( "cloak_of_shadows" )
         end,
+
+        proc_chance = 100,
     },
 
-
-    -- When activated, increases the critical strike chance of your next offensive ability by 100%.
+-- Cold Blood - When activated, increases the critical strike chance of your next offensive ability by 10%.
     cold_blood = {
         id = 14177,
         cast = 0,
         cooldown = 180,
-        gcd = "off",
-
-        talent = "cold_blood",
-        startsCombat = false,
+        school = "physical",
         texture = 135988,
+        max_stack = 1,
 
-        toggle = "cooldowns",
-
-        nobuff = "cold_blood",
+        -- Effects:
+        -- [x] Rank 14177 #0 -- effect: APPLY_AURA, aura: ADD_FLAT_MODIFIER, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
             applyBuff( "cold_blood" )
         end,
+
+        proc_chance = 100,
+        proc_charges = 1,
+        proc_type_mask = { 87376, 0 },
+        -- Proc type flags: mask0: Deal Melee Ability; Deal Ranged Attack; Deal Ranged Ability; Deal Helpful Ability; Deal Harmful Ability; Deal Helpful Spell; Deal Harmful Spell
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
+-- Crippling Poison - Coats a weapon with poison that lasts for 1 hour. Each strike has a 30% chance of poisoning the enemy, slowing their movement speed by 50% for $3409d.
+    crippling_poison = {
+        id = 3420,
+        cast = 3,
+        texture = 132274,
+        max_stack = 1,
 
-    -- Finishing move that reduces the movement of the target by 50% for 6 sec and causes increased thrown weapon damage:     1 point  : 223 - 245 damage     2 points: 365 - 387 damage     3 points: 507 - 529 damage     4 points: 649 - 671 damage     5 points: 791 - 813 damage
+        -- Effects:
+        -- [x] Rank 3420 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Crippling Poison II - Coats a weapon with poison that lasts for 1 hour. Each strike has a 30% chance of poisoning the enemy, slowing their movement speed by 70% for $11201d.
+    crippling_poison_ii = {
+        id = 3421,
+        cast = 3,
+        texture = 132274,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 3421 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Dazed - A concussive strike that reduces movement speed by 50%.
+    dazed = {
+        id = 31125,
+        cast = 0,
+        duration = 8,
+        texture = 135860,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 31125 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            applyDebuff( "target", "dazed" )
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Deadly Poison - Coats a weapon with poison that lasts for 1 hour. Each strike has a 30% chance of poisoning the enemy for $2818o1 Nature damage over $2818d. Stacks up to 5 times on a single target.
+    deadly_poison = {
+        id = 2835,
+        cast = 3,
+        texture = 132290,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 2835 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Deadly Poison II - Coats a weapon with poison that lasts for 1 hour. Each strike has a 30% chance of poisoning the enemy for $2819o1 Nature damage over $2819d. Stacks up to 5 times on a single target.
+    deadly_poison_ii = {
+        id = 2837,
+        cast = 3,
+        texture = 132290,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 2837 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Deadly Poison III - Coats a weapon with poison that lasts for 1 hour. Each strike has a 30% chance of poisoning the enemy for $11353o1 Nature damage over $11353d. Stacks up to 5 times on a single target.
+    deadly_poison_iii = {
+        id = 11357,
+        cast = 3,
+        texture = 132290,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 11357 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Deadly Poison IV - Coats a weapon with poison that lasts for 1 hour. Each strike has a 30% chance of poisoning the enemy for $11354o1 Nature damage over $11354d. Stacks up to 5 times on a single target.
+    deadly_poison_iv = {
+        id = 11358,
+        cast = 3,
+        texture = 132290,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 11358 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Deadly Poison V - Coats a weapon with poison that lasts for 1 hour. Each strike has a 30% chance of poisoning the enemy for $25349o1 Nature damage over $25349d. Stacks up to 5 times on a single target.
+    deadly_poison_v = {
+        id = 25347,
+        cast = 3,
+        texture = 132290,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 25347 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Deadly Poison VI - Coats a weapon with poison that lasts for 1 hour. Each strike has a 30% chance of poisoning the enemy for $26968o1 Nature damage over $26968d. Stacks up to 5 times on a single target.
+    deadly_poison_vi = {
+        id = 26969,
+        cast = 3,
+        texture = 132290,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 26969 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Deadly Poison VII - Coats a weapon with poison that lasts for 1 hour. Each strike has a 30% chance of poisoning the enemy for $27187o1 Nature damage over $27187d. Stacks up to 5 times on a single target.
+    deadly_poison_vii = {
+        id = 27282,
+        cast = 3,
+        texture = 132290,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 27282 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Deadly Throw - Finishing move that reduces the movement of the target by 50% for 6 sec and causes increased thrown weapon damage: 1 point : ${$m1+($b1*1)+$rwb} - ${$M1+($b1*1)+$RWB} damage 2 points: ${$m1+($b1*2)+$rwb} - ${$M1+($b1*2)+$RWB} damage 3 points: ${$m1+($b1*3)+$rwb} - ${$M1+($b1*3)+$RWB} damage 4 points: ${$m1+($b1*4)+$rwb} - ${$M1+($b1*4)+$RWB} damage 5 points: ${$m1+($b1*5)+$rwb} - ${$M1+($b1*5)+$RWB} damage
     deadly_throw = {
         id = 26679,
-        cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = 35,
-        spendType = "energy",
-
-        startsCombat = true,
+        duration = 6,
+        gcd = "spell",
+        school = "physical",
         texture = 135430,
+        range = 30,
+        spend = 35,
+        spendType = "Energy",
+        max_stack = 1,
 
-        usable = function() return combo_points.current > 0, "requires combo_points" end,
+        -- Effects:
+        -- [ ] Rank 26679 #0 -- effect: WEAPON_DAMAGE, aura: NONE, points: 58, addl_points: 17, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 26679 #1 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [ ] Rank 26679 #2 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        startsCombat = true,
 
         handler = function ()
             applyDebuff( "target", "deadly_throw" )
-            spend( combo_points.current, "combo_points" )
-            if talent.throwing_specialization.rank == 2 then interrupt() end
-        end,
-
-        copy = { 26679, 48673, 48674 },
-    },
-
-
-    -- Disarm the enemy, removing all weapons, shield or other equipment carried for 10 sec.
-    dismantle = {
-        id = 51722,
-        cast = 0,
-        cooldown = 60,
-        gcd = "totem",
-
-        spend = 25,
-        spendType = "energy",
-
-        startsCombat = true,
-        texture = 236272,
-
-        toggle = "cooldowns",
-
-        handler = function ()
-            applyDebuff( "target", "dismantle" )
         end,
     },
 
+-- Deathblow X11 Goggles
+    deathblow_x11_goggles = {
+        id = 41317,
+        cast = 50,
+        texture = 136243,
+        max_stack = 1,
 
-    -- Throws a distraction, attracting the attention of all nearby monsters for 10 seconds.  Does not break stealth.
+        -- Effects:
+        -- [x] Rank 41317 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Disarm Trap - Sneak up on the trap in order to disarm it. Don't get too close or the trap will go off.
+    disarm_trap = {
+        id = 1842,
+        cast = 2,
+        texture = 136162,
+        range = 5,
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 1842 #0 -- effect: OPEN_LOCK, aura: NONE, points: 199, addl_points: 1, points_per_level: 5, sp_bonus: 0, radius_idx: 0, target: TARGET_GAMEOBJECT_TARGET, target2: NONE, mechanic: 0
+    },
+
+-- Distract - Throws a distraction, attracting the attention of all nearby monsters for 10 seconds. Does not break stealth.
     distract = {
         id = 1725,
         cast = 0,
-        cooldown = function() return 30 - 5 * talent.filthy_tricks.rank end,
-        gcd = "totem",
-
-        spend = function() return 30 - 5 * talent.filthy_tricks.rank end,
-        spendType = "energy",
-
-        startsCombat = false,
+        category_cooldown = 30,
+        gcd = "spell",
+        school = "physical",
         texture = 132289,
+        cooldown_category_id = 22,
+        cooldown_category = "Quick Debuff - Spell",
+        range = 30,
+        spend = 30,
+        spendType = "Energy",
+        max_stack = 1,
 
-        handler = function ()
-        end,
+        -- Effects:
+        -- [ ] Rank 1725 #0 -- effect: DISTRACT, aura: NONE, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_UNIT_DEST_AREA_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        radius = 10,
     },
 
-
-    -- Finishing move that consumes your Deadly Poison doses on the target and deals instant poison damage.  Following the Envenom attack you have an additional 15% chance to apply Deadly Poison and a 75% increased frequency of applying Instant Poison for 1 sec plus an additional 1 sec per combo point.  One dose is consumed for each combo point:    1 dose:  180 damage    2 doses: 361 damage    3 doses: 541 damage    4 doses: 722 damage    5 doses: 902 damage
+-- Envenom - Finishing move that consumes your Deadly Poison doses on the target and deals instant poison damage. One dose is consumed for each combo point: 1 dose: ${$m2*1+$AP*0.03} damage 2 doses: ${$m2*2+$AP*0.06} damage 3 doses: ${$m2*3+$AP*0.09} damage 4 doses: ${$m2*4+$AP*0.12} damage 5 doses: ${$m2*5+$AP*0.15} damage
     envenom = {
         id = 32645,
         cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = 35,
-        spendType = "energy",
-
-        startsCombat = true,
+        gcd = "spell",
+        school = "nature",
         texture = 132287,
+        range = 5,
+        spend = 35,
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 32645, 32684, 39967 },
 
-        usable = function()
-            if combo_points.current == 0 then
-                return false, "requires combo_points"
-            end
-
-            if not debuff.deadly_poison.up then
-                return false, "requires deadly_poison debuff"
-            end
-
-            return true
-        end,
+        -- Effects:
+        -- [x] Rank 32645 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 143, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 32645 #1 -- effect: DUMMY, aura: NONE, points: 143, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 32684 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 179, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 32684 #1 -- effect: DUMMY, aura: NONE, points: 179, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 39967 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 152, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
         handler = function ()
-            if not ( glyph.envenom.enabled or talent.master_poisoner.rank == 3 ) then
-                removeDebuffStack( "target", "deadly_poison", combo_points.current )
-            end
-
-            if talent.cut_to_the_chase.rank == 5 and buff.slice_and_dice.up then
-                buff.slice_and_dice.expires = query_time + buff.slice_and_dice.duration
-            end
-
-            spend( combo_points.current, "combo_points" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "envenom" ) end
         end,
 
-        copy = { 32645, 32684, 57992, 57993 },
+        proc_chance = 100,
+
+        -- Aura restrictions: target_state=16
     },
 
-
-    -- Increases the rogue's dodge chance by 50% and reduces the chance ranged attacks hit the rogue by 25%.  Lasts 15 sec.
+-- Evasion - The rogue's dodge chance will increase by 50% for 15 sec.
     evasion = {
         id = 5277,
         cast = 0,
-        cooldown = 180,
-        gcd = "off",
-
-        spend = 0,
-        spendType = "energy",
-
-        startsCombat = false,
+        duration = 15,
+        category_cooldown = 300,
+        school = "physical",
         texture = 136205,
+        cooldown_category_id = 66,
+        cooldown_category = "Dodge Maneuver",
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 5277, 26669 },
 
-        toggle = "defensives",
+        -- Effects:
+        -- [x] Rank 5277 #0 -- effect: APPLY_AURA, aura: MOD_DODGE_PERCENT, points: 49, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 26669 #0 -- effect: APPLY_AURA, aura: MOD_DODGE_PERCENT, points: 49, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 26669 #1 -- effect: APPLY_AURA, aura: MOD_ATTACKER_RANGED_HIT_CHANCE, points: -26, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
             applyBuff( "evasion" )
         end,
 
-        copy = { 5277, 26669 },
+        proc_chance = 100,
     },
 
-
-    -- Finishing move that causes damage per combo point:     1 point  : 256-391 damage     2 points: 452-602 damage     3 points: 648-813 damage     4 points: 845-1024 damage     5 points: 1040-1235 damage
+-- Eviscerate - Finishing move that causes damage per combo point: 1 point : ${$m1+($b1*1)+$AP*0.03}-${$M1+($b1*1)+$AP*0.03} damage 2 points: ${$m1+($b1*2)+$AP*0.06}-${$M1+($b1*2)+$AP*0.06} damage 3 points: ${$m1+($b1*3)+$AP*0.09}-${$M1+($b1*3)+$AP*0.09} damage 4 points: ${$m1+($b1*4)+$AP*0.12}-${$M1+($b1*4)+$AP*0.12} damage 5 points: ${$m1+($b1*5)+$AP*0.15}-${$M1+($b1*5)+$AP*0.15} damage
     eviscerate = {
         id = 2098,
         cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = 35,
-        spendType = "energy",
-
-        startsCombat = true,
+        gcd = "spell",
+        school = "physical",
         texture = 132292,
+        range = 5,
+        spend = 35,
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 2098, 6760, 6761, 6762, 8623, 8624, 11299, 11300, 26865, 31016 },
 
-        usable = function() return combo_points.current > 0, "requires combo_points" end,
+        -- Effects:
+        -- [x] Rank 2098 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 0, addl_points: 5, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 2098 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 6760 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 2, addl_points: 9, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 6760 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 6761 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 5, addl_points: 15, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 6761 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 6762 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 9, addl_points: 21, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 6762 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8623 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 14, addl_points: 31, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8623 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8624 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 21, addl_points: 45, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8624 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 11299 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 33, addl_points: 69, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11299 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 11300 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 47, addl_points: 97, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11300 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 26865 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 59, addl_points: 121, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26865 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31016 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 53, addl_points: 109, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 31016 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        startsCombat = true,
 
         handler = function ()
-            if talent.cut_to_the_chase.rank == 5 and buff.slice_and_dice.up then
-                buff.slice_and_dice.expires = query_time + buff.slice_and_dice.duration
-            end
-
-            spend( combo_points.current, "combo_points" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "eviscerate" ) end
         end,
 
-        copy = { 2098, 6760, 6761, 6762, 8623, 8624, 11299, 11300, 26865, 31016, 48667, 48668 },
+        proc_chance = 100,
     },
 
-
-    -- Finishing move that exposes the target, reducing armor by 20% and lasting longer per combo point:     1 point  : 6 sec.     2 points: 12 sec.     3 points: 18 sec.     4 points: 24 sec.     5 points: 30 sec.
+-- Expose Armor - Finishing move that exposes the target for 30 sec, reducing armor per combo point: 1 point : ${0-$b1*1} armor 2 points: ${0-$b1*2} armor 3 points: ${0-$b1*3} armor 4 points: ${0-$b1*4} armor 5 points: ${0-$b1*5} armor
     expose_armor = {
         id = 8647,
         cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = function() return 25 - 5 * talent.improved_expose_armor.rank end,
-        spendType = "energy",
-
-        startsCombat = true,
+        duration = 30,
+        gcd = "spell",
+        school = "physical",
         texture = 132354,
+        range = 5,
+        spend = 25,
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 8647, 8649, 8650, 11197, 11198, 26866 },
 
-        usable = function() return combo_points.current > 0, "requires combo_points" end,
-
-        handler = function ()
-            spend( combo_points.current, "combo_points" )
-        end,
-    },
-
-
-    -- Instantly throw both weapons at all targets within 8 yards, causing 105% weapon damage with daggers, and 70% weapon damage with all other weapons.
-    fan_of_knives = {
-        id = 51723,
-        cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = 50,
-        spendType = "energy",
-
+        -- Effects:
+        -- [x] Rank 8647 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8647 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8649 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8649 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8650 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8650 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 11197 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11197 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 11198 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11198 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 26866 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26866 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
         startsCombat = true,
-        texture = 236273,
 
         handler = function ()
+            applyDebuff( "target", "expose_armor" )
         end,
+
+        proc_chance = 100,
     },
 
-
-    -- Performs a feint, causing no damage but lowering your threat by a large amount, making the enemy less likely to attack you.
+-- Feint - Performs a feint, causing no damage but lowering your threat by a small amount, making the enemy less likely to attack you.
     feint = {
         id = 1966,
         cast = 0,
-        cooldown = 10,
-        gcd = "totem",
-
-        spend = function() return glyph.feint.enabled and 0 or 20 end,
-        spendType = "energy",
-
-        startsCombat = false,
+        category_cooldown = 10,
+        gcd = "spell",
+        school = "physical",
         texture = 132294,
+        cooldown_category_id = 82,
+        cooldown_category = "Taunt/Detaunt",
+        range = 5,
+        spend = 20,
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 1966, 6768, 8637, 11303, 25302, 27448 },
 
-        handler = function ()
-            applyBuff( "feint" )
-        end,
+        -- Effects:
+        -- [ ] Rank 1966 #0 -- effect: THREAT, aura: NONE, points: -151, addl_points: 1, points_per_level: -1, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 6768 #0 -- effect: THREAT, aura: NONE, points: -241, addl_points: 1, points_per_level: -1, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8637 #0 -- effect: THREAT, aura: NONE, points: -391, addl_points: 1, points_per_level: -1, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11303 #0 -- effect: THREAT, aura: NONE, points: -601, addl_points: 1, points_per_level: -1, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25302 #0 -- effect: THREAT, aura: NONE, points: -801, addl_points: 1, points_per_level: -1, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 27448 #0 -- effect: THREAT, aura: NONE, points: -1051, addl_points: 1, points_per_level: -1, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
-        copy = { 1966, 6768, 8637, 11303, 25302, 27448, 48658, 48659 },
+        proc_chance = 100,
     },
 
+-- Find Weakness - Your finishing moves increase the damage of all your offensive abilities by 2% for $31234d.
+    find_weakness = {
+        id = 31233,
+        cast = 0,
+        duration = 10,
+        texture = 132295,
+        max_stack = 1,
+        copy = { 31233, 31234, 31235, 31236, 31237, 31238, 31239, 31240, 31241, 31242 },
 
-    -- Garrote the enemy, silencing them for 3 sec causing 768 damage over 18 sec, increased by attack power.  Must be stealthed and behind the target.  Awards 1 combo point.
+        -- Effects:
+        -- [x] Rank 31233 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 31234
+        -- [x] Rank 31234 #0 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31234 #1 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31235 #0 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER, points: 3, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31235 #1 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER, points: 3, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31236 #0 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER, points: 5, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31236 #1 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER, points: 5, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31237 #0 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER, points: 7, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31237 #1 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER, points: 7, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31238 #0 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31238 #1 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31239 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 31235
+        -- [x] Rank 31240 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 31236
+        -- [x] Rank 31241 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 31237
+        -- [x] Rank 31242 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 31238
+
+        handler = function ()
+            applyBuff( "find_weakness" )
+        end,
+
+        proc_chance = 100,
+        proc_type_mask = { 1296, 0 },
+        -- Proc type flags: mask0: Deal Melee Ability; Deal Ranged Ability; Deal Helpful Ability
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Garrote - Garrote the enemy, causing 144-810 damage over 18 sec, increased by your attack power. Must be stealthed and behind the target. Awards 1 combo $lpoint:points;.
     garrote = {
         id = 703,
         cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = function() return 50 - 10 * talent.dirty_deeds.rank end,
-        spendType = "energy",
-
-        startsCombat = true,
+        duration = 18,
+        gcd = "spell",
+        school = "physical",
         texture = 132297,
+        range = 5,
+        spend = 50,
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 703, 8631, 8632, 8633, 11289, 11290, 26839, 26884 },
 
-        usable = function() return stealthed.all, "must be in stealth" end,
+        -- Effects:
+        -- [x] Rank 703 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 23, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 703 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8631 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 33, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8631 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8632 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 46, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8632 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8633 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 58, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8633 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 11289 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 73, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11289 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 11290 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 91, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11290 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 26839 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 110, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26839 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26839 #2 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 1330
+        -- [x] Rank 26884 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 134, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26884 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26884 #2 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 1330
+        startsCombat = true,
 
         handler = function ()
             applyDebuff( "target", "garrote" )
-            applyDebuff( "target", "garrote_silence" )
-            gain( talent.initiative.rank == 3 and 2 or 1, "combo_points" )
         end,
 
-        copy = { 703, 8631, 8632, 8633, 11289, 11290, 26839, 26884, 48675, 48676 },
+        proc_chance = 100,
     },
 
-
-    -- Increases dodge by 15% for 7-11 seconds.
+-- Ghostly Strike - A strike that deals 125% weapon damage and increases your chance to dodge by 15% for 7 sec. Awards 1 combo $lpoint:points;.
     ghostly_strike = {
         id = 14278,
         cast = 0,
-        cooldown = function() return glyph.ghostly_strike.enabled and 30 or 20 end,
-        gcd = "totem",
-
-        spend = 40,
-        spendType = "energy",
-
-        talent = "ghostly_strike",
-        startsCombat = true,
+        duration = 7,
+        cooldown = 20,
+        gcd = "spell",
+        school = "physical",
         texture = 136136,
+        range = 5,
+        spend = 40,
+        spendType = "Energy",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 14278 #0 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 124, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 14278 #1 -- effect: APPLY_AURA, aura: MOD_DODGE_PERCENT, points: 14, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 14278 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
         handler = function ()
             applyBuff( "ghostly_strike" )
-            gain( 1, "combo_points" )
-            removeBuff( "remorseless" )
         end,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Causes 79 damage, incapacitating the opponent for 4 sec, and turns off your attack.  Target must be facing you.  Any damage caused will revive the target.  Awards 1 combo point.
+-- Gouge - Causes 10-105 damage, incapacitating the opponent for 4 sec, and turns off your attack. Target must be facing you. Any damage caused will revive the target. Awards 1 combo $lpoint:points;.
     gouge = {
         id = 1776,
         cast = 0,
-        cooldown = 10,
-        gcd = "totem",
-
-        spend = function() return glyph.gouge.enabled and 30 or 45 end,
-        spendType = "energy",
-
-        startsCombat = true,
+        duration = 4,
+        category_cooldown = 10,
+        gcd = "spell",
+        school = "physical",
         texture = 132155,
+        cooldown_category_id = 33,
+        cooldown_category = "Mez",
+        range = 5,
+        spend = 45,
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 1776, 1777, 8629, 11285, 11286, 38764 },
+
+        -- Effects:
+        -- [x] Rank 1776 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1776 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 1776 #2 -- effect: APPLY_AURA, aura: MOD_STUN, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: incapacitated
+        -- [x] Rank 1777 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1777 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 1777 #2 -- effect: APPLY_AURA, aura: MOD_STUN, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: incapacitated
+        -- [x] Rank 8629 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 31, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8629 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8629 #2 -- effect: APPLY_AURA, aura: MOD_STUN, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: incapacitated
+        -- [x] Rank 11285 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 54, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11285 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 11285 #2 -- effect: APPLY_AURA, aura: MOD_STUN, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: incapacitated
+        -- [x] Rank 11286 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 74, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11286 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 11286 #2 -- effect: APPLY_AURA, aura: MOD_STUN, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: incapacitated
+        -- [x] Rank 38764 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 104, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 38764 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 38764 #2 -- effect: APPLY_AURA, aura: MOD_STUN, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: incapacitated
+        startsCombat = true,
 
         handler = function ()
             applyDebuff( "target", "gouge" )
-            gain( 1, "combo_points" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "gouge" ) end
         end,
+
+        proc_chance = 100,
     },
 
-
-    -- An instant strike that deals 110% weapon damage (160% if a dagger is equipped) and causes the target to hemorrhage, increasing any Physical damage dealt to the target by up to 13.  Lasts 10 charges or 15 sec.  Awards 1 combo point.
+-- Hemorrhage - An instant strike that deals 110% weapon damage and causes the target to hemorrhage, increasing any Physical damage dealt to the target by up to 13/21/29/42. Lasts $n charges or 15 sec. Awards 1 combo point.
     hemorrhage = {
         id = 16511,
         cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = function() return 35 - talent.slaughter_from_the_shadows.rank end,
-        spendType = "energy",
-
-        talent = "hemorrhage",
-        startsCombat = true,
+        duration = 15,
+        gcd = "spell",
+        school = "physical",
         texture = 136168,
+        range = 5,
+        spend = 35,
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 16511, 17347, 17348, 26864 },
+
+        -- Effects:
+        -- [ ] Rank 16511 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 16511 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 109, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 16511 #2 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 12, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 17347 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 17347 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 109, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 17347 #2 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 20, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 17348 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 17348 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 109, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 17348 #2 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 28, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26864 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26864 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 109, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 26864 #2 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
 
         handler = function ()
-            applyDebuff( "target", "hemorrhage", nil, 10 )
-            gain( 1, "combo_points" )
-            removeBuff( "remorseless" )
+            applyDebuff( "target", "hemorrhage" )
         end,
 
-        copy = { 16511, 17347, 17348, 26864, 48660 }
+        proc_chance = 100,
+        proc_charges = 10,
+        proc_type_mask = { 139944, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability; Take Ranged Attack; Take Ranged Ability; Take Harmful Ability; Take Harmful Spell
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
+-- Instant Poison - Coats a weapon with poison that lasts for 1 hour. Each strike has a 20% chance of poisoning the enemy which instantly inflicts 19 Nature damage.
+    instant_poison = {
+        id = 8681,
+        cast = 3,
+        texture = 132273,
+        max_stack = 1,
 
-    -- Enrages you, increasing all damage caused by 5%.  Requires a bleed effect to be active on the target.  Lasts 1 min.
-    hunger_for_blood = {
-        id = 63848,
-        cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = 15,
-        spendType = "energy",
-
-        talent = "hunger_for_blood",
-        startsCombat = true,
-        texture = 236276,
-
-        usable = function()
-            return debuff.bleed.up
-        end,
-
-        handler = function ()
-            applyBuff( "hunger_for_blood" )
-        end,
+        -- Effects:
+        -- [x] Rank 8681 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
     },
 
+-- Instant Poison II - Coats a weapon with poison that lasts for 1 hour. Each strike has a 20% chance of poisoning the enemy which instantly inflicts 30 Nature damage.
+    instant_poison_ii = {
+        id = 8687,
+        cast = 3,
+        texture = 132273,
+        max_stack = 1,
 
-    -- A quick kick that interrupts spellcasting and prevents any spell in that school from being cast for 5 sec.
+        -- Effects:
+        -- [x] Rank 8687 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Instant Poison III - Coats a weapon with poison that lasts for 1 hour. Each strike has a 20% chance of poisoning the enemy which instantly inflicts 44 Nature damage.
+    instant_poison_iii = {
+        id = 8691,
+        cast = 3,
+        texture = 132273,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 8691 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Instant Poison IV - Coats a weapon with poison that lasts for 1 hour. Each strike has a 20% chance of poisoning the enemy which instantly inflicts 67 Nature damage.
+    instant_poison_iv = {
+        id = 11341,
+        cast = 3,
+        texture = 132273,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 11341 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Instant Poison V - Coats a weapon with poison that lasts for 1 hour. Each strike has a 20% chance of poisoning the enemy which instantly inflicts 92 Nature damage.
+    instant_poison_v = {
+        id = 11342,
+        cast = 3,
+        texture = 132273,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 11342 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Instant Poison VI - Coats a weapon with poison that lasts for 1 hour. Each strike has a 20% chance of poisoning the enemy which instantly inflicts 112 Nature damage.
+    instant_poison_vi = {
+        id = 11343,
+        cast = 3,
+        texture = 132273,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 11343 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Instant Poison VII - Coats a weapon with poison that lasts for 1 hour. Each strike has a 20% chance of poisoning the enemy which instantly inflicts 146 Nature damage.
+    instant_poison_vii = {
+        id = 26892,
+        cast = 3,
+        texture = 132273,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 26892 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Kick - A quick kick that injures a single foe for 15/30/45/80/110 damage. It also interrupts spellcasting and prevents any spell in that school from being cast for 5 sec.
     kick = {
         id = 1766,
         cast = 0,
-        cooldown = 10,
-        gcd = "off",
-
-        spend = 25,
-        spendType = "energy",
-
-        startsCombat = true,
+        duration = 5,
+        category_cooldown = 10,
+        gcd = "spell",
+        school = "physical",
         texture = 132219,
+        cooldown_category_id = 88,
+        cooldown_category = "Silence",
+        range = 5,
+        spend = 25,
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 1766, 1767, 1768, 1769, 38768 },
 
-        toggle = "interrupts",
-
-        debuff = "casting",
-        timeToReady = state.timeToInterrupt,
+        -- Effects:
+        -- [ ] Rank 1766 #0 -- effect: INTERRUPT_CAST, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: interrupted
+        -- [x] Rank 1766 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 14, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1767 #0 -- effect: INTERRUPT_CAST, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: interrupted
+        -- [x] Rank 1767 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1768 #0 -- effect: INTERRUPT_CAST, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: interrupted
+        -- [x] Rank 1768 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1769 #0 -- effect: INTERRUPT_CAST, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: interrupted
+        -- [x] Rank 1769 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 79, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 38768 #0 -- effect: INTERRUPT_CAST, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: interrupted
+        -- [x] Rank 38768 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 109, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
         handler = function ()
-            interrupt()
-            if talent.improved_kick.rank > 1 then applyDebuff( "target", "silenced_improved_kick" ) end
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "kick" ) end
         end,
+
+        proc_chance = 100,
     },
 
-
-    -- Finishing move that stuns the target.  Lasts longer per combo point:     1 point  : 2 seconds     2 points: 3 seconds     3 points: 4 seconds     4 points: 5 seconds     5 points: 6 seconds
+-- Kidney Shot - Finishing move that stuns the target. Lasts longer per combo point: 1 point : 1 second 2 points: 2 seconds 3 points: 3 seconds 4 points: 4 seconds 5 points: 5 seconds
     kidney_shot = {
         id = 408,
         cast = 0,
-        cooldown = 20,
-        gcd = "totem",
-
-        spend = 25,
-        spendType = "energy",
-
-        startsCombat = true,
+        duration = 1,
+        category_cooldown = 20,
+        gcd = "spell",
+        school = "physical",
         texture = 132298,
+        cooldown_category_id = 270,
+        cooldown_category = "Kidney Shot",
+        range = 5,
+        spend = 25,
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 408, 8643 },
 
-        usable = function() return combo_points.current > 0, "requires combo_points" end,
+        -- Effects:
+        -- [x] Rank 408 #0 -- effect: APPLY_AURA, aura: MOD_STUN, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 408 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 408 #2 -- effect: APPLY_AURA, aura: MOD_DAMAGE_PERCENT_TAKEN, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8643 #0 -- effect: APPLY_AURA, aura: MOD_STUN, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8643 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8643 #2 -- effect: APPLY_AURA, aura: MOD_DAMAGE_PERCENT_TAKEN, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
         handler = function ()
             applyDebuff( "target", "kidney_shot" )
-            spend( combo_points.current, "combo_points" )
         end,
 
-        copy = { 408, 8643 },
+        proc_chance = 100,
     },
 
+-- Mind-numbing Poison - Coats a weapon with poison that lasts for 1 hour. Each strike has a 20% chance of poisoning the enemy, increasing their casting time by 40% for $5760d.
+    mind_numbing_poison = {
+        id = 5763,
+        cast = 3,
+        texture = 136066,
+        max_stack = 1,
 
-    -- Step through the shadows from enemy to enemy within 10 yards, attacking an enemy every .5 secs with both weapons until 5 assaults are made, and increasing all damage done by 20% for the duration.  Can hit the same target multiple times.  Cannot hit invisible or stealthed targets.
-    killing_spree = {
-        id = 51690,
-        cast = 0,
-        cooldown = function() return glyph.killing_spree.enabled and 75 or 120 end,
-        gcd = "totem",
-
-        spend = 0,
-        spendType = "energy",
-
-        talent = "killing_spree",
-        startsCombat = true,
-        texture = 236277,
-
-        toggle = "cooldowns",
-
-        handler = function ()
-            applyBuff( "killing_spree" )
-            setCooldown( "global_cooldown", 2.5 )
-        end,
+        -- Effects:
+        -- [x] Rank 5763 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
     },
 
+-- Mind-numbing Poison II - Coats a weapon with poison that lasts for 1 hour. Each strike has a 20% chance of poisoning the enemy, increasing their casting time by 50% for $8692d.
+    mind_numbing_poison_ii = {
+        id = 8694,
+        cast = 3,
+        texture = 136066,
+        max_stack = 1,
 
-    -- Instantly attacks with both weapons for 100% weapon damage plus an additional 44 with each weapon.  Damage is increased by 20% against Poisoned targets.  Awards 2 combo points.
+        -- Effects:
+        -- [x] Rank 8694 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Mind-numbing Poison III - Coats a weapon with poison that lasts for 1 hour. Each strike has a 20% chance of poisoning the enemy, increasing their casting time by 60% for $11398d.
+    mind_numbing_poison_iii = {
+        id = 11400,
+        cast = 3,
+        texture = 136066,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 11400 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Mutilate - Instantly attacks with both weapons for an additional 44 with each weapon. Damage is increased by 50% against Poisoned targets. Must be behind the target. Awards 2 combo points.
     mutilate = {
         id = 1329,
         cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = function() return glyph.mutilate.enabled and 55 or 60 end,
-        spendType = "energy",
-
-        talent = "mutilate",
-        startsCombat = true,
+        gcd = "spell",
+        school = "physical",
         texture = 132304,
+        range = 5,
+        spend = 60,
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 1329, 34411, 34412, 34413 },
 
-        handler = function ()
-            gain( 2, "combo_points" )
-            removeBuff( "remorseless" )
-        end,
+        -- Effects:
+        -- [ ] Rank 1329 #0 -- effect: 328, aura: NONE, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1329 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 5374
+        -- [ ] Rank 1329 #2 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 27576
+        -- [ ] Rank 34411 #0 -- effect: 328, aura: NONE, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 34411 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 34414
+        -- [ ] Rank 34411 #2 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 34415
+        -- [ ] Rank 34412 #0 -- effect: 328, aura: NONE, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 34412 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 34416
+        -- [ ] Rank 34412 #2 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 34417
+        -- [ ] Rank 34413 #0 -- effect: 328, aura: NONE, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 34413 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 34419
+        -- [ ] Rank 34413 #2 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 34418
 
-        copy = { 1329, 34411, 34412, 34413, 48663, 48666 },
+        proc_chance = 100,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
+-- Pick Lock - Allows opening of locked chests and doors.
+    pick_lock = {
+        id = 1804,
+        cast = 5,
+        texture = 136058,
+        range = 5,
+        max_stack = 1,
 
-    -- When used, adds 2 combo points to your target.  You must add to or use those combo points within 20 sec or the combo points are lost.
+        -- Effects:
+        -- [ ] Rank 1804 #0 -- effect: OPEN_LOCK, aura: NONE, points: 4, addl_points: 1, points_per_level: 5, sp_bonus: 0, radius_idx: 0, target: TARGET_GAMEOBJECT_ITEM_TARGET, target2: NONE, mechanic: 0
+    },
+
+-- Pick Pocket - Pick the target's pocket.
+    pick_pocket = {
+        id = 921,
+        cast = 0,
+        texture = 133644,
+        range = 5,
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 921 #0 -- effect: PICKPOCKET, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+    },
+
+-- Poisons - You can create and mix poisons, with both found and storebought ingredients.
+    poisons = {
+        id = 2842,
+        cast = 0,
+        texture = 136242,
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 2842 #0 -- effect: TRADE_SKILL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
+    },
+
+-- Premeditation - When used, adds 2 combo points to your target. You must add to or use those combo points within 10 sec or the combo points are lost.
     premeditation = {
         id = 14183,
         cast = 0,
-        cooldown = 20,
-        gcd = "off",
-
-        spend = 0,
-        spendType = "energy",
-
-        talent = "premeditation",
-        startsCombat = false,
+        duration = 10,
+        cooldown = 120,
+        school = "physical",
         texture = 136183,
+        range = 30,
+        spendType = "Energy",
+        max_stack = 1,
 
-        usable = function() return stealthed.all, "must be in stealth" end,
+        -- Effects:
+        -- [ ] Rank 14183 #0 -- effect: 328, aura: NONE, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 14183 #1 -- effect: APPLY_AURA, aura: RETAIN_COMBO_POINTS, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
-            gain( 2, "combo_points" )
+            applyBuff( "premeditation" )
         end,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- When activated, this ability immediately finishes the cooldown on your Evasion, Sprint, Vanish, Cold Blood and Shadowstep abilities.
+-- Preparation - When activated, this ability immediately finishes the cooldown on your Evasion, Sprint, Vanish, Cold Blood, Shadowstep and Premeditation abilities.
     preparation = {
         id = 14185,
         cast = 0,
-        cooldown = function() return 480 - 90 * talent.filthy_tricks.rank end,
-        gcd = "totem",
-
-        talent = "preparation",
-        startsCombat = false,
+        cooldown = 600,
+        gcd = "spell",
+        school = "physical",
         texture = 136121,
+        max_stack = 1,
 
-        toggle = "cooldowns",
+        -- Effects:
+        -- [ ] Rank 14185 #0 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        handler = function ()
-            setCooldown( "evasion", 0 )
-            setCooldown( "sprint", 0 )
-            setCooldown( "vanish", 0 )
-            setCooldown( "cold_blood", 0 )
-            setCooldown( "shadowstep", 0 )
-
-            if glyph.preparation.enabled then
-                setCooldown( "blade_flurry", 0 )
-                setCooldown( "dismantle", 0 )
-                setCooldown( "kick", 0 )
-            end
-        end,
+        -- Related talents:
+        -- talent_0 [0]
     },
 
+-- Quad Deathblow X44 Goggles
+    quad_deathblow_x44_goggles = {
+        id = 46116,
+        cast = 50,
+        texture = 136243,
+        max_stack = 1,
 
-    -- A strike that becomes active after parrying an opponent's attack.  This attack deals 150% weapon damage and slows their melee attack speed by 20% for 30 sec.  Awards 1 combo point.
+        -- Effects:
+        -- [x] Rank 46116 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Riposte - A strike that becomes active after parrying an opponent's attack. This attack deals 150% weapon damage and disarms the target for 6 sec.
     riposte = {
         id = 14251,
         cast = 0,
+        duration = 6,
         cooldown = 6,
-        gcd = "totem",
-
-        spend = 10,
-        spendType = "energy",
-
-        talent = "riposte",
-        startsCombat = true,
+        gcd = "spell",
+        school = "physical",
         texture = 132336,
+        range = 5,
+        spend = 10,
+        spendType = "Energy",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 14251 #0 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 14251 #1 -- effect: APPLY_AURA, aura: MOD_DISARM, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: disarmed
 
         handler = function ()
             applyDebuff( "target", "riposte" )
-            gain( 1, "combo_points" )
         end,
+
+        proc_chance = 100,
+
+        -- Aura restrictions: caster_state=1
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Finishing move that causes damage over time, increased by your attack power.  Lasts longer per combo point:     1 point  : 346 damage over 8 secs     2 points: 505 damage over 10 secs     3 points: 685 damage over 12 secs     4 points: 887 damage over 14 secs     5 points: 1111 damage over 16 secs
+-- Rupture - Finishing move that causes damage over time, increased by your attack power. Lasts longer per combo point: 1 point : 40 damage over 8 secs 2 points: 60 damage over 10 secs 3 points: 84 damage over 12 secs 4 points: 112 damage over 14 secs 5 points: 144 damage over 16 secs
     rupture = {
         id = 1943,
         cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = 25,
-        spendType = "energy",
-
-        startsCombat = true,
+        duration = 6,
+        gcd = "spell",
+        school = "physical",
         texture = 132302,
+        range = 5,
+        spend = 25,
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 1943, 8639, 8640, 11273, 11274, 11275, 26867 },
 
-        usable = function() return combo_points.current > 0, "requires combo_points" end,
+        -- Effects:
+        -- [x] Rank 1943 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 7, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1943 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8639 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 11, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8639 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8640 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 17, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8640 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 11273 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 26, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11273 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 11274 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 36, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11274 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 11275 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 59, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11275 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 26867 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 69, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26867 #1 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        startsCombat = true,
 
         handler = function ()
             applyDebuff( "target", "rupture" )
-            spend( combo_points.current, "combo_points" )
         end,
 
-        copy = { 1943, 8639, 8640, 11273, 11274, 11275, 26867, 48671, 48672 },
+        proc_chance = 100,
     },
 
-
-    -- Incapacitates the target for up to 45 sec.  Must be stealthed.  Only works on Humanoids that are not in combat.  Any damage caused will revive the target.  Only 1 target may be sapped at a time.
+-- Sap - Incapacitates the target for up to 25/35/45 sec. Must be stealthed. Only works on Humanoids that are not in combat. Any damage caused will revive the target. Only 1 target may be sapped at a time.
     sap = {
         id = 2070,
         cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = function() return 65 * ( 1 - 0.25 * talent.dirty_tricks.rank ) end,
-        spendType = "energy",
-
-        startsCombat = true,
+        duration = 45,
+        gcd = "spell",
+        school = "physical",
         texture = 132310,
+        range = 5,
+        spend = 65,
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 2070, 6770, 11297 },
 
-        usable = function() return stealthed.all, "must be in stealth" end,
+        -- Effects:
+        -- [x] Rank 2070 #0 -- effect: APPLY_AURA, aura: MOD_STUN, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 6770 #0 -- effect: APPLY_AURA, aura: MOD_STUN, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 11297 #0 -- effect: APPLY_AURA, aura: MOD_STUN, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
         handler = function ()
             applyDebuff( "target", "sap" )
         end,
 
-        copy = { 2070, 6770, 11297, 51724 },
+        proc_chance = 100,
+        proc_type_mask = { 69648, 0 },
+        -- Proc type flags: mask0: Deal Melee Ability; Deal Harmful Ability; Deal Harmful Spell
     },
 
-
-    -- Enter the Shadow Dance for 6 sec, allowing the use of Sap, Garrote, Ambush, Cheap Shot, Premeditation, Pickpocket and Disarm Trap regardless of being stealthed.
-    shadow_dance = {
-        id = 51713,
-        cast = 0,
-        cooldown = 60,
-        gcd = "off",
-
-        talent = "shadow_dance",
-        startsCombat = false,
-        texture = 236279,
-
-        toggle = "cooldowns",
-
-        handler = function ()
-            applyBuff( "shadow_dance" )
-        end,
-    },
-
-
-    -- Attempts to step through the shadows and reappear behind your enemy and increases movement speed by 70% for 3 sec.  The damage of your next ability is increased by 20% and the threat caused is reduced by 50%.  Lasts 10 sec.
+-- Shadowstep - Attempts to step through the shadows and reappear behind your enemy and increases movement speed by 70% for 3 sec. The damage of your next ability is increased by 20% and the threat caused is reduced by 50%. Lasts $36563d.
     shadowstep = {
         id = 36554,
         cast = 0,
-        cooldown = function() return 30 - 5 * talent.filthy_tricks.rank end,
-        gcd = "off",
-
-        spend = function() return 10 - 5 * talent.filthy_tricks.rank end,
-        spendType = "energy",
-
-        talent = "shadowstep",
-        startsCombat = true,
+        duration = 3,
+        cooldown = 30,
+        school = "physical",
         texture = 132303,
+        range = 25,
+        spend = 10,
+        spendType = "Energy",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 36554 #0 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 36563
+        -- [ ] Rank 36554 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 44373
+        -- [x] Rank 36554 #2 -- effect: APPLY_AURA, aura: MOD_INCREASE_SPEED, points: 69, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
-            applyBuff( "shadowstep_sprint" )
             applyBuff( "shadowstep" )
-            setDistance( 7.5 )
         end,
+
+        proc_chance = 100,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Performs an instant off-hand weapon attack that automatically applies the poison from your off-hand weapon to the target.  Slower weapons require more Energy.  Neither Shiv nor the poison it applies can be a critical strike.  Awards 1 combo point.
+-- Shiv - Performs an instant off-hand weapon attack that automatically applies the poison from your off-hand weapon to the target. Slower weapons require more Energy. Awards 1 combo point.
     shiv = {
         id = 5938,
         cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = 40, -- TODO: Cost is based on weapon speed.
-        spendType = "energy",
-
-        startsCombat = true,
+        gcd = "spell",
+        school = "physical",
         texture = 135428,
+        range = 5,
+        spend = 20,
+        spendType = "Energy",
+        max_stack = 1,
 
-        handler = function ()
-            -- TODO: Apply offhand poison.
-            gain( 1, "combo_points" )
-        end,
+        -- Effects:
+        -- [ ] Rank 5938 #0 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        proc_chance = 100,
     },
 
+-- Shoot
+    shoot = {
+        id = 3018,
+        cast = 1,
+        texture = 132222,
+        cooldown_category_id = 76,
+        cooldown_category = "Shoot/Throw",
+        range = 30,
+        max_stack = 1,
 
-    -- An instant strike that causes 98 damage in addition to 100% of your normal weapon damage.  Awards 1 combo point.
+        -- Effects:
+        -- [ ] Rank 3018 #0 -- effect: WEAPON_DAMAGE, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+    },
+
+-- Sinister Strike - An instant strike that causes 3-98 damage in addition to your normal weapon damage. Awards 1 combo $lpoint:points;.
     sinister_strike = {
         id = 1752,
         cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = function()
-            if talent.improved_sinister_strike.rank == 2 then return 40 end
-            if talent.improved_sinister_strike.rank == 1 then return 42 end
-            return 45
-        end,
-        spendType = "energy",
-
-        startsCombat = true,
+        gcd = "spell",
+        school = "physical",
         texture = 136189,
+        cooldown_category_id = 40,
+        cooldown_category = "Melee (Generic)",
+        range = 5,
+        spend = function () return max( 0, 45 + -2 * ( talent.improved_sinister_strike.rank or 0 ) ) end,
+        -- Talent spend flat scaling: improved_sinister_strike (-2 energy per rank)
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 1752, 1757, 1758, 1759, 1760, 8621, 11293, 11294, 26861, 26862 },
 
-        handler = function ()
-            gain( 1, "combo_points" )
-            removeBuff( "remorseless" )
-        end,
+        -- Effects:
+        -- [ ] Rank 1752 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 2, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1752 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1757 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 5, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1757 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1758 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1758 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1759 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 14, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1759 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1760 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 21, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1760 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8621 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 32, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8621 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11293 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 51, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11293 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11294 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 67, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11294 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26861 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 79, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26861 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26862 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 97, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26862 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
-        copy = { 1752, 1757, 1758, 1759, 1760, 8621, 11293, 11294, 26861, 26862, 48637, 48638 },
+        proc_chance = 100,
     },
 
-
-    -- Finishing move that increases melee attack speed by 40%.  Lasts longer per combo point:     1 point  : 9 seconds     2 points: 12 seconds     3 points: 15 seconds     4 points: 18 seconds     5 points: 21 seconds
+-- Slice and Dice - Finishing move that increases melee attack speed by 20/30%. Lasts longer per combo point: 1 point : 9 seconds 2 points: 12 seconds 3 points: 15 seconds 4 points: 18 seconds 5 points: 21 seconds
     slice_and_dice = {
         id = 5171,
         cast = 0,
-        cooldown = 0,
-        gcd = "totem",
-
-        spend = 25,
-        spendType = "energy",
-
-        startsCombat = true,
+        duration = 6,
+        gcd = "spell",
+        school = "physical",
         texture = 132306,
+        range = 100,
+        spend = 25,
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 5171, 6774 },
 
-        usable = function() return combo_points.current > 0, "requires combo_points" end,
+        -- Effects:
+        -- [ ] Rank 5171 #0 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 5171 #1 -- effect: APPLY_AURA, aura: MOD_MELEE_HASTE, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 6774 #0 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 6774 #1 -- effect: APPLY_AURA, aura: MOD_MELEE_HASTE, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
             applyBuff( "slice_and_dice" )
-            spend( combo_points.current, "combo_points" )
         end,
-
-        copy = { 5171, 6774 },
     },
 
-
-    -- Increases the rogue's movement speed by 70% for 15 sec.  Does not break stealth.
+-- Sprint - Increases the rogue's movement speed by 50/60/70% for 15 sec. Does not break stealth.
     sprint = {
         id = 2983,
         cast = 0,
-        cooldown = 180,
-        gcd = "off",
-
-        startsCombat = false,
+        duration = 15,
+        category_cooldown = 300,
+        school = "physical",
         texture = 132307,
+        cooldown_category_id = 44,
+        cooldown_category = "Speed",
+        spendType = "Energy",
+        max_stack = 1,
+        copy = { 2983, 8696, 11305 },
 
-        toggle = "interrupts",
+        -- Effects:
+        -- [x] Rank 2983 #0 -- effect: APPLY_AURA, aura: MOD_INCREASE_SPEED, points: 49, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8696 #0 -- effect: APPLY_AURA, aura: MOD_INCREASE_SPEED, points: 59, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 11305 #0 -- effect: APPLY_AURA, aura: MOD_INCREASE_SPEED, points: 69, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
             applyBuff( "sprint" )
         end,
-
-        copy = { 2983, 8696, 11305 },
     },
 
-
-    -- Allows the rogue to sneak around, but reduces your speed by 30%.  Lasts until cancelled.
+-- Stealth - Allows the rogue to sneak around, but reduces your speed by 30/35/40/50%. Lasts until cancelled.
     stealth = {
         id = 1784,
         cast = 0,
-        cooldown = function() return 10 - talent.camouflage.rank end,
-        gcd = "off",
-
-        startsCombat = false,
+        category_cooldown = 10,
+        school = "physical",
         texture = 132320,
+        cooldown_category_id = 38,
+        cooldown_category = "Aura",
+        max_stack = 1,
+        copy = { 1784, 1785, 1786, 1787 },
 
-        usable = function() return time == 0, "cannot be in combat" end,
+        -- Effects:
+        -- [x] Rank 1784 #0 -- effect: APPLY_AURA, aura: MOD_SHAPESHIFT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1784 #1 -- effect: APPLY_AURA, aura: MOD_STEALTH, points: 4, addl_points: 1, points_per_level: 5, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1784 #2 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1785 #0 -- effect: APPLY_AURA, aura: MOD_SHAPESHIFT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1785 #1 -- effect: APPLY_AURA, aura: MOD_STEALTH, points: 99, addl_points: 1, points_per_level: 5, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1785 #2 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1786 #0 -- effect: APPLY_AURA, aura: MOD_SHAPESHIFT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1786 #1 -- effect: APPLY_AURA, aura: MOD_STEALTH, points: 199, addl_points: 1, points_per_level: 5, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1786 #2 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -36, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1787 #0 -- effect: APPLY_AURA, aura: MOD_SHAPESHIFT, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1787 #1 -- effect: APPLY_AURA, aura: MOD_STEALTH, points: 299, addl_points: 1, points_per_level: 5, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1787 #2 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -31, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
             applyBuff( "stealth" )
         end,
+
+        proc_chance = 100,
+        proc_charges = 1,
+        proc_type_mask = { 139944, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability; Take Ranged Attack; Take Ranged Ability; Take Harmful Ability; Take Harmful Spell
+
+        -- Aura restrictions: exclude_caster_state=12
     },
 
-
-    -- The current party or raid member becomes the target of your Tricks of the Trade.  The threat caused by your next damaging attack and all actions taken for 6 sec afterwards will be transferred to the target.  In addition, all damage caused by the target is increased by 15% during this time.
-    tricks_of_the_trade = {
-        id = 57934,
+-- Throw - Hurl a thrown weapon at the target.
+    throw = {
+        id = 2764,
         cast = 0,
-        cooldown = function() return 30 - 5 * talent.filthy_tricks.rank end,
-        gcd = "totem",
+        texture = 132324,
+        cooldown_category_id = 76,
+        cooldown_category = "Shoot/Throw",
+        range = 30,
+        max_stack = 1,
 
-        spend = function() return 15 - 5 * talent.filthy_tricks.rank end,
-        spendType = "energy",
-
-        startsCombat = false,
-        texture = 236283,
-
-        handler = function ()
-            applyBuff( "tricks_of_the_trade" )
-        end,
+        -- Effects:
+        -- [ ] Rank 2764 #0 -- effect: WEAPON_DAMAGE, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
     },
 
-
-    -- Allows the rogue to vanish from sight, entering an improved stealth mode for 10 sec.  Also breaks movement impairing effects.  More effective than Vanish (Rank 2).
+-- Vanish - Allows the rogue to vanish from sight, entering an improved stealth mode for $11327d. Also breaks movement impairing effects.
     vanish = {
         id = 1856,
         cast = 0,
-        cooldown = function() return 180 - 30 * talent.elusiveness.rank end,
-        gcd = "off",
-
-        spend = 0,
-        spendType = "energy",
-
-        startsCombat = true,
+        category_cooldown = 300,
+        school = "physical",
         texture = 132331,
-
-        toggle = "cooldowns",
-
-        handler = function ()
-            applyBuff( "stealth" )
-        end,
-
+        cooldown_category_id = 39,
+        cooldown_category = "Shapeshift",
+        spendType = "Energy",
+        max_stack = 1,
         copy = { 1856, 1857, 26889 },
 
+        -- Effects:
+        -- [ ] Rank 1856 #0 -- effect: TRIGGER_SPELL, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 11327
+        -- [ ] Rank 1856 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 18461
+        -- [ ] Rank 1856 #2 -- effect: SANCTUARY, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 1857 #0 -- effect: TRIGGER_SPELL, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 11329
+        -- [ ] Rank 1857 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 18461
+        -- [ ] Rank 1857 #2 -- effect: SANCTUARY, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 26889 #0 -- effect: TRIGGER_SPELL, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 26888
+        -- [ ] Rank 26889 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 18461
+        -- [ ] Rank 26889 #2 -- effect: SANCTUARY, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+        proc_charges = 1,
+        proc_type_mask = { 139944, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability; Take Ranged Attack; Take Ranged Ability; Take Harmful Ability; Take Harmful Spell
+
+        -- Aura restrictions: exclude_caster_state=12
     },
+
+-- Wound Poison - Coats a weapon with poison that lasts for 1 hour. Each strike has a 30% chance of poisoning the enemy, causing 17 Nature damage and reducing all healing effects used on them by 10% for $13218d. Stacks up to 5 times on a single target.
+    wound_poison = {
+        id = 13220,
+        cast = 3,
+        texture = 134197,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 13220 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Wound Poison II - Coats a weapon with poison that lasts for 1 hour. Each strike has a 30% chance of poisoning the enemy, causing 25 Nature damage and reducing all healing effects used on them by 10% for $13222d. Stacks up to 5 times on a single target.
+    wound_poison_ii = {
+        id = 13228,
+        cast = 3,
+        texture = 134197,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 13228 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Wound Poison III - Coats a weapon with poison that lasts for 1 hour. Each strike has a 30% chance of poisoning the enemy, causing 38 Nature damage and reducing all healing effects used on them by 10% for $13223d. Stacks up to 5 times on a single target.
+    wound_poison_iii = {
+        id = 13229,
+        cast = 3,
+        texture = 134197,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 13229 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Wound Poison IV - Coats a weapon with poison that lasts for 1 hour. Each strike has a 30% chance of poisoning the enemy, causing 53 Nature damage and reducing all healing effects used on them by 10% for $13224d. Stacks up to 5 times on a single target.
+    wound_poison_iv = {
+        id = 13230,
+        cast = 3,
+        texture = 134197,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 13230 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Wound Poison V - Coats a weapon with poison that lasts for 1 hour. Each strike has a $27188h% chance of poisoning the enemy, causing 65 Nature damage and reducing all healing effects used on them by 10% for $27189d. Stacks up to 5 times on a single target.
+    wound_poison_v = {
+        id = 27283,
+        cast = 3,
+        texture = 134197,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 27283 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
 } )
 
-spec:RegisterSetting("rogue_description", nil, {
-    type = "description",
-    name = "Adjust the settings below according to your playstyle preference. It is always recommended that you use a simulator "..
-        "to determine the optimal values for these settings for your specific character."
-})
+-- Resources
+if spec.RegisterResource then
+    spec:RegisterResource( "combo_points" )
+    spec:RegisterResource( "energy" )
+end
 
-spec:RegisterSetting("rogue_description_footer", nil, {
-    type = "description",
-    name = "\n\n"
-})
-
-spec:RegisterSetting("rogue_general", nil, {
-    type = "header",
-    name = "General"
-})
-
-spec:RegisterSetting("rogue_general_description", nil, {
-    type = "description",
-    name = "General settings will change the parameters used in the core rotation.\n\n"
-})
-
-spec:RegisterSetting("maintain_expose", false, {
-    type = "toggle",
-    name = "Maintain Expose Armor",
-    desc = "When enabled, expose armor will be recommended when there is no major armor debuff up on the boss",
-    width = "full",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 4 ].settings.maintain_expose = val
-    end
-})
-
-spec:RegisterSetting("rogue_general_footer", nil, {
-    type = "description",
-    name = "\n\n"
-})
-
+spec:RegisterRanges( "envenom", "eviscerate", "garrote", "gouge", "kick", "rupture" )
 
 spec:RegisterOptions( {
     enabled = true,
 
-    aoe = 3,
+    aoe = 2,
+    cycle = false,
 
     nameplates = true,
-    nameplateRange = 8,
+    nameplateRange = 10,
+    rangeFilter = false,
 
-    damage = false,
+    damage = true,
+    damageDots = true,
     damageExpiration = 6,
 
-    package = "Assassination (wowtbc.gg)",
-    usePackSelector = true
+    potion = "tempered_potion",
+
+    package = "Assassination\ \(wowtbc\.gg\)",
 } )
 
+--[[
+spec:RegisterSetting( "scaffold_strict_range", false, {
+    name = "Scaffold: Strict Range Checks",
+    desc = "If checked, this generated profile can use stricter range checks where supported.",
+    type = "toggle",
+    width = "full",
+} )
+]]--
 
 spec:RegisterPack( "Assassination (wowtbc.gg)", 20230126, [[Hekili:TAvBVTTnq4FmfiVG1i)wR3wwsa6(Yqcg8aQsr)WqLiTeTeHPi1iPIRbc4V9DhLSLKR0YA2qacK5D85EUJhFognl6XOWuQLfTA(05lMoB(YG5tF)YflIcT7lzrHL0KT0m4djTa()hmgQXWLulxjDKl2P2zxNeKLDj66EHIMIqAuv6eW9CRT0C9KjhDd(Yk2ojraOCvwfpLzMq7I5vAvwfBsu46kUWEVmADhcoF20zlb0lzjrREhappnLv7cZKef(yo34iLAUsZT7De8xRPgwQJuvI81MZCKJKXr(SMAZDeprcGmqR2WfaVFZBCKts1pI8Y9aAz2sh5psSQ1mTJG0Y9G7bAc6NjOuZsufRP2F42jwnpzRjwTjgcCSvttzVLV52mTQQC4DuQ8rBqBglJka6oOXmQwRSE4nkHQdJaJBbA093gbpHftLPXPWh4EwxTztq)Ldsv7K9XHMQzsQGlzX6ktoUr04tSyMKvWzM7M1191ciHJ3iQ069VKVBOsSoTvcEyg25UURRkTvAp1TubtAdYRKzmD8gLoETqPsdaMUwWspZNAFJvm5olL5n2u7As42GC6MowOgeTEf4CkSubtK2HHQNy6TCHOpZoU6Py8evYRRXVU9)VQ5d8JjFIjvfOnSBsfxQ4sRjiLTHNWT3oToojkrAt22F)TgghIVJ4DZ8ZUO5CPXtFM98ZqNGoBFGLxazJkUG(1BoXpnRGYLMl7gTIklxqRVymu4UBAuiubnG7DLy2r1sUmZef(5p8Xv3V63U2rCKhr5dErPsBDe403rohGHwjSN7iA2FvX1OwJrva(rRSQciYWcj5uOHXe4E43H7ooY7b0(K0uvIiHouZxaUExdopaB6piQ5LMQ10k4OWeOF1ardzYWsepbK50C5wgKKiPV3wVjVyrbtMIb0MtHLzqMVVNGPmrubAPGjo01OVgia5kh5p)KHHiXkmF5TGcAopjVR3u5(2O6isfc(xlfyfw0IBk(vJk8HG(locW9MW8yneGe7xqqt7U08orEh0W3jJAG0EWvF1WVKSQauP9hkcLfQN3xCOMpVTSl4gSy9quiCOLR0W5)HzerHEJ(5K1h1WNR8ZnR3DuiQUgf2CPm6xJSqJeAVDLWeitHJgkowByH2w46BerBXOO1xK0rUdQCTiDICnc17ELq1vkhX59VsC61FJaTCuGEbDDh5my4(4QXO5H03X1TuDgZg0yUzwYjhdnRIC8h)Npnhm(TaDQzeXF6LY6t16BZ2E69D6AooXbX)N)Fh)6Pri2ZMok4(zlT7zGjqEaMnkadPq7i36itBjyVbrTbRziGpaJF9B8a0IuBa8Gn(TVHb7gV0cW2lo2a2DqMJ88ZG443mmZVXHhO5ixoCEo(T5HP2D9YZdJgbOS4BFBEm5r9T)dhXZ7Qpw)M2tuix01JMx2EIlJND4lCB3DZ1BFAu)x0F)d]] )
 
@@ -1543,3 +1958,4 @@ spec:RegisterPackSelector( "subtlety", nil, "|T132320:0|t Subtlety",
     function( tab1, tab2, tab3 )
         return tab3 > max( tab1, tab2 )
     end )
+

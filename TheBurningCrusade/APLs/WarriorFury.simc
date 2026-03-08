@@ -26,7 +26,7 @@ actions.berserker_stance+=/slam,if=buff.bloodsurge.up
 actions.berserker_stance+=/demoralizing_shout,if=settings.debuff_demoshout_enabled&!debuff.demoralizing_shout.up
 actions.berserker_stance+=/battle_stance,use_off_gcd=1,if=settings.weaving_enabled&cooldown.bloodthirst.remains>=settings.weave_cooldown_threshold&cooldown.whirlwind.remains>=settings.weave_cooldown_threshold&cooldown.recklessness.remains>1.5&cooldown.death_wish.remains>1.5&!buff.bloodsurge.up&!buff.recklessness.up&!buff.death_wish.up&rage.current<=weave_rage_threshold&target.health.pct>=settings.weave_health_threshold&(rage.current>=10&debuff.rend.remains<=settings.rend_refresh_time|rage.current>=20&(buff.overpower_ready.up|buff.taste_for_blood.up))
 
-actions.battle_stance+=/shattering_throw,if=buff.bloodlust.up&debuff.shattering_throw.down
+actions.battle_stance+=/throw,if=buff.bloodlust.up
 actions.battle_stance+=/berserker_stance,use_off_gcd=1,if=(cooldown.bloodthirst.up|cooldown.whirlwind.up|rage.current<10)&(debuff.shattering_throw.up|!buff.bloodlust.up)
 actions.battle_stance+=/rend,if=!up|debuff.rend.remains<=settings.rend_refresh_time
 actions.battle_stance+=/overpower,if=talent.improved_overpower.rank>0

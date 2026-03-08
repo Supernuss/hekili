@@ -1,4770 +1,2655 @@
-if UnitClassBase( 'player' ) ~= 'MAGE' then return end
+﻿-- Mage.lua
+-- Auto-generated class spell blocks
+-- Build: 2.5.5.66150
+-- Class: Mage (#8)
+
+if UnitClassBase( "player" ) ~= "MAGE" then return end
 
 local addon, ns = ...
 local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
-
-local strformat = string.format
-
 local spec = Hekili:NewSpecialization( 8 )
 
-spec:RegisterResource( Enum.PowerType.Mana )
+
+-- Effect implementation status (class-wide):
+-- Profile: mvp
+-- [x] TALENT_SPEC_SELECT (points 0/1 => primary/secondary)
+-- [x] CREATE_ITEM (basic item creation counter)
+-- [x] SCHOOL_DAMAGE (basic damage event tracking)
+-- [x] SUMMON_PET (basic active pet tracking)
+-- [x] SUMMON (basic summon event tracking)
+-- [x] APPLY_AURA (basic aura tracking for caster/enemy/ally)
 
 -- Talents
 spec:RegisterTalents( {
-    arcane_concentration   = {    75, 5, 11213, 12574, 12575, 12576, 12577 },
-    arcane_empowerment     = {  1727, 3, 31579, 31582, 31583 },
-    arcane_focus           = {    76, 5, 11222, 12839, 12840, 12841, 12842 },
-    arcane_fortitude       = {    85, 1, 28574 },
-    arcane_instability     = {   421, 3, 15058, 15059, 15060 },
-    arcane_meditation      = {  1142, 3, 18462, 18463, 18464 },
-    arcane_mind            = {    77, 5, 11232, 12500, 12501, 12502, 12503 },
-    improved_arcane_missiles = {   78, 2, 6057, 6085 },
-    arcane_potency         = {  1725, 3, 31571, 31572, 31573 },
-    arcane_power           = {    87, 1, 12042 },
-    arcane_shielding       = {    83, 2, 11252, 12605 },
-    arcane_stability       = {    80, 5, 11237, 12463, 12464, 16769, 16770 },
-    arcane_subtlety        = {    74, 2, 11210, 12592 },
-    arctic_reach           = {   741, 2, 16757, 16758 },
-    arctic_winds           = {  1738, 5, 31674, 31675, 31676, 31677, 31678 },
-    blast_wave             = {    32, 1, 11113 },
-    blazing_speed          = {  1731, 2, 31641, 31642 },
-    burning_soul           = {    23, 2, 11083, 12351 },
-    cold_as_ice            = {  1737, 2, 31670, 31672 },
-    cold_snap              = {    72, 1, 11958 },
-    combustion             = {    36, 1, 11129 },
-    critical_mass          = {    33, 3, 11115, 11367, 11368 },
-    dragons_breath         = {  1735, 1, 31661 },
-    empowered_fire         = {  1734, 5, 31656, 31657, 31658, 31659, 31660 },
-    empowered_frostbolt    = {  1740, 5, 31682, 31683, 31684, 31685, 31686 },
-    fire_power             = {    35, 5, 11124, 12378, 12398, 12399, 12400 },
-    flame_throwing         = {    28, 2, 11100, 12353 },
-    frost_channeling       = {    66, 3, 11160, 12518, 12519 },
-    frost_warding          = {    70, 2, 11189, 28332 },
-    frostbite              = {    38, 3, 11071, 12496, 12497 },
-    frozen_core            = {  1736, 3, 31667, 31668, 31669 },
-    ice_barrier            = {    71, 1, 11426 },
-    ice_floes              = {    62, 2, 11165, 12475 },
-    ice_shards             = {    73, 5, 11207, 12672, 15047, 15052, 15053 },
-    icy_veins              = {    69, 1, 12472 },
-    ignite                 = {    34, 5, 11119, 11120, 12846, 12847, 12848 },
-    impact                 = {    30, 5, 11103, 12357, 12358, 12359, 12360 },
-    improved_blink         = {  1724, 2, 31569, 31570 },
-    improved_blizzard      = {    63, 3, 11185, 12487, 12488 },
-    improved_cone_of_cold  = {    64, 3, 11190, 12489, 12490 },
-    improved_counterspell  = {    88, 2, 11255, 12598 },
-    improved_fire_blast    = {    27, 3, 11078, 11080, 12342 },
-    improved_fireball      = {    26, 5, 11069, 12338, 12339, 12340, 12341 },
-    improved_frostbolt     = {    37, 5, 11070, 12473, 16763, 16765, 16766 },
-    improved_scorch        = {    25, 3, 11095, 12872, 12873 },
-    incineration           = {  1141, 2, 18459, 18460 },
-    magic_absorption       = {  1650, 5, 29441, 29444, 29445, 29446, 29447 },
-    magic_attunement       = {    82, 2, 11247, 12606 },
-    master_of_elements     = {  1639, 3, 29074, 29075, 29076 },
-    mind_mastery           = {  1728, 5, 31584, 31585, 31586, 31587, 31588 },
-    molten_fury            = {  1732, 2, 31679, 31680 },
-    molten_shields         = {    24, 2, 11094, 13043 },
-    permafrost             = {    65, 3, 11175, 12569, 12571 },
-    piercing_ice           = {    61, 3, 11151, 12952, 12953 },
-    playing_with_fire      = {  1730, 3, 31638, 31639, 31640 },
-    precision              = {  1649, 3, 29438, 29439, 29440 },
-    presence_of_mind       = {    86, 1, 12043 },
-    prismatic_cloak        = {  1726, 2, 31574, 31575 },
-    pyroblast              = {    29, 1, 11366 },
-    pyromaniac             = {  1733, 3, 34293, 34295, 34296 },
-    shatter                = {    67, 5, 11170, 12982, 12983, 12984, 12985 },
-    slow                   = {  1729, 1, 31589 },
-    spell_impact           = {    81, 3, 11242, 12467, 12469 },
-    spell_power            = {  1826, 2, 35578, 35581 },
-    summon_water_elemental = {  1741, 1, 31687 },
-    winters_chill          = {    68, 5, 11180, 28592, 28593, 28594, 28595 },
-    world_in_flames        = {    31, 3, 11108, 12349, 12350 },
+    arcane_concentration = { 75, 5, 11213, 12574, 12575, 12576, 12577 },
+    arcane_focus = { 76, 5, 11222, 12839, 12840, 12841, 12842 },
+    arcane_fortitude = { 85, 1, 28574 },
+    arcane_impact = { 81, 3, 11242, 12467, 12469 },
+    arcane_instability = { 421, 3, 15058, 15059, 15060 },
+    arcane_meditation = { 1142, 3, 18462, 18463, 18464 },
+    arcane_mind = { 77, 5, 11232, 12500, 12501, 12502, 12503 },
+    arcane_potency = { 1725, 3, 31571, 31572, 31573 },
+    arcane_power = { 87, 1, 12042 },
+    arcane_subtlety = { 74, 2, 11210, 12592 },
+    arctic_reach = { 741, 2, 16757, 16758 },
+    arctic_winds = { 1738, 5, 31674, 31675, 31676, 31677, 31678 },
+    blast_wave = { 32, 1, 11113 },
+    blazing_speed = { 1731, 2, 31641, 31642 },
+    burning_soul = { 23, 2, 11083, 12351 },
+    cold_snap = { 72, 1, 11958 },
+    combustion = { 36, 1, 11129 },
+    critical_mass = { 33, 3, 11115, 11367, 11368 },
+    dragons_breath = { 1735, 1, 31661 },
+    elemental_precision = { 1649, 3, 29438, 29439, 29440 },
+    empowered_arcane_missiles = { 1727, 3, 31579, 31582, 31583 },
+    empowered_fireball = { 1734, 5, 31656, 31657, 31658, 31659, 31660 },
+    empowered_frostbolt = { 1740, 5, 31682, 31683, 31684, 31685, 31686 },
+    fire_power = { 35, 5, 11124, 12378, 12398, 12399, 12400 },
+    flame_throwing = { 28, 2, 11100, 12353 },
+    frost_channeling = { 66, 3, 11160, 12518, 12519 },
+    frost_warding = { 70, 2, 11189, 28332 },
+    frostbite = { 38, 3, 11071, 12496, 12497 },
+    frozen_core = { 1736, 3, 31667, 31668, 31669 },
+    ice_barrier = { 71, 1, 11426 },
+    ice_floes = { 1737, 2, 31670, 31672 },
+    ice_shards = { 73, 5, 11207, 12672, 15047, 15052, 15053 },
+    icy_veins = { 69, 1, 12472 },
+    ignite = { 34, 5, 11119, 11120, 12846, 12847, 12848 },
+    impact = { 30, 5, 11103, 12357, 12358, 12359, 12360 },
+    improved_arcane_missiles = { 80, 5, 11237, 12463, 12464, 16769, 16770 },
+    improved_blink = { 1724, 2, 31569, 31570 },
+    improved_blizzard = { 63, 3, 11185, 12487, 12488 },
+    improved_cone_of_cold = { 64, 3, 11190, 12489, 12490 },
+    improved_counterspell = { 88, 2, 11255, 12598 },
+    improved_fire_blast = { 27, 3, 11078, 11080, 12342 },
+    improved_fireball = { 26, 5, 11069, 12338, 12339, 12340, 12341 },
+    improved_flamestrike = { 31, 3, 11108, 12349, 12350 },
+    improved_frost_nova = { 62, 2, 11165, 12475 },
+    improved_frostbolt = { 37, 5, 11070, 12473, 16763, 16765, 16766 },
+    improved_mana_shield = { 83, 2, 11252, 12605 },
+    improved_scorch = { 25, 3, 11095, 12872, 12873 },
+    incineration = { 1141, 2, 18459, 18460 },
+    magic_absorption = { 1650, 5, 29441, 29444, 29445, 29446, 29447 },
+    magic_attunement = { 82, 2, 11247, 12606 },
+    master_of_elements = { 1639, 3, 29074, 29075, 29076 },
+    mind_mastery = { 1728, 5, 31584, 31585, 31586, 31587, 31588 },
+    molten_fury = { 1732, 2, 31679, 31680 },
+    molten_shields = { 24, 2, 11094, 13043 },
+    permafrost = { 65, 3, 11175, 12569, 12571 },
+    piercing_ice = { 61, 3, 11151, 12952, 12953 },
+    playing_with_fire = { 1730, 3, 31638, 31639, 31640 },
+    presence_of_mind = { 86, 1, 12043 },
+    prismatic_cloak = { 1726, 2, 31574, 31575 },
+    pyroblast = { 29, 1, 11366 },
+    pyromaniac = { 1733, 3, 34293, 34295, 34296 },
+    shatter = { 67, 5, 11170, 12982, 12983, 12984, 12985 },
+    slow = { 1729, 1, 31589 },
+    spell_power = { 1826, 2, 35578, 35581 },
+    summon_water_elemental = { 1741, 1, 31687 },
+    wand_specialization = { 78, 2, 6057, 6085 },
+    winters_chill = { 68, 5, 11180, 28592, 28593, 28594, 28595 },
 } )
 
+-- Auras (Hekili-style scaffold)
 spec:RegisterAuras( {
--- Increases magic damage taken by up to $s1 and healing by up to $s2.
+
     amplify_magic = {
-        id = 33946,
+        id = 1008,
         duration = 600,
         max_stack = 1,
         copy = { 1008, 8455, 10169, 10170, 27130, 33946 },
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 1 #1 -- APPLY_AURA, MOD_HEALING, points: 16, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 2 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: 30, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 2 #1 -- APPLY_AURA, MOD_HEALING, points: 32, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 3 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: 50, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 3 #1 -- APPLY_AURA, MOD_HEALING, points: 53, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 4 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: 75, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 4 #1 -- APPLY_AURA, MOD_HEALING, points: 80, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 5 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: 90, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 5 #1 -- APPLY_AURA, MOD_HEALING, points: 96, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 6 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: 120, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 6 #1 -- APPLY_AURA, MOD_HEALING, points: 128, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 7 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: 240, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 7 #1 -- APPLY_AURA, MOD_HEALING, points: 255, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 25, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
+        -- Aura effects: MOD_DAMAGE_TAKEN, MOD_HEALING
+        -- Aura targets: TARGET_UNIT_TARGET_RAID
     },
-    -- Arcane spell damage increased by $s1% and mana cost of Arcane Blast increased by $s2%.
-    arcane_blast = {
-        id = 36032,
-        duration = 6,
-        max_stack = 4,
-        copy = { 30451 },
 
-        -- Effects:
-        -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.714, points_per_level: 5.0, points: 841, addl_points: 137, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 1 #1 -- TRIGGER_SPELL, NONE, trigger_spell: 36032, target: TARGET_UNIT_CASTER
-        -- Rank 2 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.714, points_per_level: 5.3, points: 896, addl_points: 145, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 2 #1 -- TRIGGER_SPELL, NONE, trigger_spell: 36032, target: TARGET_UNIT_CASTER
-        -- Rank 3 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.714, points_per_level: 6.2, points: 1046, addl_points: 169, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 3 #1 -- TRIGGER_SPELL, NONE, trigger_spell: 36032, points: 0, target: TARGET_UNIT_CASTER
-        -- Rank 4 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.714, points_per_level: 7.0, points: 1184, addl_points: 193, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 4 #1 -- TRIGGER_SPELL, NONE, trigger_spell: 36032, target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-    },
-    -- Increases Intellect by $s1.
     arcane_brilliance = {
-        id = 27127,
+        id = 23028,
         duration = 3600,
         max_stack = 1,
-        shared = "player",
-        dot = "buff",
         copy = { 23028, 27127 },
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_STAT, points: 31, value: 3, schools: ['physical', 'holy'], radius: 100.0, target: TARGET_UNIT_CASTER_AREA_RAID
-        -- Rank 2 #0 -- APPLY_AURA, MOD_STAT, points: 40, value: 3, schools: ['physical', 'holy'], radius: 100.0, target: TARGET_UNIT_CASTER_AREA_RAID
-        -- Rank 3 #0 -- APPLY_AURA, MOD_STAT, points: 60, value: 3, schools: ['physical', 'holy'], radius: 100.0, target: TARGET_UNIT_CASTER_AREA_RAID
-
-        -- Affected by:
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
+        -- Aura effects: MOD_STAT
+        -- Aura targets: TARGET_UNIT_LASTTARGET_AREA_PARTY, TARGET_UNIT_TARGET_ALLY
     },
-    -- Increases Intellect by $s1.
+
     arcane_intellect = {
-        id = 27126,
+        id = 1459,
         duration = 1800,
         max_stack = 1,
-        shared = "player",
-        dot = "buff",
         copy = { 1459, 1460, 1461, 10156, 10157, 27126 },
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_STAT, points: 2, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
-        -- Rank 2 #0 -- APPLY_AURA, MOD_STAT, points: 7, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
-        -- Rank 3 #0 -- APPLY_AURA, MOD_STAT, points: 15, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
-        -- Rank 4 #0 -- APPLY_AURA, MOD_STAT, points: 22, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
-        -- Rank 5 #0 -- APPLY_AURA, MOD_STAT, points: 31, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
-        -- Rank 6 #0 -- APPLY_AURA, MOD_STAT, points: 40, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
-        -- Rank 7 #0 -- APPLY_AURA, MOD_STAT, points: 60, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- glyph.arcane_intellect[57924] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -50, target: TARGET_UNIT_CASTER
+        -- Aura effects: MOD_STAT
+        -- Aura targets: TARGET_UNIT_TARGET_ALLY
     },
-    -- Increased damage and mana cost for your spells.
+
+    arcane_missiles = {
+        id = 5143,
+        duration = 5,
+        tick_time = 1,
+        max_stack = 1,
+        copy = { 5143, 5144, 5145, 8416, 8417, 10211, 10212, 25345, 27075, 38699, 38704 },
+        -- Aura effects: DUMMY, PERIODIC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER, TARGET_UNIT_TARGET_ENEMY
+    },
+
     arcane_power = {
         id = 12042,
-        duration = function() return talent.arcane_power.enabled and 18 or 15 end,
+        duration = 15,
         max_stack = 1,
-
-        -- Effects:
-        -- [42995] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, points: 20, target: TARGET_UNIT_CASTER
-        -- [42995] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, points: 20, target: TARGET_UNIT_CASTER
-        -- [42995] #2 -- APPLY_AURA, ADD_PCT_MODIFIER, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.arcane_flows[44378] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, points: -15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_flows[44379] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, points: -30, target: TARGET_UNIT_CASTER
-        -- talent.icy_veins[12472] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- glyph.arcane_power[56381] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 3000, target: TARGET_UNIT_CASTER
+        -- Aura effects: ADD_PCT_MODIFIER
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Dazed.
+
+    arcane_torrent = {
+        id = 28730,
+        duration = 2,
+        max_stack = 1,
+        -- Aura effects: MOD_SILENCE
+        -- Aura targets: TARGET_SRC_CASTER, TARGET_UNIT_SRC_AREA_ENEMY
+    },
+
     blast_wave = {
-        id = 33933,
+        id = 11113,
         duration = 6,
         max_stack = 1,
-        copy = { 11113, 13018, 13019, 13020, 13021, 27133 },
-
-        -- Effects:
-        -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.0, points: 153, addl_points: 33, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 1 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 1 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 2 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.2, points: 200, addl_points: 41, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 2 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 2 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 3 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.4, points: 276, addl_points: 53, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 3 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 3 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 4 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.6, points: 364, addl_points: 69, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 4 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 4 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 5 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.9, points: 461, addl_points: 83, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 5 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 5 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 6 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 2.1, points: 532, addl_points: 95, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 6 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 6 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 7 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 2.3, points: 615, addl_points: 109, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 7 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 7 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 8 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 3.3, points: 881, addl_points: 157, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 8 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 8 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 9 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 3.9, points: 1046, addl_points: 187, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 9 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 9 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-
-        -- Affected by:
-        -- talent.spell_impact[11242] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.spell_impact[12467] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.spell_impact[12469] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[11108] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[11124] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.combustion[11129] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12349] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12350] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12378] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12398] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12399] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12400] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.blast_wave[62126] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -15, target: TARGET_UNIT_CASTER
-        -- talent.combustion[28682] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
+        copy = { 11113, 13018, 13019, 13020, 13021, 27133, 33933 },
+        -- Aura effects: MOD_DECREASE_SPEED
+        -- Aura targets: TARGET_SRC_CASTER, TARGET_UNIT_SRC_AREA_ENEMY
     },
-    -- Movement speed increased by $s1%.
+
     blazing_speed = {
-        id = 31643,
+        id = 31641,
         duration = 8,
         max_stack = 1,
-
-        -- Effects:
-        -- [42945] #0 -- APPLY_AURA, MOD_INCREASE_SPEED, points: 50, target: TARGET_UNIT_CASTER
-        -- [42945] #1 -- DISPEL_MECHANIC, NONE, points: 100, value: 7, schools: ['physical', 'holy', 'fire'], target: TARGET_UNIT_CASTER
-        -- [42945] #2 -- DISPEL_MECHANIC, NONE, points: 100, value: 11, schools: ['physical', 'holy', 'nature'], target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
+        copy = { 31641, 31642, 31643 },
+        -- Aura effects: MOD_INCREASE_SPEED, PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Blinking.
+
     blink = {
         id = 1953,
         duration = 1,
         max_stack = 1,
-
-        -- Effects:
-        -- [42945] #0 -- LEAP, NONE, radius: 20.0, target: TARGET_UNIT_CASTER, target2: TARGET_DEST_CASTER_FRONT_LEAP
-        -- [42945] #1 -- APPLY_AURA, MECHANIC_IMMUNITY, sp_bonus: 1.0, target: TARGET_UNIT_CASTER, mechanic: stunned
-        -- [42945] #2 -- APPLY_AURA, MECHANIC_IMMUNITY, sp_bonus: 1.0, target: TARGET_UNIT_CASTER, mechanic: rooted
-
-        -- Affected by:
-        -- talent.improved_blink[31569] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -25
-        -- talent.improved_blink[31570] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -50
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- glyph.blink[56365] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, RADIUS, points: 5, target: TARGET_UNIT_CASTER
-        -- talent.improved_blink[47000] #0 -- APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, points: -15, value: 14, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- talent.improved_blink[46989] #0 -- APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, points: -30, value: 14, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
+        -- Aura effects: MECHANIC_IMMUNITY
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- $42938s1 Frost damage every $42938t1 $lsecond:seconds;.
+
     blizzard = {
-        id = 27085,
+        id = 10,
+        duration = 8,
+        tick_time = 1,
+        max_stack = 1,
+        copy = { 10, 6141, 8427, 10185, 10186, 10187, 27085, 42198, 42208, 42209, 42210, 42211, 42212, 42213 },
+        -- Aura effects: PERIODIC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER
+    },
+
+    chilled = {
+        id = 12484,
+        duration = 1.5,
+        max_stack = 1,
+        copy = { 12484, 12485, 12486 },
+        -- Aura effects: MOD_DECREASE_SPEED
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
+    },
+
+    combustion = {
+        id = 11129,
+        max_stack = 1,
+        -- Aura effects: DUMMY
+        -- Aura targets: TARGET_UNIT_CASTER
+    },
+
+    cone_of_cold = {
+        id = 120,
         duration = 8,
         max_stack = 1,
-        copy = { 42208, 42209, 42210, 42211, 42212, 42213, 42198, 27085 },
-
-        -- Effects:
-        -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 0.1, points: 36, radius: 8.0, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 2 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 0.2, points: 63, radius: 8.0, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 3 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 0.2, points: 92, radius: 8.0, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 4 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 0.3, points: 128, radius: 8.0, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 5 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 0.3, points: 166, radius: 8.0, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 6 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 0.4, points: 212, radius: 8.0, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 7 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 0.4, points: 273, radius: 8.0, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 8 #0 -- PERSISTENT_AREA_AURA, DUMMY, sp_bonus: 0.119, points_per_level: 1.9, points: 298, radius: 8.0, target: TARGET_DEST_DYNOBJ_ENEMY
-        -- Rank 8 #1 -- APPLY_AURA, PERIODIC_TRIGGER_SPELL, tick_time: 1.0, trigger_spell: 42937, triggers: blizzard, points: 0, target: TARGET_UNIT_CASTER
-        -- Rank 9 #0 -- PERSISTENT_AREA_AURA, DUMMY, sp_bonus: 0.119, points_per_level: 1.9, points: 360, radius: 8.0, target: TARGET_DEST_DYNOBJ_ENEMY
-        -- Rank 9 #1 -- APPLY_AURA, PERIODIC_TRIGGER_SPELL, tick_time: 1.0, trigger_spell: 42938, triggers: blizzard, points: 0, target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_power[12042] #2 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15058] #1 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15059] #1 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15060] #1 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.slow[31589] #2 -- APPLY_AURA, HASTE_SPELLS, points: -30, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.piercing_ice[11151] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- talent.frost_channeling[11160] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -4, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.improved_blizzard[11185] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, item_type: 128, item: deprecated_tauren_trappers_pants, value: 836, schools: ['fire', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[11207] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 33, target: TARGET_UNIT_CASTER
-        -- talent.icy_veins[12472] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- talent.improved_blizzard[12487] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, item_type: 128, item: deprecated_tauren_trappers_pants, value: 988, schools: ['fire', 'nature', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.improved_blizzard[12488] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, item_type: 128, item: deprecated_tauren_trappers_pants, value: 989, schools: ['physical', 'fire', 'nature', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.frost_channeling[12518] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -7, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.frost_channeling[12519] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -10, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[12672] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 66, target: TARGET_UNIT_CASTER
-        -- talent.piercing_ice[12952] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 4, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- talent.piercing_ice[12953] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 6, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[15047] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 100, target: TARGET_UNIT_CASTER
-        -- talent.arctic_reach[16757] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, RANGE, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.arctic_reach[16758] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, RANGE, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.frozen_core[31667] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, sp_bonus: 1.0, points: -2, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.frozen_core[31668] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, sp_bonus: 1.0, points: -4, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.frozen_core[31669] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, sp_bonus: 1.0, points: -6, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[11108] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12349] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12350] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 6, target: TARGET_UNIT_CASTER
-    },
-    -- Movement slowed by $s1% and time between attacks increased by $s2%.
-    chilled = {
-        id = 6136,
-        duration = function() return 5 + talent.permafrost.rank end,
-        max_stack = 1,
-        copy = { 6136, 7321, 12484, 12485, 12486, 15850, 18101, 31257 },
-        shared = "target",
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, points: -30, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 1 #1 -- APPLY_AURA, MOD_MELEE_HASTE, mechanic: slowed, points: -25, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 1 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 2 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 2 #1 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 3 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, points: -50, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 3 #1 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-
-        -- Affected by:
-        -- talent.frostbite[11071] #0 -- APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, points: 5, target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[11175] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 1000, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[11175] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -4, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[11175] #2 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: -7, target: TARGET_UNIT_CASTER
-        -- talent.frostbite[12496] #0 -- APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, triggers: frostbite, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.frostbite[12497] #0 -- APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, triggers: frostbite, points: 15, target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[12569] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 2000, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12569] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -7, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12569] #2 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: -13, target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[12571] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 3000, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12571] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -10, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12571] #2 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: -20, target: TARGET_UNIT_CASTER
-        -- talent.precision[29438] #0 -- APPLY_AURA, MOD_SPELL_HIT_CHANCE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.precision[29439] #0 -- APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.precision[29440] #0 -- APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44566] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -2, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44567] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -4, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44568] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -6, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44570] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -8, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44571] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -10, target: TARGET_UNIT_CASTER
-    },
-    -- Your next damage spell has its mana cost reduced by $/10;s1%.
-    clearcasting = {
-        id = 12536,
-        duration = 15,
-        max_stack = 1,
-
-        -- Effects:
-        -- [12536] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.arcane_potency[31571] #0 -- APPLY_AURA, DUMMY, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_potency[31572] #0 -- APPLY_AURA, DUMMY, points: 30, target: TARGET_UNIT_CASTER
-    },
-    -- Increases critical strike chance from Fire damage spells by $28682s1%.
-    combustion = {
-        id = 28682,
-        duration = 3600,
-        max_stack = 10,
-
-        -- Effects:
-        -- [28682] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-    },
-    -- Movement slowed by $s1%.
-    cone_of_cold = {
-        id = 27087,
-        duration = function() return 8 + talent.permafrost.rank end,
-        max_stack = 1,
         copy = { 120, 8492, 10159, 10160, 10161, 27087 },
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 1 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 0.8, points: 97, addl_points: 11, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 1 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 2 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 2 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 1.0, points: 145, addl_points: 15, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 2 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 3 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 3 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 1.2, points: 202, addl_points: 21, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 3 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 4 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 4 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 1.3, points: 263, addl_points: 27, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 4 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 5 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 5 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 1.5, points: 334, addl_points: 31, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 5 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 6 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 6 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 1.7, points: 409, addl_points: 39, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 6 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 7 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 7 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 2.3, points: 558, addl_points: 53, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 7 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 8 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 8 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 2.9, points: 706, addl_points: 67, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 8 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-
-        -- Affected by:
-        -- talent.spell_impact[11242] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.spell_impact[12467] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.spell_impact[12469] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.frostbite[11071] #0 -- APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, points: 5, target: TARGET_UNIT_CASTER
-        -- talent.piercing_ice[11151] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[11175] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 1000, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[11175] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -4, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[11175] #2 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: -7, target: TARGET_UNIT_CASTER
-        -- talent.improved_cone_of_cold[11190] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[11207] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 33, target: TARGET_UNIT_CASTER
-        -- talent.improved_cone_of_cold[12489] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 25, target: TARGET_UNIT_CASTER
-        -- talent.improved_cone_of_cold[12490] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 35, target: TARGET_UNIT_CASTER
-        -- talent.frostbite[12496] #0 -- APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, triggers: frostbite, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.frostbite[12497] #0 -- APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, triggers: frostbite, points: 15, target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[12569] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 2000, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12569] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -7, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12569] #2 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: -13, target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[12571] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 3000, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12571] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -10, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12571] #2 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: -20, target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[12672] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 66, target: TARGET_UNIT_CASTER
-        -- talent.piercing_ice[12952] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 4, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- talent.piercing_ice[12953] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 6, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[15047] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 100, target: TARGET_UNIT_CASTER
-        -- talent.arctic_reach[16757] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, RADIUS, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.arctic_reach[16758] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, RADIUS, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.ice_floes[31670] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -7, target: TARGET_UNIT_CASTER
-        -- talent.ice_floes[31672] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -14, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31674] #0 -- APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -1, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31674] #1 -- APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -1, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31675] #0 -- APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -2, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31675] #1 -- APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -2, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31676] #0 -- APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -3, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31676] #1 -- APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -3, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31677] #0 -- APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -4, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31677] #1 -- APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -4, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31678] #0 -- APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -5, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31678] #1 -- APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -5, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44566] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -2, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44567] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -4, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44568] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -6, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44570] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -8, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44571] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -10, target: TARGET_UNIT_CASTER
-        -- talent.ice_floes[55094] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -20, target: TARGET_UNIT_CASTER
-        -- talent.incineration[18459] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.incineration[18460] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.incineration[54734] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
+        -- Aura effects: MOD_DECREASE_SPEED
+        -- Aura targets: TARGET_UNIT_CONE_ENEMY_24
     },
-    -- Reduces magic damage taken by up to $s1 and healing by up to $s2.
+
     dampen_magic = {
-        id = 33944,
+        id = 604,
         duration = 600,
         max_stack = 1,
         copy = { 604, 8450, 8451, 10173, 10174, 33944 },
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: -10, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 1 #1 -- APPLY_AURA, MOD_HEALING, points: -11, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 2 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: -20, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 2 #1 -- APPLY_AURA, MOD_HEALING, points: -21, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 3 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: -40, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 3 #1 -- APPLY_AURA, MOD_HEALING, points: -43, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 4 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: -60, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 4 #1 -- APPLY_AURA, MOD_HEALING, points: -64, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 5 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: -90, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 5 #1 -- APPLY_AURA, MOD_HEALING, points: -96, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 6 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: -120, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 6 #1 -- APPLY_AURA, MOD_HEALING, points: -128, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 7 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: -240, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        -- Rank 7 #1 -- APPLY_AURA, MOD_HEALING, points: -255, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 25, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
+        -- Aura effects: MOD_DAMAGE_TAKEN, MOD_HEALING
+        -- Aura targets: TARGET_UNIT_TARGET_RAID
     },
-    -- Disoriented.
+
     dragons_breath = {
-        id = 33043,
-        duration = 5,
+        id = 31661,
+        duration = 3,
         max_stack = 1,
         copy = { 31661, 33041, 33042, 33043 },
-
-        -- Effects:
-        -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.5, points: 369, addl_points: 61, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 1 #1 -- APPLY_AURA, MOD_CONFUSE, mechanic: disoriented, points: 0, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 1 #2 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 2 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.6, points: 453, addl_points: 73, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 2 #1 -- APPLY_AURA, MOD_CONFUSE, mechanic: disoriented, points: 0, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 2 #2 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 3 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.8, points: 573, addl_points: 93, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 3 #1 -- APPLY_AURA, MOD_CONFUSE, mechanic: disoriented, points: 0, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 3 #2 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 4 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 2.0, points: 679, addl_points: 111, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 4 #1 -- APPLY_AURA, MOD_CONFUSE, mechanic: disoriented, points: 0, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 4 #2 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 5 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 2.7, points: 934, addl_points: 151, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 5 #1 -- APPLY_AURA, MOD_CONFUSE, mechanic: disoriented, points: 0, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 5 #2 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 6 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 3.2, points: 1100, addl_points: 179, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 6 #1 -- APPLY_AURA, MOD_CONFUSE, mechanic: disoriented, points: 0, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        -- Rank 6 #2 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-
-        -- Affected by:
-        -- talent.world_in_flames[11108] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.critical_mass[11115] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- talent.fire_power[11124] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.combustion[11129] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.critical_mass[11367] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 4, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- talent.critical_mass[11368] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 6, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12349] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12350] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12378] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12398] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12399] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12400] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.pyromaniac[34293] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.pyromaniac[34295] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.pyromaniac[34296] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 3, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.firestarter[44442] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54741, points: 0, value: 6971, schools: ['physical', 'holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.firestarter[44443] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54741, points: 0, value: 6970, schools: ['holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.living_bomb[44457] #0 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 153, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.living_bomb[44461] #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 306, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- talent.burning_determination[54747] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54748, points: 0, value: 6971, schools: ['physical', 'holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.burning_determination[54749] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54748, triggers: burning_determination, points: 0, value: 6971, schools: ['physical', 'holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.living_bomb[55359] #0 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 256, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.living_bomb[55360] #0 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 345, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.living_bomb[55361] #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 512, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- talent.living_bomb[55362] #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 690, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- talent.combustion[28682] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
+        -- Aura effects: MOD_CONFUSE, MOD_DECREASE_SPEED
+        -- Aura targets: TARGET_UNIT_CONE_ENEMY_24
     },
-    -- Gain $s1% of total mana every $t1 sec.
-    evocation = {
-        id = 12051,
-        duration = 8,
-        max_stack = 1,
 
-        -- Effects:
-        -- [12051] #0 -- APPLY_AURA, OBS_MOD_POWER, tick_time: 2.0, points: 15, target: TARGET_UNIT_CASTER
-        -- [12051] #1 -- APPLY_AURA, OBS_MOD_HEALTH, tick_time: 2.0, points: 0, target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.arcane_flows[44378] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, COOLDOWN, points: -60000, target: TARGET_UNIT_CASTER
-        -- talent.arcane_flows[44379] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, COOLDOWN, points: -120000, target: TARGET_UNIT_CASTER
-        -- talent.icy_veins[12472] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- aura.demonic_pact[53646] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 48090, points: 0, target: TARGET_UNIT_CASTER
-        -- glyph.evocation[56380] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 15, target: TARGET_UNIT_CASTER
+    fire_vulnerability = {
+        id = 22959,
+        duration = 30,
+        max_stack = 5,
+        -- Aura effects: MOD_DAMAGE_PERCENT_TAKEN
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Disarmed!
-    fiery_payback = {
-        duration = 6,
-        max_stack = 1,
 
-        -- Effects:
-        -- [64346] #0 -- APPLY_AURA, MOD_DISARM, points: 0, target: TARGET_UNIT_TARGET_ENEMY
-        -- [64346] #1 -- APPLY_AURA, MOD_DISARM_RANGED, target: TARGET_UNIT_TARGET_ENEMY
-    },
-    -- Your next $s1 spells treat the target as if it were Frozen.
-    fingers_of_frost = {
-        duration = 15,
-        max_stack = 2,
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-    },
-    -- Absorbs Fire damage.
     fire_ward = {
-        id = 27128,
+        id = 543,
         duration = 30,
         max_stack = 1,
         copy = { 543, 8457, 8458, 10223, 10225, 27128 },
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 165, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- Rank 1 #1 -- APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- Rank 2 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 290, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- Rank 2 #1 -- APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- Rank 3 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 470, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- Rank 3 #1 -- APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- Rank 4 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 675, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- Rank 4 #1 -- APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- Rank 5 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 875, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- Rank 5 #1 -- APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- Rank 6 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 1125, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- Rank 6 #1 -- APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- Rank 7 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 1950, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- Rank 7 #1 -- APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.molten_shields[11094] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.molten_shields[13043] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 30, target: TARGET_UNIT_CASTER
-        -- glyph.fire_ward[57926] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 5, target: TARGET_UNIT_CASTER
-        -- glyph.drain_soul[58070] #0 -- APPLY_AURA, DUMMY, points: 0, target: TARGET_UNIT_CASTER
+        -- Aura effects: REFLECT_SPELLS_SCHOOL, SCHOOL_ABSORB
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- $s2 Fire damage every $t2 seconds.
+
     fireball = {
-        id = 38692,
+        id = 133,
         duration = 8,
         tick_time = 2,
         max_stack = 1,
         copy = { 133, 143, 145, 3140, 8400, 8401, 8402, 10148, 10149, 10150, 10151, 25306, 27070, 38692 },
-        -- Effects:
-        -- [ ] 01.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.123, points_per_level: 0.6, points: 13, addl_points: 9, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 01.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 02.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.271, points_per_level: 0.8, points: 30, addl_points: 15, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 02.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 03.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.5, points_per_level: 1.0, points: 52, addl_points: 21, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 03.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 2, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 04.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.793, points_per_level: 1.3, points: 83, addl_points: 33, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 04.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 3, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 05.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 1.8, points: 138, addl_points: 49, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 05.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 5, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 06.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 2.1, points: 198, addl_points: 67, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 06.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 7, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 07.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 2.4, points: 254, addl_points: 81, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 07.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 8, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 08.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 2.7, points: 317, addl_points: 97, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 08.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 10, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 09.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 3.0, points: 391, addl_points: 115, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 09.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 13, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 10.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 3.4, points: 474, addl_points: 135, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 10.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 15, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 11.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 3.7, points: 560, addl_points: 155, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 11.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 18, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 12.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 3.8, points: 595, addl_points: 165, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 12.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 19, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 13.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 4.0, points: 632, addl_points: 173, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 13.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 21, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 14.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 4.2, points: 716, addl_points: 197, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 14.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 23, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 15.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 4.6, points: 782, addl_points: 215, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 15.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 25, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 16.0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 5.2, points: 887, addl_points: 245, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 16.1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 29, target: TARGET_UNIT_TARGET_ENEMY
-
-        -- Affected by:
-        -- [ ] aura.arcane_power[12042].2 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] aura.blazing_speed[31641].0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 18350, points: 0, target: TARGET_UNIT_CASTER
-        -- [ ] aura.blazing_speed[31642].0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 18350, points: 0, target: TARGET_UNIT_CASTER
-        -- [ ] aura.blazing_speed[31643].0 -- APPLY_AURA, MOD_INCREASE_SPEED, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[11129].0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[28682].0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] aura.fireball_proc[57761].0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- [ ] aura.fireball_proc[57761].1 -- APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100000, target: TARGET_UNIT_CASTER
-        -- [ ] aura.icy_veins[12472].1 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- [ ] aura.improved_scorch[11095].1 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- [ ] aura.improved_scorch[12872].1 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] aura.improved_scorch[12873].1 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] aura.living_bomb[44457].0 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 153, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[44461].0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 306, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.living_bomb[55359].0 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 256, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[55360].0 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 345, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[55361].0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 512, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.living_bomb[55362].0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 690, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.presence_of_mind[12043].0 -- APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] aura.slow[31589].0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.slow[31589].1 -- APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, DAMAGE_HEALING, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.slow[31589].2 -- APPLY_AURA, HASTE_SPELLS, points: -30, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] glyph.fire_blast[56369].0 -- APPLY_AURA, DUMMY, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] glyph.fireball[56368].0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -150, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15058].0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15058].1 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15059].0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15059].1 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15060].0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15060].1 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[11210].1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592].1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burning_soul[11083].0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 35, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burning_soul[12351].0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 70, target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11115].0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11367].0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 4, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11368].0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 6, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.empowered_fire[31656].0 -- APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 5, target: TARGET_UNIT_CASTER
-        -- [ ] talent.empowered_fire[31657].0 -- APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.empowered_fire[31658].0 -- APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[11124].0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[11124].1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12378].0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12378].1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12398].0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12398].1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12399].0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12399].1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12400].0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12400].1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.flame_throwing[11100].0 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.flame_throwing[12353].0 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.improved_fireball[11069].0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] talent.improved_fireball[12338].0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -200, target: TARGET_UNIT_CASTER
-        -- [ ] talent.improved_fireball[12339].0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -300, target: TARGET_UNIT_CASTER
-        -- [ ] talent.improved_fireball[12340].0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -400, target: TARGET_UNIT_CASTER
-        -- [ ] talent.improved_fireball[12341].0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -500, target: TARGET_UNIT_CASTER
-        -- [ ] talent.playing_with_fire[31638].0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.playing_with_fire[31639].0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.playing_with_fire[31640].0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34293].0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34295].0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34296].0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 3, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[11242].0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[12467].0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[12469].0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
+        -- Aura effects: PERIODIC_DAMAGE
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Your next Fireball or Frostfire Bolt spell is instant and costs no mana.
-    fireball_proc = {
-        duration = 15,
-        max_stack = 1,
-        copy = "brain_freeze",
 
-        -- Effects:
-        -- [ ] 00 APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- [ ] 01 APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100000, target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- [ ] talent.arcane_potency[31571].0 -- APPLY_AURA, DUMMY, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_potency[31572].0 -- APPLY_AURA, DUMMY, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[11210].1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592].1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-    },
-    -- Your next Flamestrike spell is instant cast and costs no mana.
-    firestarter = {
-        duration = 10,
-        max_stack = 1,
-    },
-    -- $s2 Fire damage every $t2.
-    flamestrike = {
-        id = 27086,
-        duration = 8,
-        tick_time = 2,
-        max_stack = 1,
-        copy = { 2120, 2121, 8422, 8423, 10215, 10216, 27086 },
-
-        -- Effects:
-        -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 0.6, points: 51, addl_points: 17, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 1 #1 -- PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 12, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-        -- Rank 2 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 0.8, points: 95, addl_points: 27, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 2 #1 -- PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 22, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-        -- Rank 3 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 1.0, points: 153, addl_points: 39, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 3 #1 -- PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 35, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-        -- Rank 4 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 1.3, points: 219, addl_points: 53, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 4 #1 -- PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 49, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-        -- Rank 5 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 1.5, points: 290, addl_points: 69, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 5 #1 -- PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 66, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-        -- Rank 6 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 1.7, points: 374, addl_points: 85, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 6 #1 -- PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 85, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-        -- Rank 7 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 1.9, points: 470, addl_points: 105, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 7 #1 -- PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 106, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-        -- Rank 8 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 2.8, points: 687, addl_points: 155, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 8 #1 -- PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 155, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-        -- Rank 9 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 3.5, points: 872, addl_points: 195, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 9 #1 -- PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 195, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-
-        -- Affected by:
-        -- talent.arcane_power[12042] #2 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.presence_of_mind[12043] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15058] #1 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15059] #1 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15060] #1 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.slow[31589] #2 -- APPLY_AURA, HASTE_SPELLS, points: -30, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.icy_veins[12472] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- talent.burning_soul[11083] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 35, target: TARGET_UNIT_CASTER
-        -- talent.flame_throwing[11100] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[11108] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.critical_mass[11115] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- talent.fire_power[11124] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[11124] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.combustion[11129] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.critical_mass[11367] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 4, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- talent.critical_mass[11368] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 6, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12349] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12350] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.burning_soul[12351] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 70, target: TARGET_UNIT_CASTER
-        -- talent.flame_throwing[12353] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12378] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12378] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12398] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12398] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12399] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12399] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 8, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12400] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12400] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.playing_with_fire[31638] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.playing_with_fire[31639] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.playing_with_fire[31640] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.blazing_speed[31641] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 18350, points: 0, target: TARGET_UNIT_CASTER
-        -- talent.blazing_speed[31642] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 18350, points: 0, target: TARGET_UNIT_CASTER
-        -- talent.blazing_speed[31643] #0 -- APPLY_AURA, MOD_INCREASE_SPEED, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.pyromaniac[34293] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.pyromaniac[34295] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.pyromaniac[34296] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 3, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.firestarter[44442] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54741, points: 0, value: 6971, schools: ['physical', 'holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.firestarter[44443] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54741, points: 0, value: 6970, schools: ['holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.living_bomb[44457] #0 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 153, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.living_bomb[44461] #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 306, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- talent.firestarter[54741] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- talent.firestarter[54741] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -100, target: TARGET_UNIT_CASTER
-        -- talent.burning_determination[54747] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54748, points: 0, value: 6971, schools: ['physical', 'holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.burning_determination[54748] #0 -- APPLY_AURA, MECHANIC_IMMUNITY, points: 0, target: TARGET_UNIT_CASTER, mechanic: silenced
-        -- talent.burning_determination[54749] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54748, triggers: burning_determination, points: 0, value: 6971, schools: ['physical', 'holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.living_bomb[55359] #0 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 256, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.living_bomb[55360] #0 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 345, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.living_bomb[55361] #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 512, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- talent.living_bomb[55362] #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 690, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- talent.combustion[28682] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
-    },
-    -- Increases Armor by $s1 and may slow attackers.
     frost_armor = {
-        id = 7301,
-        duration = function() return glyph.frost_armor.enabled and 3600 or 1800 end,
+        id = 168,
+        duration = 1800,
         max_stack = 1,
         copy = { 168, 7300, 7301 },
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 30, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-        -- Rank 1 #1 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 6136, target: TARGET_UNIT_CASTER
-        -- Rank 2 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 110, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-        -- Rank 2 #1 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 6136, target: TARGET_UNIT_CASTER
-        -- Rank 3 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 200, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-        -- Rank 3 #1 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 6136, target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.frost_channeling[11160] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -4, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.shatter[11170] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.frost_warding[11189] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 25, target: TARGET_UNIT_CASTER
-        -- talent.frost_channeling[12518] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -7, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.frost_channeling[12519] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -10, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.shatter[12982] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- talent.shatter[12983] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- talent.frost_warding[28332] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.precision[29438] #1 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- glyph.ice_armor[56384] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, EFFECT_1_VALUE, points: 50, target: TARGET_UNIT_CASTER
-        -- glyph.ice_armor[56384] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, EFFECT_3_VALUE, points: 50, target: TARGET_UNIT_CASTER
-        -- [x] glyph.frost_armor[57928] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 1800000, target: TARGET_UNIT_CASTER
+        -- Aura effects: MOD_RESISTANCE, PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Frozen in place.
+
     frost_nova = {
-        id = 27088,
+        id = 122,
         duration = 8,
         max_stack = 1,
         copy = { 122, 865, 6131, 10230, 27088 },
-
-        -- Effects:
-        -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.018, points_per_level: 0.5, points: 18, addl_points: 3, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 1 #1 -- APPLY_AURA, MOD_ROOT, mechanic: rooted, points: 0, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 2 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.043, points_per_level: 0.5, points: 32, addl_points: 5, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 2 #1 -- APPLY_AURA, MOD_ROOT, mechanic: rooted, points: 0, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 3 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.043, points_per_level: 0.5, points: 51, addl_points: 7, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 3 #1 -- APPLY_AURA, MOD_ROOT, mechanic: rooted, points: 0, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 4 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.043, points_per_level: 0.5, points: 69, addl_points: 11, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 4 #1 -- APPLY_AURA, MOD_ROOT, mechanic: rooted, points: 0, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 5 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 0.5, points: 229, addl_points: 31, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 5 #1 -- APPLY_AURA, MOD_ROOT, mechanic: rooted, points: 0, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 6 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 0.8, points: 364, addl_points: 51, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        -- Rank 6 #1 -- APPLY_AURA, MOD_ROOT, mechanic: rooted, points: 0, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-
-        -- Affected by:
-        -- talent.piercing_ice[11151] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[11207] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 33, target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[12672] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 66, target: TARGET_UNIT_CASTER
-        -- talent.piercing_ice[12952] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 4, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- talent.piercing_ice[12953] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 6, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[15047] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 100, target: TARGET_UNIT_CASTER
-        -- talent.arctic_reach[16757] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, RADIUS, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.arctic_reach[16758] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, RADIUS, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.ice_floes[31670] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -7, target: TARGET_UNIT_CASTER
-        -- talent.ice_floes[31672] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -14, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31674] #1 -- APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -1, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31675] #1 -- APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -2, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31676] #1 -- APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -3, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31677] #1 -- APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -4, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31678] #1 -- APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -5, target: TARGET_UNIT_CASTER
-        -- talent.brain_freeze[44546] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 57761, points: 0, value: 23, schools: ['physical', 'holy', 'fire', 'frost'], target: TARGET_UNIT_CASTER
-        -- talent.brain_freeze[44548] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 57761, points: 0, value: 23, schools: ['physical', 'holy', 'fire', 'frost'], target: TARGET_UNIT_CASTER
-        -- talent.brain_freeze[44549] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 57761, points: 0, value: 23, schools: ['physical', 'holy', 'fire', 'frost'], target: TARGET_UNIT_CASTER
-        -- talent.ice_floes[55094] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -20, target: TARGET_UNIT_CASTER
-        -- glyph.frost_nova[56376] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, points: 20, value: 7801, schools: ['physical', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
+        -- Aura effects: MOD_ROOT
+        -- Aura targets: TARGET_SRC_CASTER, TARGET_UNIT_SRC_AREA_ENEMY
     },
-    -- Absorbs Frost damage.
+
     frost_ward = {
-        id = 28609,
+        id = 6143,
         duration = 30,
         max_stack = 1,
         copy = { 6143, 8461, 8462, 10177, 28609, 32796 },
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 165, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 1 #1 -- APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 2 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 290, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 2 #1 -- APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 3 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 470, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 3 #1 -- APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 4 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 675, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 4 #1 -- APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 5 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 875, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 5 #1 -- APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 6 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 1125, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 6 #1 -- APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 7 #0 -- APPLY_AURA, SCHOOL_ABSORB, points: 1950, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 7 #1 -- APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.molten_shields[11094] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.molten_shields[13043] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 30, target: TARGET_UNIT_CASTER
-        -- glyph.frost_ward[57927] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 5, target: TARGET_UNIT_CASTER
+        -- Aura effects: REFLECT_SPELLS_SCHOOL, SCHOOL_ABSORB
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Frozen.
+
     frostbite = {
-        id = 12494,
+        id = 11071,
         duration = 5,
         max_stack = 1,
-
-        -- Effects:
-        -- [12494] #0 -- APPLY_AURA, MOD_ROOT, points: 0, target: TARGET_UNIT_TARGET_ANY
+        copy = { 11071, 12494, 12496, 12497 },
+        -- Aura effects: ADD_TARGET_TRIGGER, MOD_ROOT
+        -- Aura targets: TARGET_UNIT_CASTER, TARGET_UNIT_TARGET_ANY
     },
-    -- Movement slowed by $s1%.
+
     frostbolt = {
-        id = 38697,
-        duration = function() return 9 + talent.permafrost.rank end,
+        id = 116,
+        duration = 9,
         max_stack = 1,
         copy = { 116, 205, 837, 7322, 8406, 8407, 8408, 10179, 10180, 10181, 25304, 27071, 27072, 38697 },
+        -- Aura effects: MOD_DECREASE_SPEED
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
+    },
 
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 1 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.172, points_per_level: 0.5, points: 17, addl_points: 3, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 1 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 2 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 2 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.283, points_per_level: 0.7, points: 30, addl_points: 5, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 2 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 3 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 3 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.488, points_per_level: 0.9, points: 50, addl_points: 7, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 3 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 4 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 4 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.743, points_per_level: 1.1, points: 73, addl_points: 9, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 4 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 5 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 5 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 1.5, points: 125, addl_points: 13, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 5 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 6 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 6 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 1.7, points: 173, addl_points: 17, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 6 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 7 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 7 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 2.0, points: 226, addl_points: 21, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 7 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 8 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 8 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 2.3, points: 291, addl_points: 25, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 8 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 9 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 9 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 2.6, points: 352, addl_points: 31, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 9 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 10 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 10 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 2.9, points: 428, addl_points: 35, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 10 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 11 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 11 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 3.2, points: 514, addl_points: 41, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 11 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 12 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 12 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 3.2, points: 535, addl_points: 43, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 12 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 13 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 13 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 3.5, points: 596, addl_points: 47, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 13 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 14 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 14 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 3.8, points: 629, addl_points: 51, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 14 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 15 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 15 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 4.2, points: 701, addl_points: 57, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 15 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 16 #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 16 #1 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 4.8, points: 798, addl_points: 63, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 16 #2 -- APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-
-        -- Affected by:
-        -- talent.presence_of_mind[12043] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- talent.slow[31589] #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.slow[31589] #1 -- APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, DAMAGE_HEALING, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.improved_frostbolt[11070] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- talent.frostbite[11071] #0 -- APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, points: 5, target: TARGET_UNIT_CASTER
-        -- talent.piercing_ice[11151] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- talent.permafrost[11175] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 1000, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[11175] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -4, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[11175] #2 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: -7, target: TARGET_UNIT_CASTER
-        -- talent.winters_chill[11180] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[11207] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 33, target: TARGET_UNIT_CASTER
-        -- talent.icy_veins[12472] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- talent.improved_frostbolt[12473] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -200, target: TARGET_UNIT_CASTER
-        -- talent.frostbite[12496] #0 -- APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, triggers: frostbite, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.frostbite[12497] #0 -- APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, triggers: frostbite, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12569] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 2000, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12569] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -7, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12569] #2 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: -13, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12571] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 3000, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12571] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -10, target: TARGET_UNIT_CASTER
-        -- talent.permafrost[12571] #2 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: -20, target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[12672] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 66, target: TARGET_UNIT_CASTER
-        -- talent.piercing_ice[12952] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 4, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- talent.piercing_ice[12953] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 6, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[15047] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 100, target: TARGET_UNIT_CASTER
-        -- talent.arctic_reach[16757] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, RANGE, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.arctic_reach[16758] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, RANGE, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.improved_frostbolt[16763] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -300, target: TARGET_UNIT_CASTER
-        -- talent.improved_frostbolt[16765] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -400, target: TARGET_UNIT_CASTER
-        -- talent.improved_frostbolt[16766] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -500, target: TARGET_UNIT_CASTER
-        -- talent.winters_chill[28592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.winters_chill[28593] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.frozen_core[31667] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, sp_bonus: 1.0, points: -2, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.frozen_core[31668] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, sp_bonus: 1.0, points: -4, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.frozen_core[31669] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, sp_bonus: 1.0, points: -6, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.empowered_frostbolt[31682] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 5, target: TARGET_UNIT_CASTER
-        -- talent.empowered_frostbolt[31682] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- talent.empowered_frostbolt[31683] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.empowered_frostbolt[31683] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -200, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44566] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44566] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -2, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44567] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44567] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -4, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44568] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44568] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -6, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44570] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44570] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -8, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44571] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 5, target: TARGET_UNIT_CASTER
-        -- talent.chilled_to_the_bone[44571] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -10, target: TARGET_UNIT_CASTER
-        -- glyph.frostbolt[56370] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 5, target: TARGET_UNIT_CASTER
-        -- glyph.ice_block[56372] #0 -- APPLY_AURA, DUMMY, points: 5, target: TARGET_UNIT_CASTER
-    },
-    heating_up = {
-        duration = 3600, -- Heating up is a pseudo buff that has no duration
-        max_stack = 1,
-    },
-    -- Your next Pyroblast spell is instant cast.
-    hot_streak = {
-        duration = 10,
-        max_stack = 1,
-    },
-    -- Cannot be made invulnerable by Ice Block.
-    hypothermia = {
-        id = 41425,
-        duration = 30,
-        max_stack = 1,
-    },
-    -- Increases armor by $s1, Frost resistance by $s3 and may slow attackers.
     ice_armor = {
-        id = 27124,
-        duration = function() return glyph.frost_armor.enabled and 3600 or 1800 end,
-        tick_time = 6,
+        id = 7302,
+        duration = 1800,
         max_stack = 1,
-        copy = { 7302, 7320, 10219, 10220 },
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 290, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-        -- Rank 1 #1 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 7321, target: TARGET_UNIT_CASTER
-        -- Rank 1 #2 -- APPLY_AURA, MOD_RESISTANCE, points: 6, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 2 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 380, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-        -- Rank 2 #1 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 7321, target: TARGET_UNIT_CASTER
-        -- Rank 2 #2 -- APPLY_AURA, MOD_RESISTANCE, points: 9, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 3 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 470, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-        -- Rank 3 #1 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 7321, target: TARGET_UNIT_CASTER
-        -- Rank 3 #2 -- APPLY_AURA, MOD_RESISTANCE, points: 12, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 4 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 560, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-        -- Rank 4 #1 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 7321, target: TARGET_UNIT_CASTER
-        -- Rank 4 #2 -- APPLY_AURA, MOD_RESISTANCE, points: 15, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 5 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 645, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-        -- Rank 5 #1 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 7321, target: TARGET_UNIT_CASTER
-        -- Rank 5 #2 -- APPLY_AURA, MOD_RESISTANCE, points: 18, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 6 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 930, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-        -- Rank 6 #1 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 7321, target: TARGET_UNIT_CASTER
-        -- Rank 6 #2 -- APPLY_AURA, MOD_RESISTANCE, points: 40, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- Rank 6 #3 -- APPLY_AURA, PERIODIC_DUMMY, tick_time: 6.0, target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.frost_channeling[11160] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -4, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.frost_warding[11189] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 25, target: TARGET_UNIT_CASTER
-        -- talent.frost_channeling[12518] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -7, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.frost_channeling[12519] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -10, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.frost_warding[28332] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 50, target: TARGET_UNIT_CASTER
-        -- glyph.ice_armor[56384] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, EFFECT_1_VALUE, points: 50, target: TARGET_UNIT_CASTER
-        -- glyph.ice_armor[56384] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, EFFECT_3_VALUE, points: 50, target: TARGET_UNIT_CASTER
-        -- [x] glyph.frost_armor[57928] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 1800000, target: TARGET_UNIT_CASTER
+        copy = { 7302, 7320, 10219, 10220, 27124 },
+        -- Aura effects: MOD_RESISTANCE, PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Absorbs damage.
+
     ice_barrier = {
-        id = 27134,
+        id = 11426,
         duration = 60,
         max_stack = 1,
-        copy = { 11426, 13031, 13032, 13033, 33405 },
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, SCHOOL_ABSORB, points_per_level: 2.8, points: 438, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 2 #0 -- APPLY_AURA, SCHOOL_ABSORB, points_per_level: 3.2, points: 549, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 3 #0 -- APPLY_AURA, SCHOOL_ABSORB, points_per_level: 3.6, points: 678, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 4 #0 -- APPLY_AURA, SCHOOL_ABSORB, points_per_level: 4.0, points: 818, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 5 #0 -- APPLY_AURA, SCHOOL_ABSORB, points_per_level: 4.4, points: 925, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 6 #0 -- APPLY_AURA, SCHOOL_ABSORB, points_per_level: 4.8, points: 1075, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 7 #0 -- APPLY_AURA, SCHOOL_ABSORB, points_per_level: 15.0, points: 2800, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 8 #0 -- APPLY_AURA, SCHOOL_ABSORB, points_per_level: 15.0, points: 3300, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.frost_channeling[11160] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -4, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.frost_channeling[12518] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -7, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.frost_channeling[12519] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -10, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31674] #0 -- APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -1, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31675] #0 -- APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -2, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31676] #0 -- APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -3, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31677] #0 -- APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -4, target: TARGET_UNIT_CASTER
-        -- talent.arctic_winds[31678] #0 -- APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -5, target: TARGET_UNIT_CASTER
-        -- talent.cold_as_ice[55091] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -10, target: TARGET_UNIT_CASTER
-        -- talent.cold_as_ice[55092] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -20, target: TARGET_UNIT_CASTER
-        -- talent.ice_barrier[63095] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 30, target: TARGET_UNIT_CASTER
+        copy = { 11426, 13031, 13032, 13033, 27134, 33405 },
+        -- Aura effects: SCHOOL_ABSORB
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Immune to all attacks and spells.  Cannot attack, move or use spells.
+
     ice_block = {
         id = 45438,
         duration = 10,
         max_stack = 1,
-
-        -- Effects:
-        -- [45438] #0 -- APPLY_AURA, MOD_STUN, points: 0, target: TARGET_UNIT_CASTER
-        -- [45438] #1 -- APPLY_AURA, SCHOOL_IMMUNITY, points: 0, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-        -- [45438] #2 -- APPLY_AURA, SCHOOL_IMMUNITY, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.ice_floes[31670] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -7, target: TARGET_UNIT_CASTER
-        -- talent.ice_floes[31672] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -14, target: TARGET_UNIT_CASTER
-        -- talent.ice_floes[55094] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -20, target: TARGET_UNIT_CASTER
+        -- Aura effects: MOD_STUN, SCHOOL_IMMUNITY
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Casting speed of all spells increased by $s1% and reduces pushback suffered by damaging attacks while casting by $s2%.
+
     icy_veins = {
         id = 12472,
         duration = 20,
         max_stack = 1,
-
-        -- Effects:
-        -- [12472] #0 -- APPLY_AURA, MOD_CASTING_SPEED_NOT_STACK, points: 20, target: TARGET_UNIT_CASTER
-        -- [12472] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.ice_floes[31670] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -7, target: TARGET_UNIT_CASTER
-        -- talent.ice_floes[31672] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -14, target: TARGET_UNIT_CASTER
-        -- talent.ice_floes[55094] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -20, target: TARGET_UNIT_CASTER
+        -- Aura effects: ADD_PCT_MODIFIER, MOD_CASTING_SPEED_NOT_STACK
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Deals Fire damage every $t1 sec.
-    ignite = {
-        id = 12654,
-        duration = 4,
-        tick_time = 2,
-        max_stack = 1,
 
-        -- Effects:
-        -- [413841] #0 -- APPLY_AURA, PERIODIC_DUMMY, tick_time: 2.0, points: 0, target: TARGET_UNIT_TARGET_ENEMY
-        -- [413841] #1 -- APPLY_AURA, DUMMY, points: 0, target: TARGET_UNIT_TARGET_ENEMY
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.combustion[11129] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.ignite[12848] #0 -- APPLY_AURA, DUMMY, target: TARGET_UNIT_CASTER
-    },
-    -- Next Fire Blast stuns the target for $12355d.
     impact = {
-        id = 12355,
-        duration = 10,
+        id = 11103,
+        duration = 2,
         max_stack = 1,
+        copy = { 11103, 12355, 12357, 12358, 12359, 12360 },
+        -- Aura effects: MOD_STUN, PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER, TARGET_UNIT_TARGET_ENEMY
     },
-    -- Chance to be hit by all attacks and spells reduced by $s1%.
-    improved_blink = {
-        id = 46989,
-        duration = 4,
-        max_stack = 1,
 
-        -- Effects:
-        -- [46989] #0 -- APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, points: -30, value: 14, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [46989] #1 -- APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -30, target: TARGET_UNIT_CASTER
-        -- [46989] #2 -- APPLY_AURA, MOD_ATTACKER_SPELL_HIT_CHANCE, points: -30, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-    },
-    -- Spells have a $s1% additional chance to critically hit.
-    improved_scorch = {
-        id = 22959,
-        duration = 30,
-        max_stack = 1,
-
-        -- Effects:
-        -- [22959] #0 -- APPLY_AURA, MOD_ATTACKER_SPELL_CRIT_CHANCE, points: 5, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-    },
-    -- Spell power increased.
-    incanters_absorption = {
-        duration = 10,
-        max_stack = 1,
-
-        -- Effects:
-        -- [44413] #0 -- APPLY_AURA, MOD_DAMAGE_DONE, points: 0, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-    },
-    -- Invisible.
-    invisibility = {
-        id = 32612,
-        duration = 20,
-        max_stack = 1,
-
-        -- Effects:
-        -- [32612] #0 -- SANCTUARY, NONE, target: TARGET_UNIT_CASTER
-        -- [32612] #1 -- APPLY_AURA, MOD_INVISIBILITY, points_per_level: 5.0, points: 340, target: TARGET_UNIT_CASTER
-        -- [32612] #2 -- APPLY_AURA, MOD_INVISIBILITY_DETECT, points: 1000, target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[11222] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12839] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12840] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- glyph.invisibility[56366] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 10000, target: TARGET_UNIT_CASTER
-    },
-    -- Fading.
-    invisibility_fading = {
-        id = 66,
-        duration = function() return 3 - talent.prismatic_cloak.rank end,
-        tick_time = 1,
-        max_stack = 1,
-    },
-    -- Causes $s1 Fire damage every $t1 sec.  After $d or when the spell is dispelled, the target explodes causing $55362s1 Fire damage to all enemies within $55362a1 yards.
-    living_bomb = {
-        id = 44457,
-        duration = 12,
-        tick_time = 3,
-        max_stack = 1,
-        copy = { 44459, 44461 },
-
-        -- Effects:
-        -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 306, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 2 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 512, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- Rank 3 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 690, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.flame_throwing[11100] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[11124] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.combustion[11129] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.flame_throwing[12353] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12378] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12398] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12399] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 8, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12400] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.living_bomb[63091] #0 -- APPLY_AURA, ABILITY_PERIODIC_CRIT, points: 10, value: 5, schools: ['physical', 'fire'], target: TARGET_UNIT_CASTER
-        -- talent.combustion[28682] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
-    },
-    -- Resistance to all magic schools increased by $s1 and allows $s2% of your mana regeneration to continue while casting.  Duration of all harmful Magic effects reduced by $s3%.
     mage_armor = {
-        id = 27125,
+        id = 6117,
         duration = 1800,
-        tick_time = 6,
         max_stack = 1,
-        copy = { 6117, 22782, 22783 },
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 5, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 1 #1 -- APPLY_AURA, MOD_MANA_REGEN_INTERRUPT, points: 50, target: TARGET_UNIT_CASTER
-        -- Rank 2 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 10, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 2 #1 -- APPLY_AURA, MOD_MANA_REGEN_INTERRUPT, points: 50, target: TARGET_UNIT_CASTER
-        -- Rank 3 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 3 #1 -- APPLY_AURA, MOD_MANA_REGEN_INTERRUPT, points: 50, target: TARGET_UNIT_CASTER
-        -- Rank 4 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 18, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 4 #1 -- APPLY_AURA, MOD_MANA_REGEN_INTERRUPT, points: 50, target: TARGET_UNIT_CASTER
-        -- Rank 5 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 21, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 5 #1 -- APPLY_AURA, MOD_MANA_REGEN_INTERRUPT, points: 50, target: TARGET_UNIT_CASTER
-        -- Rank 5 #2 -- APPLY_AURA, MOD_AURA_DURATION_BY_DISPEL, points: -50, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-        -- Rank 6 #0 -- APPLY_AURA, MOD_RESISTANCE, points: 40, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 6 #1 -- APPLY_AURA, MOD_MANA_REGEN_INTERRUPT, points: 50, target: TARGET_UNIT_CASTER
-        -- Rank 6 #2 -- APPLY_AURA, MOD_AURA_DURATION_BY_DISPEL, points: -50, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-        -- Rank 6 #3 -- APPLY_AURA, PERIODIC_DUMMY, tick_time: 6.0, target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_shielding[11252] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, EFFECT_1_VALUE, points: 25, target: TARGET_UNIT_CASTER
-        -- talent.arcane_shielding[12605] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, EFFECT_1_VALUE, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.magic_absorption[29441] #1 -- APPLY_AURA, MOD_RESISTANCE, points_per_level: 0.5, points: 0, value: 124, schools: ['fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.magic_absorption[29444] #1 -- APPLY_AURA, MOD_RESISTANCE, points_per_level: 1.0, points: 0, value: 124, schools: ['fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- glyph.mage_armor[56383] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 20, target: TARGET_UNIT_CASTER
+        copy = { 6117, 22782, 22783, 27125 },
+        -- Aura effects: MOD_MANA_REGEN_INTERRUPT, MOD_RESISTANCE
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Absorbs damage, draining mana instead.
+
+    magic_absorption = {
+        id = 29441,
+        max_stack = 1,
+        copy = { 29441, 29442, 29444, 29445, 29446, 29447 },
+        -- Aura effects: DUMMY, MOD_RESISTANCE
+        -- Aura targets: TARGET_UNIT_CASTER
+    },
+
     mana_shield = {
-        id = 27131,
+        id = 1463,
         duration = 60,
         max_stack = 1,
-        copy = { 1463, 8494, 8495, 10191, 10192, 10193 },
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 120, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 2 #0 -- APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 210, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 3 #0 -- APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 300, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 4 #0 -- APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 390, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 5 #0 -- APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 480, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 6 #0 -- APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 570, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 7 #0 -- APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 715, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 8 #0 -- APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 1080, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- Rank 9 #0 -- APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 1330, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_shielding[11252] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_TAKEN, points: -17, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.arcane_shielding[12605] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_TAKEN, points: -33, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
+        copy = { 1463, 8494, 8495, 10191, 10192, 10193, 27131 },
+        -- Aura effects: MANA_SHIELD
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Copies of the caster that attack on their own.
-    mirror_image = {
-        id = 36847,
-        duration = 30,
-        tick_time = 1,
+
+    master_of_elements = {
+        id = 29074,
         max_stack = 1,
-
-        -- Effects:
-        -- [55342] #0 -- APPLY_AURA, MOD_TOTAL_THREAT, points: -90000000, target: TARGET_UNIT_CASTER
-        -- [55342] #1 -- TRIGGER_SPELL, NONE, trigger_spell: 58832, points: 3, target: TARGET_UNIT_CASTER
-        -- [55342] #2 -- APPLY_AURA, PERIODIC_DUMMY, tick_time: 1.0, trigger_spell: 58836, points: 0, target: TARGET_UNIT_CASTER
+        copy = { 29074, 29075, 29076, 29077 },
+        -- Aura effects: DUMMY
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Reduces the channeled duration of your next Arcane Missiles spell by $/1000;S1 secs, reduces the mana cost by $s3%, and the missiles fire every .5 secs.
-    missile_barrage = {
-        duration = 15,
-        max_stack = 1,
 
-        -- Effects:
-        -- [44401] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: -2500, target: TARGET_UNIT_CASTER
-        -- [44401] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, AURA_PERIOD, points: -500, target: TARGET_UNIT_CASTER
-        -- [44401] #2 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -100, target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.arcane_potency[31571] #0 -- APPLY_AURA, DUMMY, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_potency[31572] #0 -- APPLY_AURA, DUMMY, points: 30, target: TARGET_UNIT_CASTER
-    },
-    -- Causes $43044s1 Fire damage to attackers.  Chance to receive a critical hit reduced by $s2%.  Critical strike rating increased by $s3% of Spirit.
     molten_armor = {
         id = 30482,
         duration = 1800,
-        tick_time = 6,
         max_stack = 1,
-        copy = { 34913 },
-
-        -- Effects:
-        -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, points: 75, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 2 #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 43043, triggers: molten_armor, points: 0, target: TARGET_UNIT_CASTER
-        -- Rank 2 #1 -- APPLY_AURA, MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, points: -5, target: TARGET_UNIT_CASTER
-        -- Rank 2 #2 -- APPLY_AURA, MOD_ABILITY_SCHOOL_MASK, points: 35, value: 1792, value1: 4, target: TARGET_UNIT_CASTER
-        -- Rank 2 #3 -- APPLY_AURA, PERIODIC_DUMMY, tick_time: 6.0, target: TARGET_UNIT_CASTER
-        -- Rank 3 #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 43044, triggers: molten_armor, points: 0, target: TARGET_UNIT_CASTER
-        -- Rank 3 #1 -- APPLY_AURA, MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, points: -5, target: TARGET_UNIT_CASTER
-        -- Rank 3 #2 -- APPLY_AURA, MOD_ABILITY_SCHOOL_MASK, points: 35, value: 1792, value1: 4, target: TARGET_UNIT_CASTER
-        -- Rank 3 #3 -- APPLY_AURA, PERIODIC_DUMMY, tick_time: 6.0, target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.magic_absorption[29441] #0 -- APPLY_AURA, DUMMY, target: TARGET_UNIT_CASTER
-        -- talent.magic_absorption[29444] #0 -- APPLY_AURA, DUMMY, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.torment_the_weak[29447] #0 -- APPLY_AURA, DUMMY, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.torment_the_weak[55339] #0 -- APPLY_AURA, DUMMY, points: 8, target: TARGET_UNIT_CASTER
-        -- talent.torment_the_weak[55340] #0 -- APPLY_AURA, DUMMY, points: 12, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[11124] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12378] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12398] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12399] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12400] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- glyph.molten_armor[56382] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: 20, target: TARGET_UNIT_CASTER
+        -- Aura effects: MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, MOD_SPELL_CRIT_CHANCE, PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Cannot attack or cast spells.  Increased regeneration.
+
     polymorph = {
         id = 118,
         duration = 50,
         max_stack = 1,
-        copy = { 12824, 12825, 12826, 28271, 28272 },
-
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_CONFUSE, points: 0, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 1 #1 -- APPLY_AURA, TRANSFORM, value: 16372, schools: ['fire', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 2 #0 -- APPLY_AURA, MOD_CONFUSE, points: 0, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 2 #1 -- APPLY_AURA, TRANSFORM, value: 16372, schools: ['fire', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 3 #0 -- APPLY_AURA, MOD_CONFUSE, points: 0, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 3 #1 -- APPLY_AURA, TRANSFORM, value: 16372, schools: ['fire', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 4 #0 -- APPLY_AURA, MOD_CONFUSE, points: 0, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 4 #1 -- APPLY_AURA, TRANSFORM, value: 16372, schools: ['fire', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-
-        -- Affected by:
-        -- talent.arcane_focus[11222] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.presence_of_mind[12043] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12839] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12840] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
+        copy = { 118, 12824, 12825, 12826, 28271, 28272 },
+        -- Aura effects: MOD_CONFUSE, TRANSFORM
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Your next Mage spell with a casting time less than 10 sec will be an instant cast spell.
+
     presence_of_mind = {
         id = 12043,
-        duration = 3600,
         max_stack = 1,
-
-        -- Effects:
-        -- [12043] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.arcane_potency[31571] #0 -- APPLY_AURA, DUMMY, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_potency[31572] #0 -- APPLY_AURA, DUMMY, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.arcane_flows[44378] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, points: -15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_flows[44379] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, points: -30, target: TARGET_UNIT_CASTER
+        -- Aura effects: ADD_PCT_MODIFIER
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- $s2 Fire damage every $t2 seconds.
+
     pyroblast = {
-        id = 33938,
+        id = 11366,
         duration = 12,
         tick_time = 3,
         max_stack = 1,
         copy = { 11366, 12505, 12522, 12523, 12524, 12525, 12526, 18809, 27132, 33938 },
-
-        -- Effects:
-        -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 1.9, points: 140, addl_points: 47, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 1 #1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 14, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 2 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 2.2, points: 179, addl_points: 57, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 2 #1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 18, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 3 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 2.6, points: 254, addl_points: 73, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 3 #1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 24, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 4 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 3.0, points: 328, addl_points: 91, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 4 #1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 31, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 5 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 3.4, points: 406, addl_points: 109, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 5 #1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 39, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 6 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 3.8, points: 502, addl_points: 129, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 6 #1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 47, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 7 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 4.2, points: 599, addl_points: 151, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 7 #1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 57, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 8 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 4.6, points: 707, addl_points: 191, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 8 #1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 67, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 9 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 5.0, points: 845, addl_points: 229, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 9 #1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 78, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 10 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 5.4, points: 938, addl_points: 253, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 10 #1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 89, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 11 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 5.8, points: 1013, addl_points: 273, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 11 #1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 96, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 12 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 6.8, points: 1189, addl_points: 321, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 12 #1 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 113, target: TARGET_UNIT_TARGET_ENEMY
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_power[12042] #2 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.presence_of_mind[12043] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15058] #1 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15059] #1 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15060] #1 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.slow[31589] #2 -- APPLY_AURA, HASTE_SPELLS, points: -30, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.icy_veins[12472] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- talent.burning_soul[11083] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 35, target: TARGET_UNIT_CASTER
-        -- talent.flame_throwing[11100] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[11108] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.critical_mass[11115] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- talent.fire_power[11124] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[11124] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.combustion[11129] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.critical_mass[11367] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 4, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- talent.critical_mass[11368] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 6, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12349] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12350] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.burning_soul[12351] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 70, target: TARGET_UNIT_CASTER
-        -- talent.flame_throwing[12353] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12378] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12378] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12398] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12398] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12399] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12399] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 8, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12400] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12400] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.playing_with_fire[31638] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.playing_with_fire[31639] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.playing_with_fire[31640] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.blazing_speed[31641] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 18350, points: 0, target: TARGET_UNIT_CASTER
-        -- talent.blazing_speed[31642] #0 -- APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 18350, points: 0, target: TARGET_UNIT_CASTER
-        -- talent.blazing_speed[31643] #0 -- APPLY_AURA, MOD_INCREASE_SPEED, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.empowered_fire[31656] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 5, target: TARGET_UNIT_CASTER
-        -- talent.empowered_fire[31657] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.empowered_fire[31658] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.pyromaniac[34293] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.pyromaniac[34295] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.pyromaniac[34296] #0 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 3, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.fiery_payback[44440] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -1750, target: TARGET_UNIT_CASTER
-        -- talent.fiery_payback[44440] #2 -- APPLY_AURA, ADD_FLAT_MODIFIER, COOLDOWN, points: 2500, target: TARGET_UNIT_CASTER
-        -- talent.fiery_payback[44441] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -3500, target: TARGET_UNIT_CASTER
-        -- talent.fiery_payback[44441] #2 -- APPLY_AURA, ADD_FLAT_MODIFIER, COOLDOWN, points: 5000, target: TARGET_UNIT_CASTER
-        -- talent.living_bomb[44457] #0 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 153, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.living_bomb[44461] #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 306, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- talent.living_bomb[55359] #0 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 256, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.living_bomb[55360] #0 -- APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 345, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.living_bomb[55361] #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 512, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- talent.living_bomb[55362] #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 690, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- talent.combustion[28682] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.hot_streak[48108] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, sp_bonus: 1.0, points: -100, target: TARGET_UNIT_CASTER
+        -- Aura effects: PERIODIC_DAMAGE
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Replenishes $s1% of maximum mana per 5 sec.
-    replenishment = {
-        duration = 15,
-        max_stack = 1,
-        shared = "player",
-        dot = "buff",
-    },
-    -- Silenced.
-    silenced_improved_counterspell = {
-        id = 18469,
-        duration = function() return 2 * talent.improved_counterspell.rank end,
-        max_stack = 1,
 
-        -- Effects:
-        -- Rank 1 #0 -- APPLY_AURA, MOD_SILENCE, target: TARGET_UNIT_TARGET_ENEMY
-        -- Rank 2 #0 -- APPLY_AURA, MOD_SILENCE, target: TARGET_UNIT_TARGET_ENEMY
-    },
-    -- Movement speed reduced by $s1%.  Time between ranged attacks increased by $s2%.  Casting time increased by $s3%.
     slow = {
         id = 31589,
         duration = 15,
         max_stack = 1,
-
-        -- Effects:
-        -- [31589] #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [31589] #1 -- APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, DAMAGE_HEALING, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [31589] #2 -- APPLY_AURA, HASTE_SPELLS, points: -30, target: TARGET_UNIT_TARGET_ENEMY
-
-        -- Affected by:
-        -- talent.arcane_focus[11222] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12839] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12840] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
+        -- Aura effects: ADD_PCT_MODIFIER_BY_SPELL_LABEL, HASTE_SPELLS, MOD_DECREASE_SPEED
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Slows falling speed.
+
     slow_fall = {
         id = 130,
         duration = 30,
         max_stack = 1,
-
-        -- Effects:
-        -- [130] #0 -- APPLY_AURA, FEATHER_FALL, target: TARGET_UNIT_TARGET_RAID
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[11222] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12839] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12840] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- glyph.slow_fall[57925] #0 -- APPLY_AURA, NO_REAGENT_USE, points: 0, value: 14, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
+        -- Aura effects: FEATHER_FALL
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    water_elemental = {
-        duration = function()
-            if glyph.eternal_water.enabled then return 3600 end
-            return 45 + ( 5 * talent.enduring_winter.rank )
-        end,
-        max_stack = 1,
-    },
-    -- Spells have a $s1% additional chance to critically hit.
+
     winters_chill = {
         id = 12579,
         duration = 15,
         max_stack = 5,
+        copy = { 11180, 12579, 28592, 28593, 28594, 28595 },
+        -- Aura effects: MOD_SPELL_CRIT_CHANCE
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
+    },
+
+} )
+
+-- Abilities (Hekili-style scaffold)
+spec:RegisterAbilities( {
+
+-- Activate Primary Spec - Switch to your Primary Talent Specialization.
+    activate_primary_spec = {
+        id = 63645,
+        cast = 5,
+        texture = 236544,
+        range = 50000,
+        max_stack = 1,
 
         -- Effects:
-        -- [12579] #0 -- APPLY_AURA, MOD_ATTACKER_SPELL_CRIT_CHANCE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-
-        -- Affected by:
-        -- glyph.arcane_intellect[57924] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -50, target: TARGET_UNIT_CASTER
-        -- glyph.slow_fall[57925] #0 -- APPLY_AURA, NO_REAGENT_USE, points: 0, value: 14, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- glyph.fire_ward[57926] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 5, target: TARGET_UNIT_CASTER
-        -- glyph.drain_soul[58070] #0 -- APPLY_AURA, DUMMY, points: 0, target: TARGET_UNIT_CASTER
-        -- glyph.frost_ward[57927] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 5, target: TARGET_UNIT_CASTER
+        -- [x] Rank 63645 #0 -- effect: TALENT_SPEC_SELECT, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
     },
 
-    -- Aliases
-    unique_armor = {
-        alias = { "frost_armor", "molten_armor", "mage_armor", "ice_armor" },
-        aliasMode = "first",
-        aliasType = "buff",
-        duration = 3600,
+-- Activate Secondary Spec - Switch to your Secondary Talent Specialization.
+    activate_secondary_spec = {
+        id = 63644,
+        cast = 5,
+        texture = 236544,
+        range = 50000,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 63644 #0 -- effect: TALENT_SPEC_SELECT, aura: NONE, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
     },
-    frozen = {
-        alias = { "deep_freeze", "frost_nova", "frostbite", "shattered_barrier" },
-        aliasMode = "first",
-        aliasType = "debuff",
-    }
-} )
 
-
--- Glyphs
-spec:RegisterGlyphs( {
-    [63092] = "arcane_barrage",
-    [62210] = "arcane_blast",
-    [56360] = "arcane_explosion",
-    [57924] = "arcane_intellect",
-    [56363] = "arcane_missiles",
-    [56381] = "arcane_power",
-    [62126] = "blast_wave",
-    [56365] = "blink",
-    [63090] = "deep_freeze",
-    [58070] = "drain_soul",
-    [70937] = "eternal_water",
-    [56380] = "evocation",
-    [56369] = "fire_blast",
-    [57926] = "fire_ward",
-    [56368] = "fireball",
-    [57928] = "frost_armor",
-    [56376] = "frost_nova",
-    [57927] = "frost_ward",
-    [56370] = "frostbolt",
-    [61205] = "frostfire",
-    [56384] = "ice_armor",
-    [63095] = "ice_barrier",
-    [56372] = "ice_block",
-    [56377] = "ice_lance",
-    [56374] = "icy_veins",
-    [56366] = "invisibility",
-    [63091] = "living_bomb",
-    [56383] = "mage_armor",
-    [56367] = "mana_gem",
-    [63093] = "mirror_image",
-    [56382] = "molten_armor",
-    [56375] = "polymorph",
-    [56364] = "remove_curse",
-    [56371] = "scorch",
-    [57925] = "slow_fall",
-    [56373] = "water_elemental",
-} )
-
-
--- Events that will provoke a 
-local AURA_EVENTS = {
-    SPELL_AURA_APPLIED      = 1,
-    SPELL_AURA_APPLIED_DOSE = 1,
-    SPELL_AURA_REFRESH      = 1,
-    SPELL_AURA_REMOVED      = 1,
-    SPELL_AURA_REMOVED_DOSE = 1,
-}
-
-local AURA_REMOVED = {
-    SPELL_AURA_REFRESH      = 1,
-    SPELL_AURA_REMOVED      = 1,
-    SPELL_AURA_REMOVED_DOSE = 1,
-}
-
-local FORCED_RESETS = {}
-
-for _, aura in pairs( { "arcane_power", "clearcasting", "fireball_proc", "presence_of_mind", "frost_nova", "frostbite" } ) do
-    if spec.auras[ aura ] and spec.auras[ aura ].id then
-        FORCED_RESETS[ spec.auras[ aura ].id ] = 1
-    end
-end
-
-local lastFingersConsumed = 0
-local lastFrostboltCast = 0
-
-local heating_spells = {
-    [42833] = 1,
-    [42873] = 1,
-    [42859] = 1,
-    [55362] = 1,
-    [47610] = 1
-}
-local heatingUp = false
-
-spec:RegisterCombatLogEvent( function( _, subtype, _, sourceGUID, sourceName, _, _, destGUID, destName, destFlags, _, spellID, spellName, _, ...)
-    if not ( sourceGUID == state.GUID or destGUID == state.GUID ) then
-        return
-    end
-
-	if (sourceGUID == state.GUID) and subtype == 'SPELL_DAMAGE' then
-        if heating_spells[spellID] == 1 then
-            local critical = select(7, ...)
-            heatingUp = not not critical
-        end
-    end
-
-    if AURA_REMOVED[ subtype ] and spellID == spec.auras.fingers_of_frost.id then
-        lastFingersConsumed = GetTime()
-    end
-
-    if sourceGUID == state.GUID and subtype == "SPELL_CAST_SUCCESS" and spec.abilities[ spellID ] and spec.abilities[ spellID ].key == "frostbolt" then
-        lastFrostboltCast = GetTime()
-    end
-    
-    if AURA_EVENTS[ subtype ] and FORCED_RESETS[ spellID ] then
-        Hekili:ForceUpdate( "MAGE_AURA_CHANGED", true )
-    end
-end, false )
-
-
-local mana_gem_values = {
-    [5514] = 390,
-    [5513] = 585,
-    [8007] = 829,
-    [8008] = 1073,
-    [22044] = 2340,
-    [33312] = 3330
-}
-
-spec:RegisterStateExpr( "mana_gem_charges", function() return 0 end )
-spec:RegisterStateExpr( "mana_gem_id", function() return 33312 end )
-
-spec:RegisterStateExpr( "frozen", function()
-    return buff.fingers_of_frost.up or debuff.frozen.up
-end )
-
-spec:RegisterHook( "reset_precast", function()
-    mana_gem_charges = nil
-    mana_gem_id = nil
-
-    for item in pairs( mana_gem_values ) do
-        count = GetItemCount( item, nil, true )
-        if count > 0 then
-            mana_gem_charges = count
-            mana_gem_id = item
-            break
-        end
-    end
-
-    -- When Frostbolt consumes FoF, we can still make use of that FoF until the Frostbolt impact.
-
-    local frostbolt_remains = action.frostbolt.in_flight_remains
-    if frostbolt_remains == 0 and query_time - lastFrostboltCast < 0.2 then
-        frostbolt_remains = max( 0, lastFrostboltCast + ( target.distance / action.frostbolt.velocity ) - query_time )
-    end
-
-    if lastFingersConsumed == lastFrostboltCast and frostbolt_remains > 0 then
-        if buff.fingers_of_frost.up then 
-            addStack( "fingers_of_frost" )
-        else
-            addStack( "fingers_of_frost", frostbolt_remains )
-        end
-    end
-
-    if heatingUp then
-        applyBuff("heating_up")
-    end
-end )
-
-
--- Abilities
-spec:RegisterAbilities( {
-    -- Amplifies magic used against the targeted party member, increasing damage taken from spells by up to $s1 and healing spells by up to $s2.  Lasts $d.
+-- Amplify Magic - Amplifies magic used against the targeted party member, increasing damage taken from spells by up to 15-120 and healing spells by up to 30-240. Lasts 600 sec.
     amplify_magic = {
-        id = 33946,
+        id = 1008,
         cast = 0,
-        cooldown = 0,
+        duration = 600,
         gcd = "spell",
-
-        spend = function() return 0.270 * ( 1 - 0.01 * talent.precision.rank ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-
-        handler = function()
-            active_dot.amplify_magic = active_dot.amplify_magic + 1
-
-            -- Effects:
-            -- Rank 1 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- Rank 1 #1 -- APPLY_AURA, MOD_HEALING, points: 16, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- Rank 2 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: 30, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- Rank 2 #1 -- APPLY_AURA, MOD_HEALING, points: 32, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- Rank 3 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: 50, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- Rank 3 #1 -- APPLY_AURA, MOD_HEALING, points: 53, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- Rank 4 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: 75, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- Rank 4 #1 -- APPLY_AURA, MOD_HEALING, points: 80, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- Rank 5 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: 90, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- Rank 5 #1 -- APPLY_AURA, MOD_HEALING, points: 96, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- Rank 6 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: 120, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- Rank 6 #1 -- APPLY_AURA, MOD_HEALING, points: 128, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- Rank 7 #0 -- APPLY_AURA, MOD_DAMAGE_TAKEN, points: 240, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- Rank 7 #1 -- APPLY_AURA, MOD_HEALING, points: 255, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        end,
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 25, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-
+        school = "arcane",
+        texture = 135907,
+        range = 30,
+        spend = 150,
+        spendType = "Mana",
+        max_stack = 1,
         copy = { 1008, 8455, 10169, 10170, 27130, 33946 },
-    },
 
-    -- Blasts the target with energy, dealing $s1 Arcane damage.  Each time you cast Arcane Blast, the damage of all Arcane spells is increased by $36032s1% and mana cost of Arcane Blast is increased by $36032s2%.  Effect stacks up to $36032u times and lasts $36032d or until any Arcane damage spell except Arcane Blast is cast.
-    arcane_blast = {
-        id = 30451,
-        cast = function() return ( buff.presence_of_mind.up or buff.clearcasting.up ) and 0 or 2.5 * haste end,
-        cooldown = 0,
-        gcd = "spell",
+        -- Effects:
+        -- [ ] Rank 1008 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 14, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 1008 #1 -- effect: APPLY_AURA, aura: MOD_HEALING, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 8455 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 8455 #1 -- effect: APPLY_AURA, aura: MOD_HEALING, points: 59, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 10169 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 49, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 10169 #1 -- effect: APPLY_AURA, aura: MOD_HEALING, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 10170 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 74, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 10170 #1 -- effect: APPLY_AURA, aura: MOD_HEALING, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 27130 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 89, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 27130 #1 -- effect: APPLY_AURA, aura: MOD_HEALING, points: 179, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 33946 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 119, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 33946 #1 -- effect: APPLY_AURA, aura: MOD_HEALING, points: 239, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
 
-        spend = function() return 0.070 * ( 1 - 0.01 * ( talent.precision.rank + talent.arcane_focus.rank ) ) * ( 1 + ( debuff.arcane_blast.stack * 1.75 ) ) * ( buff.arcane_power.up and 1.2 or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = true,
-
-        handler = function()
-            if buff.presence_of_mind.up then removeBuff( "presence_of_mind" )
-            elseif buff.clearcasting.up then removeBuff( "clearcasting" ) end
-
-            applyDebuff( "player", "arcane_blast", nil, min( 4, debuff.arcane_blast.stack + 1 ) )
-
-            -- Effects:
-            -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.714, points_per_level: 5.0, points: 841, addl_points: 137, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] Rank 1 #1 -- TRIGGER_SPELL, NONE, trigger_spell: 36032, target: TARGET_UNIT_CASTER
-            -- Rank 2 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.714, points_per_level: 5.3, points: 896, addl_points: 145, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] Rank 2 #1 -- TRIGGER_SPELL, NONE, trigger_spell: 36032, target: TARGET_UNIT_CASTER
-            -- Rank 3 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.714, points_per_level: 6.2, points: 1046, addl_points: 169, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] Rank 3 #1 -- TRIGGER_SPELL, NONE, trigger_spell: 36032, points: 0, target: TARGET_UNIT_CASTER
-            -- Rank 4 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.714, points_per_level: 7.0, points: 1184, addl_points: 193, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] Rank 4 #1 -- TRIGGER_SPELL, NONE, trigger_spell: 36032, target: TARGET_UNIT_CASTER
+        handler = function ()
         end,
 
-        -- Affected by:
-        -- talent.arcane_focus[11222] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- talent.arcane_stability[11237] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.spell_impact[11242] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- aura.arcane_power[12042] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_power[12042] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.presence_of_mind[12043] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- talent.arcane_stability[12463] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 40, target: TARGET_UNIT_CASTER
-        -- talent.arcane_stability[12464] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 60, target: TARGET_UNIT_CASTER
-        -- talent.spell_impact[12467] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.spell_impact[12469] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [x] aura.clearcasting[12536] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12839] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12840] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.arcane_stability[16769] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 80, target: TARGET_UNIT_CASTER
-        -- talent.arcane_stability[16770] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- talent.prismatic_cloak[31574] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, points: -2, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.prismatic_cloak[31575] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, points: -4, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- aura.arcane_empowerment[31579] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 3, target: TARGET_UNIT_CASTER
-        -- aura.arcane_empowerment[31579] #1 -- APPLY_AREA_AURA_RAID, MOD_DAMAGE_PERCENT_DONE, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 100.0, target: TARGET_UNIT_CASTER
-        -- aura.arcane_empowerment[31582] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 6, target: TARGET_UNIT_CASTER
-        -- aura.arcane_empowerment[31582] #1 -- APPLY_AREA_AURA_RAID, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 100.0, target: TARGET_UNIT_CASTER
-        -- aura.arcane_empowerment[31583] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 9, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.spell_power[35578] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
-        -- talent.spell_power[35581] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_blast[42894] #1 -- TRIGGER_SPELL, NONE, trigger_spell: 36032, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_blast[42896] #1 -- TRIGGER_SPELL, NONE, trigger_spell: 36032, points: 0, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_blast[42897] #1 -- TRIGGER_SPELL, NONE, trigger_spell: 36032, target: TARGET_UNIT_CASTER
-        -- talent.prismatic_cloak[54354] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, points: -6, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.shatter[11170] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- aura.icy_veins[12472] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- talent.shatter[12982] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- talent.shatter[12983] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- talent.incineration[18459] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.incineration[18460] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.molten_fury[31679] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 6, value: 4919, schools: ['physical', 'holy', 'fire', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.molten_fury[31680] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 12, value: 4920, schools: ['nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.burnout[44449] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44469] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44470] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44471] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 40, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44472] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.incineration[54734] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
-        -- aura.arcane_blast[36032] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 15, value: 64, schools: ['arcane'], target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_blast[36032] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 175, target: TARGET_UNIT_CASTER
-
-        copy = { 30451 },
+        proc_chance = 100,
     },
 
-    -- Infuses all party and raid members with brilliance, increasing their Intellect by $s1 for $d.
+-- Annihilator Holo-Gogs
+    annihilator_holo_gogs = {
+        id = 46111,
+        cast = 50,
+        texture = 136243,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 46111 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Arcane Brilliance - Infuses the target's party with brilliance, increasing their Intellect by 31/40 for 3600 sec.
     arcane_brilliance = {
-        id = 27127,
+        id = 23028,
         cast = 0,
-        cooldown = 0,
+        duration = 3600,
         gcd = "spell",
-
-        spend = function() return 0.810 * ( 1 - 0.01 * ( talent.precision.rank + talent.arcane_focus.rank ) ) * ( glyph.arcane_intellect.enabled and 0.5 or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-        bagItem = 17020,
-
-        nobuff = "arcane_brilliance",
-        handler = function()
-            applyBuff( "arcane_brilliance" )
-            active_dot.arcane_brilliance = group_members
-
-            -- Effects:
-            -- Rank 1 #0 -- APPLY_AURA, MOD_STAT, points: 31, value: 3, schools: ['physical', 'holy'], radius: 100.0, target: TARGET_UNIT_CASTER_AREA_RAID
-            -- Rank 2 #0 -- APPLY_AURA, MOD_STAT, points: 40, value: 3, schools: ['physical', 'holy'], radius: 100.0, target: TARGET_UNIT_CASTER_AREA_RAID
-            -- Rank 3 #0 -- APPLY_AURA, MOD_STAT, points: 60, value: 3, schools: ['physical', 'holy'], radius: 100.0, target: TARGET_UNIT_CASTER_AREA_RAID
-        end,
-
-        -- Affected by:
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [x] glyph.arcane_intellect[57924] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -50, target: TARGET_UNIT_CASTER
-
+        school = "arcane",
+        texture = 135869,
+        range = 40,
+        spend = 1500,
+        spendType = "Mana",
+        max_stack = 1,
         copy = { 23028, 27127 },
+
+        -- Effects:
+        -- [x] Rank 23028 #0 -- effect: APPLY_AURA, aura: MOD_STAT, points: 30, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: TARGET_UNIT_LASTTARGET_AREA_PARTY, mechanic: 0
+        -- [x] Rank 27127 #0 -- effect: APPLY_AURA, aura: MOD_STAT, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: TARGET_UNIT_LASTTARGET_AREA_PARTY, mechanic: 0
+
+        handler = function ()
+            applyBuff( "arcane_brilliance" )
+        end,
     },
 
-    -- Causes an explosion of arcane magic around the caster, causing $s1 Arcane damage to all targets within $a1 yards.
+-- Arcane Explosion - Causes an explosion of arcane magic around the caster, causing 32-377 Arcane damage to all targets within $a1 yards.
     arcane_explosion = {
-        id = 27082,
+        id = 1449,
         cast = 0,
-        cooldown = 0,
         gcd = "spell",
-
-        spend = function() return buff.clearcasting.up and 0 or 0.220 * ( 1 - 0.01 * ( talent.precision.rank + talent.arcane_focus.rank ) ) * ( glyph.arcane_explosion.enabled and 0.9 or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = true,
-
-        handler = function()
-            removeDebuff( "player", "arcane_blast" )
-
-            -- Effects:
-            -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.166, points_per_level: 0.4, points: 31, addl_points: 5, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 2 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 0.6, points: 56, addl_points: 7, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 3 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 0.9, points: 96, addl_points: 9, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 4 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 0.9, points: 138, addl_points: 13, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 5 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 1.1, points: 185, addl_points: 17, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 6 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 1.3, points: 242, addl_points: 21, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 7 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 1.5, points: 305, addl_points: 25, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 8 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 1.6, points: 376, addl_points: 31, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 9 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 2.0, points: 480, addl_points: 39, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 10 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 2.3, points: 537, addl_points: 45, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        end,
-
-        -- Affected by:
-        -- talent.arcane_focus[11222] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- talent.spell_impact[11242] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.arcane_power[12042] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.arcane_power[12042] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.spell_impact[12467] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.spell_impact[12469] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [x] aura.clearcasting[12536] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12839] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.arcane_focus[12840] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15058] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15059] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15060] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.prismatic_cloak[31574] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, points: -2, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.prismatic_cloak[31575] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, points: -4, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.slow[31589] #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.slow[31589] #1 -- APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, DAMAGE_HEALING, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.spell_power[35578] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
-        -- talent.spell_power[35581] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.prismatic_cloak[54354] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, points: -6, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.shatter[11170] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.shatter[12982] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- talent.shatter[12983] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[11108] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12349] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12350] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.molten_fury[31679] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 6, value: 4919, schools: ['physical', 'holy', 'fire', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.molten_fury[31680] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 12, value: 4920, schools: ['nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.burnout[44449] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44469] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44470] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44471] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 40, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44472] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [x] glyph.arcane_explosion[56360] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -10, target: TARGET_UNIT_CASTER
-
+        school = "arcane",
+        texture = 136116,
+        spend = 75,
+        spendType = "Mana",
+        max_stack = 1,
         copy = { 1449, 8437, 8438, 8439, 10201, 10202, 27080, 27082 },
+
+        -- Effects:
+        -- [x] Rank 1449 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 31, addl_points: 5, points_per_level: 0.4, sp_bonus: 0.166, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 8437 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 56, addl_points: 7, points_per_level: 0.6, sp_bonus: 0.214, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 8438 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 96, addl_points: 9, points_per_level: 0.9, sp_bonus: 0.214, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 8439 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 138, addl_points: 13, points_per_level: 0.9, sp_bonus: 0.214, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 10201 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 185, addl_points: 17, points_per_level: 1.1, sp_bonus: 0.214, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 10202 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 242, addl_points: 21, points_per_level: 1.3, sp_bonus: 0.214, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 27080 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 305, addl_points: 25, points_per_level: 1.5, sp_bonus: 0.214, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 27082 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 376, addl_points: 31, points_per_level: 1.6, sp_bonus: 0.214, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+
+        radius = 10,
+
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "arcane_explosion" ) end
+        end,
+
+        proc_chance = 100,
     },
 
-    -- Increases the target's Intellect by $s1 for $d.
+-- Arcane Intellect - Increases the target's Intellect by 2-40 for 1800 sec.
     arcane_intellect = {
-        id = 27126,
+        id = 1459,
         cast = 0,
-        cooldown = 0,
+        duration = 1800,
         gcd = "spell",
-
-        spend = function() return 0.310 * ( 1 - 0.01 * ( talent.precision.rank + talent.arcane_focus.rank ) ) * ( glyph.arcane_intellect.enabled and 0.5 or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-
-        handler = function()
-            applyBuff( "arcane_intellect" )
-
-            -- Effects:
-            -- Rank 1 #0 -- APPLY_AURA, MOD_STAT, points: 2, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
-            -- Rank 2 #0 -- APPLY_AURA, MOD_STAT, points: 7, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
-            -- Rank 3 #0 -- APPLY_AURA, MOD_STAT, points: 15, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
-            -- Rank 4 #0 -- APPLY_AURA, MOD_STAT, points: 22, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
-            -- Rank 5 #0 -- APPLY_AURA, MOD_STAT, points: 31, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
-            -- Rank 6 #0 -- APPLY_AURA, MOD_STAT, points: 40, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
-            -- Rank 7 #0 -- APPLY_AURA, MOD_STAT, points: 60, value: 3, schools: ['physical', 'holy'], target: TARGET_UNIT_TARGET_ALLY
-        end,
-
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [x] glyph.arcane_intellect[57924] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -50, target: TARGET_UNIT_CASTER
-
+        school = "arcane",
+        texture = 135932,
+        range = 30,
+        spend = 25,
+        spendType = "Mana",
+        max_stack = 1,
         copy = { 1459, 1460, 1461, 10156, 10157, 27126 },
+
+        -- Effects:
+        -- [x] Rank 1459 #0 -- effect: APPLY_AURA, aura: MOD_STAT, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 1460 #0 -- effect: APPLY_AURA, aura: MOD_STAT, points: 6, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 1461 #0 -- effect: APPLY_AURA, aura: MOD_STAT, points: 14, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 10156 #0 -- effect: APPLY_AURA, aura: MOD_STAT, points: 21, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 10157 #0 -- effect: APPLY_AURA, aura: MOD_STAT, points: 30, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 27126 #0 -- effect: APPLY_AURA, aura: MOD_STAT, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "arcane_intellect" )
+        end,
     },
 
-    -- Launches Arcane Missiles at the enemy, causing $7268s1 Arcane damage every $5143t2 sec for $5143d.
+-- Arcane Missiles - Launches Arcane Missiles at the enemy, causing 24 Arcane damage every $t2 sec for 3/4/5 sec.
     arcane_missiles = {
-        id = 38704,
-        cast = function()
-            local base = level < 16 and 3 or level < 24 and 4 or 5
-            return ( buff.missile_barrage.up and 2.5 or base ) * haste
-        end,
-        channeled = true,
-        cooldown = 0,
+        id = 5143,
+        cast = 0,
+        duration = 5,
         gcd = "spell",
+        school = "arcane",
+        texture = 136096,
+        range = 30,
+        spend = function () return max( 0, 85 * ( 1 + 0.02 * ( talent.empowered_arcane_missiles.rank or 0 ) ) ) end,
+        -- Talent spend scaling: empowered_arcane_missiles (2% per rank)
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 5143, 5144, 5145, 8416, 8417, 10211, 10212, 25345, 27075, 38699, 38704 },
 
-        spend = function() return ( buff.clearcasting.up or buff.missile_barrage.up ) and 0 or 0.310 * ( 1 - 0.01 * ( talent.precision.rank + talent.arcane_focus.rank ) ) * ( buff.arcane_power.up and 1.2 or 1 ) end,
-        spendType = "mana",
+        -- Effects:
+        -- [x] Rank 5143 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 5143 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 7268
+        -- [x] Rank 5144 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 5144 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 7269
+        -- [x] Rank 5145 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 5145 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 7270
+        -- [x] Rank 8416 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8416 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 8419
+        -- [x] Rank 8417 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8417 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 8418
+        -- [x] Rank 10211 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10211 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 10273
+        -- [x] Rank 10212 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10212 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 10274
+        -- [x] Rank 25345 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25345 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 25346
+        -- [x] Rank 27075 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27075 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 27076
+        -- [x] Rank 38699 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 38699 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 38700
+        -- [x] Rank 38704 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 38704 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 38703
 
-        startsCombat = true,
+        channeled = true,
 
-        start = function()
-            removeDebuff( "player", "arcane_blast" )
-
-            if buff.missile_barrage.up then removeBuff( "missile_barrage" )
-            elseif buff.clearcasting.up then removeBuff( "clearcasting" ) end
-
-            -- Effects:
-            -- Rank 1 #0 -- APPLY_AURA, DUMMY, target: TARGET_UNIT_TARGET_ENEMY
-            -- Rank 1 #1 -- APPLY_AURA, PERIODIC_TRIGGER_SPELL, tick_time: 1.0, trigger_spell: 7268, target: TARGET_UNIT_CASTER
-            -- Rank 2 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 0.4, points: 36, target: TARGET_UNIT_CHANNEL_TARGET
-            -- Rank 3 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.286, points_per_level: 0.5, points: 56, target: TARGET_UNIT_CHANNEL_TARGET
-            -- Rank 4 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.286, points_per_level: 0.6, points: 83, target: TARGET_UNIT_CHANNEL_TARGET
-            -- Rank 5 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.286, points_per_level: 0.7, points: 115, target: TARGET_UNIT_CHANNEL_TARGET
-            -- Rank 6 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.286, points_per_level: 0.8, points: 151, target: TARGET_UNIT_CHANNEL_TARGET
-            -- Rank 7 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.286, points_per_level: 0.9, points: 192, target: TARGET_UNIT_CHANNEL_TARGET
-            -- Rank 8 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.286, points_per_level: 1.0, points: 230, target: TARGET_UNIT_CHANNEL_TARGET
-            -- Rank 9 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.286, points_per_level: 1.1, points: 240, target: TARGET_UNIT_CHANNEL_TARGET
-            -- Rank 10 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.286, points_per_level: 1.2, points: 260, target: TARGET_UNIT_CHANNEL_TARGET
-            -- Rank 11 #0 -- APPLY_AURA, DUMMY, target: TARGET_UNIT_TARGET_ENEMY
-            -- Rank 11 #1 -- APPLY_AURA, PERIODIC_TRIGGER_SPELL, tick_time: 1.0, trigger_spell: 38703, triggers: arcane_missiles, target: TARGET_UNIT_CASTER
-            -- Rank 12 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.286, points_per_level: 1.5, points: 320, target: TARGET_UNIT_CHANNEL_TARGET
-            -- Rank 13 #0 -- APPLY_AURA, DUMMY, target: TARGET_UNIT_TARGET_ENEMY
-            -- Rank 13 #1 -- APPLY_AURA, PERIODIC_TRIGGER_SPELL, tick_time: 1.0, trigger_spell: 42845, triggers: arcane_missiles, target: TARGET_UNIT_CASTER
+        handler = function ()
+            applyDebuff( "target", "arcane_missiles" )
+            applyBuff( "arcane_missiles" )
         end,
 
-        -- Affected by:
-        -- talent.arcane_stability[11237] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[11247] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_power[12042] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.arcane_stability[12463] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 40, target: TARGET_UNIT_CASTER
-        -- talent.arcane_stability[12464] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 60, target: TARGET_UNIT_CASTER
-        -- [x] aura.clearcasting[12536] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- talent.magic_attunement[12606] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.arcane_stability[16769] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 80, target: TARGET_UNIT_CASTER
-        -- talent.arcane_stability[16770] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- talent.arcane_empowerment[31583] #1 -- APPLY_AREA_AURA_RAID, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 100.0, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.slow[31589] #1 -- APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, DAMAGE_HEALING, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [x] talent.missile_barrage[44401] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: -2500, target: TARGET_UNIT_CASTER
-        -- [x] talent.missile_barrage[44401] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, AURA_PERIOD, points: -500, target: TARGET_UNIT_CASTER
-        -- [x] talent.missile_barrage[44401] #2 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -100, target: TARGET_UNIT_CASTER
-        -- talent.icy_veins[12472] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- glyph.arcane_missiles[56363] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
-
-        copy = { 5143, 7269, 7270, 8419, 8418, 10273, 10274, 25346, 27076, 38700, 38704 },
+        proc_chance = 100,
     },
 
-    -- When activated, your spells deal $s1% more damage while costing $s2% more mana to cast.  This effect lasts $D.
+-- Arcane Power - When activated, your spells deal 30% more damage while costing 30% more mana to cast. This effect lasts 15 sec.
     arcane_power = {
         id = 12042,
         cast = 0,
-        cooldown = function() return 120 - ( 15 * talent.arcane_flows.rank ) end,
-        gcd = "off",
+        duration = 15,
+        cooldown = 180,
+        school = "arcane",
+        texture = 136048,
+        max_stack = 1,
 
-        toggle = "cooldowns",
-        startsCombat = false,
+        -- Effects:
+        -- [x] Rank 12042 #0 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 12042 #1 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 12042 #2 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        handler = function()
+        handler = function ()
             applyBuff( "arcane_power" )
-
-            -- Effects:
-            -- [x] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, points: 20, target: TARGET_UNIT_CASTER
-            -- [x] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, points: 20, target: TARGET_UNIT_CASTER
-            -- [x] #2 -- APPLY_AURA, ADD_PCT_MODIFIER, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
         end,
 
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- [x] talent.arcane_flows[44378] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, points: -15, target: TARGET_UNIT_CASTER
-        -- [x] talent.arcane_flows[44379] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, points: -30, target: TARGET_UNIT_CASTER
-        -- talent.icy_veins[12472] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- [x] glyph.arcane_power[56381] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 3000, target: TARGET_UNIT_CASTER
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-    -- A wave of flame radiates outward from the caster, damaging all enemies caught within the blast for $s1 Fire damage, knocking them back and dazing them for $d.
-    blast_wave = {
-        id = 33933,
+-- Arcane Torrent - Silence all enemies within $a1 yards for 2 sec. In addition, you gain 10 Mana for each Mana Tap charge currently affecting you.
+    arcane_torrent = {
+        id = 28730,
         cast = 0,
-        cooldown = 0,
+        duration = 2,
+        cooldown = 120,
         gcd = "spell",
+        school = "arcane",
+        texture = 136222,
+        max_stack = 1,
 
-        spend = function() return buff.clearcasting.up and 0 or 0.070 * ( 1 - 0.01 * ( talent.precision.rank + talent.arcane_focus.rank ) ) * ( buff.arcane_power.up and 1.2 or 1 ) * ( glyph.blast_wave.enabled and 0.85 or 1 ) end,
-        spendType = "mana",
-
+        -- Effects:
+        -- [ ] Rank 28730 #0 -- effect: APPLY_AURA, aura: MOD_SILENCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 28730 #1 -- effect: DUMMY, aura: NONE, points: 9, addl_points: 1, points_per_level: 2.16, sp_bonus: 0, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
         startsCombat = true,
 
-        handler = function()
-            if target.within10 then
-                applyDebuff( "target", "blast_wave" )
-            end
+        radius = 8,
 
-            -- Effects:
-            -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.0, points: 153, addl_points: 33, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [x] Rank 1 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 1 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 2 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.2, points: 200, addl_points: 41, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [x] Rank 2 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 2 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 3 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.4, points: 276, addl_points: 53, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [x] Rank 3 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 3 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 4 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.6, points: 364, addl_points: 69, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [x] Rank 4 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 4 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 5 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.9, points: 461, addl_points: 83, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [x] Rank 5 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 5 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 6 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 2.1, points: 532, addl_points: 95, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [x] Rank 6 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 6 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 7 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 2.3, points: 615, addl_points: 109, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [x] Rank 7 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 7 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 8 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 3.3, points: 881, addl_points: 157, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [x] Rank 8 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 8 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 9 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 3.9, points: 1046, addl_points: 187, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [x] Rank 9 #1 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- Rank 9 #2 -- KNOCK_BACK, NONE, points: 80, value: 100, schools: ['fire', 'shadow', 'arcane'], radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
+        handler = function ()
         end,
 
-        -- Affected by:
-        -- talent.spell_impact[11242] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_power[12042] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_power[12042] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.spell_impact[12467] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.spell_impact[12469] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [x] aura.clearcasting[12536] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- talent.spell_power[35578] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
-        -- talent.spell_power[35581] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.shatter[11170] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.shatter[12982] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- talent.shatter[12983] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[11108] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[11124] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.combustion[11129] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12349] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12350] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12378] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12398] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12399] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- talent.fire_power[12400] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.molten_fury[31679] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 6, value: 4919, schools: ['physical', 'holy', 'fire', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.molten_fury[31680] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 12, value: 4920, schools: ['nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.burnout[44449] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44469] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44470] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44471] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 40, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44472] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [x] glyph.blast_wave[62126] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -15, target: TARGET_UNIT_CASTER
-        -- talent.combustion[28682] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
-
-        copy = { 11113, 13018, 13019, 13020, 13021, 27133, 33933 },
+        proc_chance = 100,
     },
 
-    -- Teleports the caster $a1 yards forward, unless something is in the way.  Also frees the caster from stuns and bonds.
+-- Berserking - Increases your casting and attack speed by $26635m1% to $26635M1%. At full health the speed increase is $26635m1% with a greater effect up to $26635M1% if you are badly hurt when you activate Berserking. Lasts $26635d.
+    berserking = {
+        id = 20554,
+        cast = 0,
+        cooldown = 180,
+        school = "physical",
+        texture = 135727,
+        spend_pct = 6,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 20554 #0 -- effect: DUMMY, aura: NONE, points: 24, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Blast Wave - A wave of flame radiates outward from the caster, damaging all enemies caught within the blast for 154-616 Fire damage, and Dazing them for 6 sec.
+    blast_wave = {
+        id = 11113,
+        cast = 0,
+        duration = 6,
+        category_cooldown = 30,
+        gcd = "spell",
+        school = "fire",
+        texture = 135903,
+        cooldown_category_id = 250,
+        cooldown_category = "Blast Wave",
+        spend = 215,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 11113, 13018, 13019, 13020, 13021, 27133, 33933 },
+
+        -- Effects:
+        -- [x] Rank 11113 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 153, addl_points: 33, points_per_level: 1, sp_bonus: 0.193, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 11113 #1 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: ensnared
+        -- [x] Rank 13018 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 200, addl_points: 41, points_per_level: 1.2, sp_bonus: 0.193, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 13018 #1 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: ensnared
+        -- [x] Rank 13019 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 276, addl_points: 53, points_per_level: 1.4, sp_bonus: 0.193, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 13019 #1 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: ensnared
+        -- [x] Rank 13020 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 364, addl_points: 69, points_per_level: 1.6, sp_bonus: 0.193, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 13020 #1 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: ensnared
+        -- [x] Rank 13021 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 461, addl_points: 83, points_per_level: 1.9, sp_bonus: 0.193, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 13021 #1 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: ensnared
+        -- [x] Rank 27133 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 532, addl_points: 95, points_per_level: 2.1, sp_bonus: 0.193, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 27133 #1 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: ensnared
+        -- [x] Rank 33933 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 615, addl_points: 109, points_per_level: 2.3, sp_bonus: 0.193, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 33933 #1 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: ensnared
+        startsCombat = true,
+
+        radius = 10,
+
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "blast_wave" ) end
+        end,
+
+        proc_chance = 100,
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Blazing Speed - Gives you a $h% chance when hit by a melee or ranged attack to increase your movement speed by 50% and dispel all movement impairing effects. This effect lasts $31643d.
+    blazing_speed = {
+        id = 31641,
+        cast = 0,
+        duration = 8,
+        school = "fire",
+        texture = 135788,
+        max_stack = 1,
+        copy = { 31641, 31642, 31643 },
+
+        -- Effects:
+        -- [x] Rank 31641 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 18350
+        -- [x] Rank 31642 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 18350
+        -- [x] Rank 31643 #0 -- effect: APPLY_AURA, aura: MOD_INCREASE_SPEED, points: 49, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 31643 #1 -- effect: DISPEL_MECHANIC, aura: NONE, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 31643 #2 -- effect: DISPEL_MECHANIC, aura: NONE, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "blazing_speed" )
+        end,
+
+        proc_chance = 5,
+        proc_type_mask = { 680, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability; Take Ranged Attack; Take Ranged Ability
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Blink - Teleports the caster $a1 yards forward, unless something is in the way. Also frees the caster from stuns and bonds.
     blink = {
         id = 1953,
         cast = 0,
-        cooldown = 0,
+        duration = 1,
+        category_cooldown = 15,
         gcd = "spell",
+        school = "arcane",
+        texture = 135736,
+        cooldown_category_id = 44,
+        cooldown_category = "Speed",
+        spend_pct = 21,
+        spendType = "Mana",
+        max_stack = 1,
 
-        spend = function() return 0.210 * ( 1 - 0.01 * ( talent.precision.rank + talent.arcane_focus.rank ) ) * ( 1 - 0.25 * talent.improved_blink.rank ) end,
-        spendType = "mana",
+        -- Effects:
+        -- [ ] Rank 1953 #0 -- effect: LEAP, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER, target2: TARGET_DEST_CASTER_FRONT_LEAP, mechanic: 0
+        -- [x] Rank 1953 #1 -- effect: APPLY_AURA, aura: MECHANIC_IMMUNITY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1953 #2 -- effect: APPLY_AURA, aura: MECHANIC_IMMUNITY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        startsCombat = false,
+        radius = 20,
 
-        handler = function()
+        handler = function ()
             applyBuff( "blink" )
-            setDistance( max( 5, target.distance - ( glyph.blink.enabled and 25 or 20 ) ) )
-
-            if talent.improved_blink.enabled then applyBuff( "improved_blink" ) end
-            
-            -- Effects:
-            -- #0 -- LEAP, NONE, radius: 20.0, target: TARGET_UNIT_CASTER, target2: TARGET_DEST_CASTER_FRONT_LEAP
-            -- #1 -- APPLY_AURA, MECHANIC_IMMUNITY, sp_bonus: 1.0, target: TARGET_UNIT_CASTER, mechanic: stunned
-            -- #2 -- APPLY_AURA, MECHANIC_IMMUNITY, sp_bonus: 1.0, target: TARGET_UNIT_CASTER, mechanic: rooted
         end,
-
-        -- Affected by:
-        -- [x] talent.improved_blink[31569] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -25
-        -- [x] talent.improved_blink[31570] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -50
-        -- talent.mind_mastery[31584] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31585] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31586] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31587] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- talent.mind_mastery[31588] #0 -- APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- glyph.blink[56365] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, RADIUS, points: 5, target: TARGET_UNIT_CASTER
-        -- talent.improved_blink[47000] #0 -- APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, points: -15, value: 14, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- talent.improved_blink[46989] #0 -- APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, points: -30, value: 14, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
     },
 
-    -- Ice shards pelt the target area doing ${$42208m1*8*$<mult>} Frost damage over $10d.
+-- Blizzard - Ice shards pelt the target area doing ${$42208m1*8} Frost damage over 8 sec.
     blizzard = {
-        id = 27085,
-        cast = 8,
-        channeled = true,
-        cooldown = 0,
+        id = 10,
+        cast = 0,
+        duration = 8,
         gcd = "spell",
+        school = "frost",
+        texture = 135857,
+        range = 100,
+        spend = function () return max( 0, 320 * ( 1 + -0.05 * ( talent.frost_channeling.rank or 0 ) ) ) end,
+        -- Talent spend scaling: frost_channeling (-5% per rank, frost school)
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 10, 6141, 8427, 10185, 10186, 10187, 27085, 42198, 42208, 42209, 42210, 42211, 42212, 42213 },
 
-        spend = function() return buff.clearcasting.up and 0 or 0.740 * ( 1 - 0.01 * ( talent.precision.rank + talent.arcane_focus.rank ) ) * ( buff.arcane_power.up and 1.2 or 1 ) end,
-        spendType = "mana",
-
+        -- Effects:
+        -- [ ] Rank 10 #0 -- effect: PERSISTENT_AREA_AURA, aura: DUMMY, points: 24, addl_points: 1, points_per_level: 0.1, sp_bonus: 0.119, radius_idx: 14, target: TARGET_DEST_DYNOBJ_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 42208
+        -- [ ] Rank 6141 #0 -- effect: PERSISTENT_AREA_AURA, aura: DUMMY, points: 43, addl_points: 1, points_per_level: 0.2, sp_bonus: 0.119, radius_idx: 14, target: TARGET_DEST_DYNOBJ_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 6141 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 42209
+        -- [ ] Rank 8427 #0 -- effect: PERSISTENT_AREA_AURA, aura: DUMMY, points: 64, addl_points: 1, points_per_level: 0.2, sp_bonus: 0.119, radius_idx: 14, target: TARGET_DEST_DYNOBJ_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8427 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 42210
+        -- [ ] Rank 10185 #0 -- effect: PERSISTENT_AREA_AURA, aura: DUMMY, points: 89, addl_points: 1, points_per_level: 0.3, sp_bonus: 0.119, radius_idx: 14, target: TARGET_DEST_DYNOBJ_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10185 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 42211
+        -- [ ] Rank 10186 #0 -- effect: PERSISTENT_AREA_AURA, aura: DUMMY, points: 116, addl_points: 1, points_per_level: 0.3, sp_bonus: 0.119, radius_idx: 14, target: TARGET_DEST_DYNOBJ_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10186 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 42212
+        -- [ ] Rank 10187 #0 -- effect: PERSISTENT_AREA_AURA, aura: DUMMY, points: 148, addl_points: 1, points_per_level: 0.4, sp_bonus: 0.119, radius_idx: 14, target: TARGET_DEST_DYNOBJ_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10187 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 42213
+        -- [ ] Rank 27085 #0 -- effect: PERSISTENT_AREA_AURA, aura: DUMMY, points: 183, addl_points: 1, points_per_level: 0.4, sp_bonus: 0.119, radius_idx: 14, target: TARGET_DEST_DYNOBJ_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27085 #1 -- effect: APPLY_AURA, aura: PERIODIC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 42198
+        -- [x] Rank 42198 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 183, addl_points: 1, points_per_level: 0.4, sp_bonus: 0.143, radius_idx: 14, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 42208 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 24, addl_points: 1, points_per_level: 0.1, sp_bonus: 0.143, radius_idx: 14, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 42209 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 43, addl_points: 1, points_per_level: 0.2, sp_bonus: 0.143, radius_idx: 14, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 42210 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 64, addl_points: 1, points_per_level: 0.2, sp_bonus: 0.143, radius_idx: 14, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 42211 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 89, addl_points: 1, points_per_level: 0.3, sp_bonus: 0.143, radius_idx: 14, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 42212 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 116, addl_points: 1, points_per_level: 0.3, sp_bonus: 0.143, radius_idx: 14, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 42213 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 148, addl_points: 1, points_per_level: 0.4, sp_bonus: 0.143, radius_idx: 14, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY, mechanic: 0
         startsCombat = true,
 
-        handler = function()
-            -- Effects:
-            -- Rank 1 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 0.1, points: 36, radius: 8.0, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY
-            -- Rank 2 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 0.2, points: 63, radius: 8.0, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY
-            -- Rank 3 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 0.2, points: 92, radius: 8.0, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY
-            -- Rank 4 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 0.3, points: 128, radius: 8.0, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY
-            -- Rank 5 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 0.3, points: 166, radius: 8.0, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY
-            -- Rank 6 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 0.4, points: 212, radius: 8.0, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY
-            -- Rank 7 #0 -- SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 0.4, points: 273, radius: 8.0, target: TARGET_DEST_CHANNEL_TARGET, target2: TARGET_UNIT_DEST_AREA_ENEMY
-            -- Rank 8 #0 -- PERSISTENT_AREA_AURA, DUMMY, sp_bonus: 0.119, points_per_level: 1.9, points: 298, radius: 8.0, target: TARGET_DEST_DYNOBJ_ENEMY
-            -- Rank 8 #1 -- APPLY_AURA, PERIODIC_TRIGGER_SPELL, tick_time: 1.0, trigger_spell: 42937, triggers: blizzard, points: 0, target: TARGET_UNIT_CASTER
-            -- Rank 9 #0 -- PERSISTENT_AREA_AURA, DUMMY, sp_bonus: 0.119, points_per_level: 1.9, points: 360, radius: 8.0, target: TARGET_DEST_DYNOBJ_ENEMY
-            -- Rank 9 #1 -- APPLY_AURA, PERIODIC_TRIGGER_SPELL, tick_time: 1.0, trigger_spell: 42938, triggers: blizzard, points: 0, target: TARGET_UNIT_CASTER
+        radius = 8,
+
+        channeled = true,
+
+        handler = function ()
+            applyBuff( "blizzard" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "blizzard" ) end
         end,
 
-        -- Affected by:
-        -- aura.arcane_power[12042] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_power[12042] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 20, target: TARGET_UNIT_CASTER
-        -- aura.arcane_power[12042] #2 -- APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.clearcasting[12536] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15058] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15058] #1 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15059] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15059] #1 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15060] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.arcane_instability[15060] #1 -- APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.slow[31589] #0 -- APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.slow[31589] #1 -- APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, DAMAGE_HEALING, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.slow[31589] #2 -- APPLY_AURA, HASTE_SPELLS, points: -30, target: TARGET_UNIT_TARGET_ENEMY
-        -- talent.spell_power[35578] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
-        -- talent.spell_power[35581] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- talent.piercing_ice[11151] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- talent.frost_channeling[11160] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -4, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.shatter[11170] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.improved_blizzard[11185] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, item_type: 128, item: deprecated_tauren_trappers_pants, value: 836, schools: ['fire', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[11207] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 33, target: TARGET_UNIT_CASTER
-        -- talent.icy_veins[12472] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- talent.improved_blizzard[12487] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, item_type: 128, item: deprecated_tauren_trappers_pants, value: 988, schools: ['fire', 'nature', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.improved_blizzard[12488] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, item_type: 128, item: deprecated_tauren_trappers_pants, value: 989, schools: ['physical', 'fire', 'nature', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.frost_channeling[12518] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -7, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.frost_channeling[12519] #0 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -10, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[12672] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 66, target: TARGET_UNIT_CASTER
-        -- talent.piercing_ice[12952] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 4, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- talent.piercing_ice[12953] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 6, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- talent.shatter[12982] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- talent.shatter[12983] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- talent.ice_shards[15047] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 100, target: TARGET_UNIT_CASTER
-        -- talent.arctic_reach[16757] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, RANGE, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.arctic_reach[16758] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, RANGE, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.precision[29438] #0 -- APPLY_AURA, MOD_SPELL_HIT_CHANCE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.precision[29438] #1 -- APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- talent.precision[29439] #0 -- APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.precision[29440] #0 -- APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.frozen_core[31667] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, sp_bonus: 1.0, points: -2, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.frozen_core[31668] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, sp_bonus: 1.0, points: -4, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.frozen_core[31669] #0 -- APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, sp_bonus: 1.0, points: -6, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[11108] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12349] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 4, target: TARGET_UNIT_CASTER
-        -- talent.world_in_flames[12350] #0 -- APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 6, target: TARGET_UNIT_CASTER
-        -- talent.molten_fury[31679] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 6, value: 4919, schools: ['physical', 'holy', 'fire', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.molten_fury[31680] #0 -- APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 12, value: 4920, schools: ['nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- talent.burnout[44449] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 10, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44469] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 20, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44470] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 30, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44471] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 40, target: TARGET_UNIT_CASTER
-        -- talent.burnout[44472] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-
-        copy = { 42208, 42209, 42210, 42211, 42212, 42213, 42198, 27085 },
+        proc_chance = 100,
     },
 
-    -- When activated, this spell finishes the cooldown on all Frost spells you recently cast.
+-- Chilled - Chills the target for 1.5 sec.
+    chilled = {
+        id = 12484,
+        cast = 0,
+        duration = 1.5,
+        school = "frost",
+        texture = 135857,
+        range = 50000,
+        -- Talent spend scaling: frost_channeling (-5% per rank, frost school)
+        max_stack = 1,
+        copy = { 12484, 12485, 12486 },
+
+        -- Effects:
+        -- [x] Rank 12484 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -31, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12485 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12486 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -66, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            applyDebuff( "target", "chilled" )
+        end,
+    },
+
+-- Cold Snap - When activated, this spell finishes the cooldown on all Frost spells you recently cast.
     cold_snap = {
         id = 11958,
         cast = 0,
-        cooldown = function() return 480 * ( 1 - ( 0.1 * talent.cold_as_ice.rank ) ) end,
-        gcd = "off",
+        cooldown = 480,
+        school = "frost",
+        texture = 135865,
+        -- Talent spend scaling: frost_channeling (-5% per rank, frost school)
+        max_stack = 1,
 
-        startsCombat = false,
-        toggle = "cooldowns",
+        -- Effects:
+        -- [ ] Rank 11958 #0 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        handler = function()
-            setCooldown( "ice_block", 0 )
+        handler = function ()
             setCooldown( "icy_veins", 0 )
-            setCooldown( "summon_water_elemental", 0 )
-
-            -- Effects:
-            -- #0 -- DUMMY, NONE, target: TARGET_UNIT_CASTER
+            setCooldown( "cold_snap", 480 )
         end,
 
-        -- Affected by:
-        -- [x] talent.cold_as_ice[55091] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -10, target: TARGET_UNIT_CASTER
-        -- [x] talent.cold_as_ice[55092] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -20, target: TARGET_UNIT_CASTER
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-    -- When activated, this spell increases your critical strike damage bonus with Fire damage spells by $s1%, and causes each of your Fire damage spell hits to increase your critical strike chance with Fire damage spells by $28682s1%.  This effect lasts until you have caused $11129n non-periodic critical strikes with Fire spells.
+-- Combustion - When activated, this spell causes each of your Fire damage spell hits to increase your critical strike chance with Fire damage spells by 1%. This effect lasts until you have caused $n critical strikes with Fire spells.
     combustion = {
         id = 11129,
         cast = 0,
-        cooldown = 120,
-        gcd = "off",
+        cooldown = 180,
+        school = "fire",
+        texture = 135824,
+        max_stack = 1,
 
-        startsCombat = false,
-        toggle = "cooldowns",
+        -- Effects:
+        -- [x] Rank 11129 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 11129 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 28682
 
-        handler = function()
+        handler = function ()
             applyBuff( "combustion" )
-            stat.crit = stat.crit + 10
         end,
 
-        -- Affected by:
-        -- talent.arcane_subtlety[11210] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- talent.arcane_subtlety[12592] #1 -- APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
+        proc_chance = 100,
+        proc_charges = 3,
+        proc_type_mask = { 65536, 0 },
+        -- Proc type flags: mask0: Deal Harmful Spell
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-    -- Targets in a cone in front of the caster take ${$m2*$<mult>} to ${$M2*$<mult>} Frost damage and are slowed by $s1% for $d.
+-- Cone of Cold - Targets in a cone in front of the caster take 98-410 Frost damage and are slowed by 50% for 8 sec.
     cone_of_cold = {
-        id = 27087,
+        id = 120,
         cast = 0,
-        cooldown = function() return 10 * ( 1 - min( 0.2, 0.07 * talent.ice_floes.rank ) ) end,
+        duration = 8,
+        category_cooldown = 10,
         gcd = "spell",
+        school = "frost",
+        texture = 135852,
+        cooldown_category_id = 50,
+        cooldown_category = "Direct Damage (AE-Cone) - Ability",
+        spend = function () return max( 0, 210 * ( 1 + -0.05 * ( talent.frost_channeling.rank or 0 ) ) ) end,
+        -- Talent spend scaling: frost_channeling (-5% per rank, frost school)
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 120, 8492, 10159, 10160, 10161, 27087 },
 
-        spend = function() return buff.clearcasting.up and 0 or 0.250 * ( 1 - 0.01 * ( talent.precision.rank + talent.arcane_focus.rank ) ) * ( buff.arcane_power.up and 1.2 or 1 ) end,
-        spendType = "mana",
-
+        -- Effects:
+        -- [ ] Rank 120 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: ensnared
+        -- [x] Rank 120 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 97, addl_points: 11, points_per_level: 0.8, sp_bonus: 0.193, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: 0
+        -- [ ] Rank 8492 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: ensnared
+        -- [x] Rank 8492 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 145, addl_points: 15, points_per_level: 1, sp_bonus: 0.193, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: 0
+        -- [ ] Rank 10159 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: ensnared
+        -- [x] Rank 10159 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 202, addl_points: 21, points_per_level: 1.2, sp_bonus: 0.193, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: 0
+        -- [ ] Rank 10160 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: ensnared
+        -- [x] Rank 10160 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 263, addl_points: 27, points_per_level: 1.3, sp_bonus: 0.193, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: 0
+        -- [ ] Rank 10161 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: ensnared
+        -- [x] Rank 10161 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 334, addl_points: 31, points_per_level: 1.5, sp_bonus: 0.193, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: 0
+        -- [ ] Rank 27087 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: ensnared
+        -- [x] Rank 27087 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 409, addl_points: 39, points_per_level: 1.7, sp_bonus: 0.193, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: 0
         startsCombat = true,
 
-        handler = function()
-            if target[ "within" .. ( 10 * ( 1 + 0.1 * talent.arctic_reach.rank ) ) ] then
-                applyDebuff( "target", "cone_of_cold" )
-            end
+        radius = 10,
 
-            -- Effects:
-            -- [x] 1.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 1.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 0.8, points: 97, addl_points: 11, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 1.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 2.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 2.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 1.0, points: 145, addl_points: 15, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 2.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 3.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 3.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 1.2, points: 202, addl_points: 21, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 3.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 4.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 4.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 1.3, points: 263, addl_points: 27, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 4.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 5.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 5.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 1.5, points: 334, addl_points: 31, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 5.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 6.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 6.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 1.7, points: 409, addl_points: 39, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 6.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 7.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 7.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 2.3, points: 558, addl_points: 53, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 7.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 8.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 8.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.214, points_per_level: 2.9, points: 706, addl_points: 67, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [ ] 8.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "cone_of_cold" ) end
         end,
 
-        -- Affected by:
-        -- [ ] aura.arcane_power[12042.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_power[12042.1] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.clearcasting[12536.0] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- [ ] aura.frostbite[11071.0] APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, points: 5, target: TARGET_UNIT_CASTER
-        -- [ ] aura.frostbite[12496.0] APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, triggers: frostbite, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] aura.frostbite[12497.0] APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, triggers: frostbite, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] aura.slow[31589.0] APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.slow[31589.1] APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, DAMAGE_HEALING, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] talent.arcane_instability[15058.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15059.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15060.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [x] talent.arctic_reach[16757.1] APPLY_AURA, ADD_PCT_MODIFIER, RADIUS, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- [x] talent.arctic_reach[16758.1] APPLY_AURA, ADD_PCT_MODIFIER, RADIUS, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31674.0] APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31674.1] APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31675.0] APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31675.1] APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31676.0] APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31676.1] APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31677.0] APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31677.1] APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31678.0] APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -5, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31678.1] APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -5, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44449.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44469.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44470.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44471.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 40, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44472.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44566.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44567.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44568.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44570.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44571.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -10, target: TARGET_UNIT_CASTER
-        -- [x] talent.ice_floes[31670.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -7, target: TARGET_UNIT_CASTER
-        -- [x] talent.ice_floes[31672.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -14, target: TARGET_UNIT_CASTER
-        -- [x] talent.ice_floes[55094.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[11207.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 33, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[12672.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 66, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[15047.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 100, target: TARGET_UNIT_CASTER
-        -- [ ] talent.improved_cone_of_cold[11190.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.improved_cone_of_cold[12489.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 25, target: TARGET_UNIT_CASTER
-        -- [ ] talent.improved_cone_of_cold[12490.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 35, target: TARGET_UNIT_CASTER
-        -- [ ] talent.incineration[18459.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.incineration[18460.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.incineration[54734.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31679.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 6, value: 4919, schools: ['physical', 'holy', 'fire', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31680.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 12, value: 4920, schools: ['nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[11175.0] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 1000, target: TARGET_UNIT_CASTER
-        -- [ ] talent.permafrost[11175.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.permafrost[11175.2] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: -7, target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[12569.0] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 2000, target: TARGET_UNIT_CASTER
-        -- [ ] talent.permafrost[12569.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -7, target: TARGET_UNIT_CASTER
-        -- [ ] talent.permafrost[12569.2] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: -13, target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[12571.0] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 3000, target: TARGET_UNIT_CASTER
-        -- [ ] talent.permafrost[12571.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.permafrost[12571.2] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: -20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.piercing_ice[11151.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.piercing_ice[12952.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 4, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.piercing_ice[12953.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 6, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29438.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29439.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29440.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[11170.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12982.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12983.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[11242.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[12467.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[12469.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-
-        copy = { 120, 8492, 10159, 10160, 10161, 27087 },
+        proc_chance = 100,
     },
 
-    -- Conjures $s1 $lmuffin:muffins;, providing the mage and $ghis:her; allies with something to eat.; Conjured items disappear if logged out for more than 15 minutes.
+-- Conjure Food - Conjures 2/10 $lmuffin:muffins;, providing the mage and $ghis:her; allies with something to eat. Conjured items disappear if logged out for more than 15 minutes.
     conjure_food = {
-        id = 33717,
-        cast = function() return buff.presence_of_mind.up and 0 or 3 * haste end,
-        cooldown = 0,
+        id = 587,
+        cast = 3,
         gcd = "spell",
-
-        spend = 0.400,
-        spendType = "mana",
-
-        startsCombat = false,
-
-        handler = function()
-            -- Effects:
-            -- [ ] 1.0 CREATE_ITEM, NONE, item_type: 5349, item: conjured_muffin, points_per_level: 2.0, points: 2, target: TARGET_UNIT_CASTER
-            -- [ ] 2.0 CREATE_ITEM, NONE, item_type: 1113, item: conjured_bread, points_per_level: 2.0, points: 2, target: TARGET_UNIT_CASTER
-            -- [ ] 3.0 CREATE_ITEM, NONE, item_type: 1114, item: conjured_rye, points_per_level: 2.0, points: 2, target: TARGET_UNIT_CASTER
-            -- [ ] 4.0 CREATE_ITEM, NONE, item_type: 1487, item: conjured_pumpernickel, points_per_level: 2.0, points: 2, target: TARGET_UNIT_CASTER
-            -- [ ] 5.0 CREATE_ITEM, NONE, item_type: 8075, item: conjured_sourdough, points_per_level: 2.0, points: 2, target: TARGET_UNIT_CASTER
-            -- [ ] 6.0 CREATE_ITEM, NONE, item_type: 8076, item: conjured_sweet_roll, points_per_level: 2.0, points: 2, target: TARGET_UNIT_CASTER
-            -- [ ] 7.0 CREATE_ITEM, NONE, item_type: 22895, item: conjured_cinnamon_roll, points_per_level: 2.0, points: 10, target: TARGET_UNIT_CASTER
-            -- [ ] 8.0 CREATE_ITEM, NONE, item_type: 22019, item: conjured_croissant, points_per_level: 2.0, points: 10, target: TARGET_UNIT_CASTER
-        end,
-
-        -- Affected by:
-        -- [ ] aura.icy_veins[12472.1] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- [x] aura.presence_of_mind[12043.0] APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31584.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31585.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31586.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-
+        school = "arcane",
+        texture = 133952,
+        spend = 60,
+        spendType = "Mana",
+        max_stack = 1,
         copy = { 587, 597, 990, 6129, 10144, 10145, 28612, 33717 },
+
+        -- Effects:
+        -- [x] Rank 587 #0 -- effect: CREATE_ITEM, aura: NONE, points: 1, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 597 #0 -- effect: CREATE_ITEM, aura: NONE, points: 1, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 990 #0 -- effect: CREATE_ITEM, aura: NONE, points: 1, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 6129 #0 -- effect: CREATE_ITEM, aura: NONE, points: 1, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10144 #0 -- effect: CREATE_ITEM, aura: NONE, points: 1, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10145 #0 -- effect: CREATE_ITEM, aura: NONE, points: 1, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 28612 #0 -- effect: CREATE_ITEM, aura: NONE, points: 9, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 33717 #0 -- effect: CREATE_ITEM, aura: NONE, points: 9, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
     },
 
-    -- Conjures a mana agate that can be used to instantly restore $5405s1 mana.
-    conjure_mana_gem = {
+-- Conjure Mana Agate - Conjures a mana agate that can be used to instantly restore 390 mana. Conjured items disappear if logged out for more than 15 minutes.
+    conjure_mana_agate = {
+        id = 759,
+        cast = 3,
+        gcd = "spell",
+        school = "arcane",
+        texture = 134104,
+        spend = 530,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 759 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Conjure Mana Citrine - Conjures a mana citrine that can be used to instantly restore 829 mana. Conjured items disappear if logged out for more than 15 minutes.
+    conjure_mana_citrine = {
+        id = 10053,
+        cast = 3,
+        gcd = "spell",
+        school = "arcane",
+        texture = 134116,
+        spend = 1130,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 10053 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Conjure Mana Emerald - Conjures a mana emerald that can be used to instantly restore 2340 mana. 3 charges. Conjured items disappear if logged out for more than 15 minutes.
+    conjure_mana_emerald = {
         id = 27101,
-        cast = function() return buff.presence_of_mind.up and 0 or 3 * haste end,
-        cooldown = 0,
+        cast = 3,
         gcd = "spell",
+        school = "arcane",
+        texture = 134134,
+        cooldown_category_id = 87,
+        cooldown_category = "Conjure (Long)",
+        spend = 1670,
+        spendType = "Mana",
+        max_stack = 1,
 
-        spend = 0.750,
-        spendType = "mana",
+        -- Effects:
+        -- [x] Rank 27101 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        startsCombat = false,
-
-        usable = function() return mana_gem_charges < 3, "mana gem is fully charged" end,
-        handler = function()
-            if level > 77 then mana_gem_id = 33312
-            elseif level > 67 then mana_gem_id = 22044
-            elseif level > 57 then mana_gem_id = 8008
-            elseif level > 47 then mana_gem_id = 8007
-            elseif level > 37 then mana_gem_id = 5513
-            else mana_gem_id = 5514 end
-
-            mana_gem_charges = 3
-
-            -- Effects:
-            -- [ ] 1.0 CREATE_ITEM, NONE, item_type: 5514, item: mana_agate, target: TARGET_UNIT_CASTER
-            -- [ ] 2.0 CREATE_ITEM, NONE, item_type: 5513, item: mana_jade, target: TARGET_UNIT_CASTER
-            -- [ ] 3.0 CREATE_ITEM, NONE, item_type: 8007, item: mana_citrine, target: TARGET_UNIT_CASTER
-            -- [ ] 4.0 CREATE_ITEM, NONE, item_type: 8008, item: mana_ruby, target: TARGET_UNIT_CASTER
-            -- [ ] 5.0 CREATE_ITEM, NONE, item_type: 22044, item: mana_emerald, target: TARGET_UNIT_CASTER
-            -- [ ] 6.0 CREATE_ITEM, NONE, item_type: 33312, item: mana_sapphire, target: TARGET_UNIT_CASTER
-        end,
-
-        -- Affected by:
-        -- [ ] aura.icy_veins[12472.1] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- [x] aura.presence_of_mind[12043.0] APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31584.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31585.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31586.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-
-        copy = { 759, 3552, 10053, 10054, 27101 },
+        proc_chance = 100,
     },
 
-    -- Conjures $s1 Mana Pies providing the mage and $ghis:her; allies with something to eat.; Conjured items disappear if logged out for more than 15 minutes.
-    conjure_refreshment = {
-        id = 43988,
-        cast = function() return buff.presence_of_mind.up and 0 or 3 * haste end,
-        cooldown = 0,
+-- Conjure Mana Jade - Conjures a mana jade that can be used to instantly restore 585 mana. Conjured items disappear if logged out for more than 15 minutes.
+    conjure_mana_jade = {
+        id = 3552,
+        cast = 3,
         gcd = "spell",
+        school = "arcane",
+        texture = 134105,
+        spend = 800,
+        spendType = "Mana",
+        max_stack = 1,
 
-        spend = 0.400,
-        spendType = "mana",
-
-        startsCombat = false,
-
-        handler = function()
-            -- Effects:
-            -- [ ] 1.0 CREATE_ITEM, NONE, item_type: 43518, item: conjured_mana_pie, points: 20, target: TARGET_UNIT_CASTER
-            -- [ ] 2.0 CREATE_ITEM, NONE, item_type: 43523, item: conjured_mana_strudel, points: 20, target: TARGET_UNIT_CASTER
-        end,
-
-        -- Affected by:
-        -- [ ] aura.icy_veins[12472.1] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- [x] aura.presence_of_mind[12043.0] APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31584.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31585.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31586.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-
-        copy = { 43987, 43988 },
+        -- Effects:
+        -- [x] Rank 3552 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
     },
 
-    -- Conjures $s1 $lbottle:bottles; of water, providing the mage and $ghis:her; allies with something to drink.; Conjured items disappear if logged out for more than 15 minutes.
+-- Conjure Mana Ruby - Conjures a mana ruby that can be used to instantly restore 1073 mana. Conjured items disappear if logged out for more than 15 minutes.
+    conjure_mana_ruby = {
+        id = 10054,
+        cast = 3,
+        gcd = "spell",
+        school = "arcane",
+        texture = 134128,
+        spend = 1470,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 10054 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Conjure Water - Conjures 2/10 $lbottle:bottles; of water, providing the mage and $ghis:her; allies with something to drink. Conjured items disappear if logged out for more than 15 minutes.
     conjure_water = {
-        id = 27090,
-        cast = function() return buff.presence_of_mind.up and 0 or 3 * haste end,
-        cooldown = 0,
+        id = 5504,
+        cast = 3,
         gcd = "spell",
+        school = "arcane",
+        texture = 132793,
+        spend = 60,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 5504, 5505, 5506, 6127, 10138, 10139, 10140, 27090, 37420 },
 
-        spend = 0.400,
-        spendType = "mana",
+        -- Effects:
+        -- [x] Rank 5504 #0 -- effect: CREATE_ITEM, aura: NONE, points: 1, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 5505 #0 -- effect: CREATE_ITEM, aura: NONE, points: 1, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 5506 #0 -- effect: CREATE_ITEM, aura: NONE, points: 1, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 6127 #0 -- effect: CREATE_ITEM, aura: NONE, points: 1, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10138 #0 -- effect: CREATE_ITEM, aura: NONE, points: 1, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10139 #0 -- effect: CREATE_ITEM, aura: NONE, points: 1, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10140 #0 -- effect: CREATE_ITEM, aura: NONE, points: 9, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27090 #0 -- effect: CREATE_ITEM, aura: NONE, points: 9, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 37420 #0 -- effect: CREATE_ITEM, aura: NONE, points: 9, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        startsCombat = false,
-
-        handler = function()
-            -- Effects:
-            -- [ ] 1.0 CREATE_ITEM, NONE, item_type: 5350, item: conjured_water, points_per_level: 2.0, points: 2, target: TARGET_UNIT_CASTER
-            -- [ ] 2.0 CREATE_ITEM, NONE, item_type: 2288, item: conjured_fresh_water, points_per_level: 2.0, points: 2, target: TARGET_UNIT_CASTER
-            -- [ ] 3.0 CREATE_ITEM, NONE, item_type: 2136, item: conjured_purified_water, points_per_level: 2.0, points: 2, target: TARGET_UNIT_CASTER
-            -- [ ] 4.0 CREATE_ITEM, NONE, item_type: 3772, item: conjured_spring_water, points_per_level: 2.0, points: 2, target: TARGET_UNIT_CASTER
-            -- [ ] 5.0 CREATE_ITEM, NONE, item_type: 8077, item: conjured_mineral_water, points_per_level: 2.0, points: 2, target: TARGET_UNIT_CASTER
-            -- [ ] 6.0 CREATE_ITEM, NONE, item_type: 8078, item: conjured_sparkling_water, points_per_level: 2.0, points: 2, target: TARGET_UNIT_CASTER
-            -- [ ] 7.0 CREATE_ITEM, NONE, item_type: 8079, item: conjured_crystal_water, points_per_level: 2.0, points: 10, target: TARGET_UNIT_CASTER
-            -- [ ] 8.0 CREATE_ITEM, NONE, item_type: 30703, item: conjured_mountain_spring_water, points_per_level: 2.0, points: 10, target: TARGET_UNIT_CASTER
-            -- [ ] 9.0 CREATE_ITEM, NONE, item_type: 22018, item: conjured_glacier_water, points_per_level: 2.0, points: 10, target: TARGET_UNIT_CASTER
-        end,
-
-        -- Affected by:
-        -- [ ] aura.icy_veins[12472.1] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- [x] aura.presence_of_mind[12043.0] APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31584.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31585.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31586.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-
-        copy = { 5504, 5505, 5506, 6127, 10138, 10139, 10140, 37420, 27090 },
+        proc_chance = 100,
     },
 
-    -- Counters the enemy's spellcast, preventing any spell from that school of magic from being cast for $d.  Generates a high amount of threat.
+-- Counterspell - Counters the enemy's spellcast, preventing any spell from that school of magic from being cast for 8 sec. Generates a high amount of threat.
     counterspell = {
         id = 2139,
         cast = 0,
-        cooldown = 24,
-        gcd = "none",
-
-        spend = 0.090,
-        spendType = "mana",
-
-        startsCombat = true,
-        toggle = "interrupts",
-
-        readyTime = state.timeToInterrupt,
-        debuff = "casting",
-
-        handler = function()
-            interrupt()
-
-            if talent.improved_counterspell.enabled then applyDebuff( "target", "silenced_improved_counterspell" ) end
-
-            -- Effects:
-            -- [x] 0. INTERRUPT_CAST, NONE, points: 0, target: TARGET_UNIT_TARGET_ENEMY
-        end,
-
-        -- Affected by:
-        -- [ ] talent.arcane_focus[11222.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[12839.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[12840.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[11247.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[12606.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31584.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31585.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31586.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-    },
-
-    -- Dampens magic used against the targeted party member, decreasing damage taken from spells by up to $s1 and healing spells by up to $s2.  Lasts $d.
-    dampen_magic = {
-        id = 33944,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = 0.270,
-        spendType = "mana",
-
-        startsCombat = false,
-
-        handler = function()
-            active_dot.dampen_magic = min( group_members, active_dot.dampen_magic + 1 )
-
-            -- Effects:
-            -- [x] 1.0 APPLY_AURA, MOD_DAMAGE_TAKEN, points: -10, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- [x] 1.1 APPLY_AURA, MOD_HEALING, points: -11, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- [x] 2.0 APPLY_AURA, MOD_DAMAGE_TAKEN, points: -20, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- [x] 2.1 APPLY_AURA, MOD_HEALING, points: -21, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- [x] 3.0 APPLY_AURA, MOD_DAMAGE_TAKEN, points: -40, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- [x] 3.1 APPLY_AURA, MOD_HEALING, points: -43, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- [x] 4.0 APPLY_AURA, MOD_DAMAGE_TAKEN, points: -60, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- [x] 4.1 APPLY_AURA, MOD_HEALING, points: -64, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- [x] 5.0 APPLY_AURA, MOD_DAMAGE_TAKEN, points: -90, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- [x] 5.1 APPLY_AURA, MOD_HEALING, points: -96, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- [x] 6.0 APPLY_AURA, MOD_DAMAGE_TAKEN, points: -120, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- [x] 6.1 APPLY_AURA, MOD_HEALING, points: -128, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- [x] 7.0 APPLY_AURA, MOD_DAMAGE_TAKEN, points: -240, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-            -- [x] 7.1 APPLY_AURA, MOD_HEALING, points: -255, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_RAID
-        end,
-
-        -- Affected by:
-        -- [ ] talent.arcane_subtlety[11210.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[11247.0] APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 25, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[11247.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[12606.0] APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[12606.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31584.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31585.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31586.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-
-        copy = { 604, 8450, 8451, 10173, 10174, 33944 },
-    },
-
-    -- Targets in a cone in front of the caster take $s1 Fire damage and are Disoriented and Snared for $d.  Any direct damaging attack will revive targets.  Turns off your attack when used.
-    dragons_breath = {
-        id = 33043,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = function() return buff.clearcasting.up and 0 or 0.070 * ( 1 - 0.01 * talent.precision.rank ) * ( buff.arcane_power.up and 1.2 or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = true,
-
-        handler = function()
-            if target.within10 then
-                applyDebuff( "target", "dragons_breath" )
-            end
-            -- Effects:
-            -- [x] 1.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.5, points: 369, addl_points: 61, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 1.1 APPLY_AURA, MOD_CONFUSE, mechanic: disoriented, points: 0, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 1.2 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 2.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.6, points: 453, addl_points: 73, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 2.1 APPLY_AURA, MOD_CONFUSE, mechanic: disoriented, points: 0, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 2.2 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 3.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 1.8, points: 573, addl_points: 93, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 3.1 APPLY_AURA, MOD_CONFUSE, mechanic: disoriented, points: 0, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 3.2 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 4.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 2.0, points: 679, addl_points: 111, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 4.1 APPLY_AURA, MOD_CONFUSE, mechanic: disoriented, points: 0, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 4.2 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 5.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 2.7, points: 934, addl_points: 151, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 5.1 APPLY_AURA, MOD_CONFUSE, mechanic: disoriented, points: 0, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 5.2 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 6.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 3.2, points: 1100, addl_points: 179, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 6.1 APPLY_AURA, MOD_CONFUSE, mechanic: disoriented, points: 0, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-            -- [x] 6.2 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -50, radius: 10.0, target: TARGET_UNIT_CONE_CASTER_TO_DEST_ENEMY
-        end,
-
-        -- Affected by:
-        -- [ ] aura.arcane_power[12042.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_power[12042.1] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] aura.burning_determination[54747.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54748, points: 0, value: 6971, schools: ['physical', 'holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] aura.burning_determination[54749.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54748, triggers: burning_determination, points: 0, value: 6971, schools: ['physical', 'holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [x] aura.clearcasting[12536.0] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[11129.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[28682.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] aura.firestarter[44442.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54741, points: 0, value: 6971, schools: ['physical', 'holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] aura.firestarter[44443.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54741, points: 0, value: 6970, schools: ['holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] aura.living_bomb[44457.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 153, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[44461.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 306, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.living_bomb[55359.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 256, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[55360.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 345, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[55361.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 512, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.living_bomb[55362.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 690, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.slow[31589.0] APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.slow[31589.1] APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, DAMAGE_HEALING, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] talent.arcane_instability[15058.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15059.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15060.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44449.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44469.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44470.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44471.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 40, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44472.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11115.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11367.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 4, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11368.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 6, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[11124.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12378.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12398.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12399.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12400.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31679.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 6, value: 4919, schools: ['physical', 'holy', 'fire', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31680.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 12, value: 4920, schools: ['nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29438.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29439.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29440.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34293.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34295.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34296.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 3, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[11170.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12982.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12983.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] talent.world_in_flames[11108.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.world_in_flames[12349.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.world_in_flames[12350.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 6, target: TARGET_UNIT_CASTER
-
-        copy = { 31661, 33041, 33042, 33043 },
-    },
-
-    -- While channeling this spell, you gain $o1% of your total mana over $d.
-    evocation = {
-        id = 12051,
-        cast = function() return 8 * haste end,
-        channeled = true,
-        cooldown = function() return 240 - 60 * talent.arcane_flows.rank end,
-        gcd = "spell",
-
-        startsCombat = false,
-
-        start = function()
-            applyBuff( "evocation" )
-
-            -- Effects:
-            -- [ ] 0. APPLY_AURA, OBS_MOD_POWER, tick_time: 2.0, points: 15, target: TARGET_UNIT_CASTER
-            -- [ ] 1. APPLY_AURA, OBS_MOD_HEALTH, tick_time: 2.0, points: 0, target: TARGET_UNIT_CASTER
-        end,
-
-        tick = function()
-            gain( 0.15 * power.max, "mana" )
-        end,
-
-        finish = function()
-            removeBuff( "evocation" )
-        end,
-
-        onBreakChannel = function()
-            removeBuff( "evocation" )
-        end,
-
-        -- Affected by:
-        -- [ ] aura.demonic_pact[53646.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 48090, points: 0, target: TARGET_UNIT_CASTER
-        -- [ ] aura.evocation[56380.0] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] aura.icy_veins[12472.1] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- [x] talent.arcane_flows[44378.1] APPLY_AURA, ADD_FLAT_MODIFIER, COOLDOWN, points: -60000, target: TARGET_UNIT_CASTER
-        -- [x] talent.arcane_flows[44379.1] APPLY_AURA, ADD_FLAT_MODIFIER, COOLDOWN, points: -120000, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[11210.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-    },
-
-    -- Blasts the enemy for $s1 Fire damage.
-    fire_blast = {
-        id = 27079,
-        cast = 0,
-        cooldown = function() return 8 - talent.improved_fire_blast.rank end,
-        gcd = "spell",
-
-        spend = function() return buff.clearcasting.up and 0 or 0.210 * ( 1 - 0.01 * talent.precision.rank ) * ( buff.arcane_power.up and 1.2 or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = true,
-
-        handler = function()
-            -- Effects:
-            -- [ ] 1.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.204, points_per_level: 0.6, points: 23, addl_points: 9, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 2.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.332, points_per_level: 1.0, points: 56, addl_points: 15, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 3.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 1.4, points: 102, addl_points: 25, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 4.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 1.8, points: 167, addl_points: 35, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 5.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 2.2, points: 241, addl_points: 49, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 6.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 2.6, points: 331, addl_points: 63, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 7.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 3.0, points: 430, addl_points: 79, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 8.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 3.3, points: 538, addl_points: 99, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 9.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 3.7, points: 663, addl_points: 123, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 10.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 4.0, points: 759, addl_points: 141, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 11.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 4.9, points: 924, addl_points: 171, target: TARGET_UNIT_TARGET_ENEMY
-        end,
-
-        -- Affected by:
-        -- [ ] aura.arcane_power[12042.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_power[12042.1] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.clearcasting[12536.0] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[11129.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[28682.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] aura.living_bomb[44457.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 153, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[44461.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 306, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.living_bomb[55359.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 256, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[55360.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 345, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[55361.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 512, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.living_bomb[55362.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 690, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.slow[31589.0] APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.slow[31589.1] APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, DAMAGE_HEALING, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] talent.arcane_instability[15058.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15059.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15060.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44449.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44469.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44470.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44471.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 40, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44472.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11115.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11367.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 4, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11368.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 6, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[11124.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12378.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12398.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12399.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12400.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.flame_throwing[11100.0] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.flame_throwing[12353.0] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- [x] talent.improved_fire_blast[11078.0] APPLY_AURA, ADD_FLAT_MODIFIER, COOLDOWN, points: -1000, target: TARGET_UNIT_CASTER
-        -- [x] talent.improved_fire_blast[11080.0] APPLY_AURA, ADD_FLAT_MODIFIER, COOLDOWN, points: -2000, target: TARGET_UNIT_CASTER
-        -- [ ] talent.incineration[18459.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.incineration[18460.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.incineration[54734.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31679.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 6, value: 4919, schools: ['physical', 'holy', 'fire', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31680.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 12, value: 4920, schools: ['nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29438.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29439.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29440.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34293.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34295.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34296.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 3, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[11170.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12982.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12983.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[11242.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[12467.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[12469.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-
-        copy = { 2136, 2137, 2138, 8412, 8413, 10197, 10199, 27078, 27079 },
-    },
-
-    -- Absorbs $s1 Fire damage.  Lasts $d.
-    fire_ward = {
-        id = 27128,
-        cast = 0,
-        cooldown = 30,
-        gcd = "spell",
-
-        spend = function() return 0.160 * ( 1 - 0.01 * talent.precision.rank ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-
-        handler = function()
-            applyBuff( "fire_ward" )
-
-            -- Effects:
-            -- [x] 1.0 APPLY_AURA, SCHOOL_ABSORB, points: 165, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-            -- [x] 1.1 APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-            -- [x] 2.0 APPLY_AURA, SCHOOL_ABSORB, points: 290, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-            -- [x] 2.1 APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-            -- [x] 3.0 APPLY_AURA, SCHOOL_ABSORB, points: 470, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-            -- [x] 3.1 APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-            -- [x] 4.0 APPLY_AURA, SCHOOL_ABSORB, points: 675, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-            -- [x] 4.1 APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-            -- [x] 5.0 APPLY_AURA, SCHOOL_ABSORB, points: 875, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-            -- [x] 5.1 APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-            -- [x] 6.0 APPLY_AURA, SCHOOL_ABSORB, points: 1125, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-            -- [x] 6.1 APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-            -- [x] 7.0 APPLY_AURA, SCHOOL_ABSORB, points: 1950, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-            -- [x] 7.1 APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        end,
-
-        -- Affected by:
-        -- [ ] glyph.fire_ward[57926.0] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 5, target: TARGET_UNIT_CASTER
-        -- [ ] glyph.drain_soul[58070.0] APPLY_AURA, DUMMY, points: 0, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[11210.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_shields[11094.0] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_shields[13043.0] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 30, target: TARGET_UNIT_CASTER
-        -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-
-        copy = { 543, 8457, 8458, 10223, 10225, 27128 },
-    },
-
-    -- Hurls a fiery ball that causes $s1 Fire damage and an additional $o2 Fire damage over $d.
-    fireball = {
-        id = 38692,
-        cast = function()
-            if buff.fireball_proc.up or buff.presence_of_mind.up then return 0 end
-            local base = level > 23 and 3.5 or level > 17 and 3 or level > 11 and 2.5 or level > 5 and 2 or 1.5
-            return ( base - ( glyph.fireball.enabled and 0.15 or 0 ) - 0.1 * talent.improved_fireball.rank ) * haste
-        end,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = function() return ( buff.clearcasting.up or buff.fireball_proc.up ) and 0 or 0.19 * ( 1 - 0.01 * talent.precision.rank ) * ( buff.arcane_power.up and 1.2 or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = true,
-        velocity = 24,
-
-        handler = function()
-            if buff.fireball_proc.up then removeBuff( "fireball_proc" )
-            elseif buff.clearcasting.up then removeBuff( "clearcasting" )
-            elseif buff.presence_of_mind then removeBuff( "presence_of_mind" ) end
-        end,
-
-        impact = function()
-            if not glyph.fireball.enabled then applyDebuff( "target", "fireball" ) end
-
-            -- Effects:
-            -- [ ] 1.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.123, points_per_level: 0.6, points: 13, addl_points: 9, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 1.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 2.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.271, points_per_level: 0.8, points: 30, addl_points: 15, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 2.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 3.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.5, points_per_level: 1.0, points: 52, addl_points: 21, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 3.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 2, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 4.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.793, points_per_level: 1.3, points: 83, addl_points: 33, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 4.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 3, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 5.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 1.8, points: 138, addl_points: 49, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 5.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 5, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 6.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 2.1, points: 198, addl_points: 67, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 6.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 7, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 7.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 2.4, points: 254, addl_points: 81, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 7.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 8, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 8.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 2.7, points: 317, addl_points: 97, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 8.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 10, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 9.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 3.0, points: 391, addl_points: 115, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 9.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 13, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 10.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 3.4, points: 474, addl_points: 135, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 10.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 15, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 11.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 3.7, points: 560, addl_points: 155, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 11.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 18, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 12.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 3.8, points: 595, addl_points: 165, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 12.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 19, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 13.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 4.0, points: 632, addl_points: 173, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 13.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 21, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 14.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 4.2, points: 716, addl_points: 197, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 14.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 23, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 15.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 4.6, points: 782, addl_points: 215, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 15.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 25, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 16.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.0, points_per_level: 5.2, points: 887, addl_points: 245, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 16.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 2.0, points: 29, target: TARGET_UNIT_TARGET_ENEMY
-        end,
-
-        -- Affected by:
-        -- [ ] aura.arcane_power[12042.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_power[12042.1] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] aura.arcane_power[12042.2] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] aura.blazing_speed[31641.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 18350, points: 0, target: TARGET_UNIT_CASTER
-        -- [ ] aura.blazing_speed[31642.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 18350, points: 0, target: TARGET_UNIT_CASTER
-        -- [ ] aura.blazing_speed[31643.0] APPLY_AURA, MOD_INCREASE_SPEED, points: 50, target: TARGET_UNIT_CASTER
-        -- [x] aura.clearcasting[12536.0] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[11129.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[28682.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
-        -- [x] aura.fireball_proc[57761.0] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- [x] aura.fireball_proc[57761.1] APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100000, target: TARGET_UNIT_CASTER
-        -- [ ] aura.icy_veins[12472.1] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- [ ] aura.improved_scorch[11095.1] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- [ ] aura.improved_scorch[12872.1] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] aura.improved_scorch[12873.1] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] aura.living_bomb[44457.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 153, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[44461.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 306, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.living_bomb[55359.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 256, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[55360.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 345, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[55361.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 512, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.living_bomb[55362.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 690, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [x] aura.presence_of_mind[12043.0] APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] aura.slow[31589.0] APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.slow[31589.1] APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, DAMAGE_HEALING, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.slow[31589.2] APPLY_AURA, HASTE_SPELLS, points: -30, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] glyph.fire_blast[56369.0] APPLY_AURA, DUMMY, points: 50, target: TARGET_UNIT_CASTER
-        -- [x] glyph.fireball[56368.0] APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -150, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15058.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15058.1] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15059.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15059.1] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15060.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15060.1] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[11210.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burning_soul[11083.0] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 35, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burning_soul[12351.0] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 70, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44449.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44469.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44470.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44471.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 40, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44472.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11115.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11367.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 4, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11368.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 6, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.empowered_fire[31656.0] APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 5, target: TARGET_UNIT_CASTER
-        -- [ ] talent.empowered_fire[31657.0] APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.empowered_fire[31658.0] APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[11124.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[11124.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12378.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12378.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12398.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12398.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12399.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12399.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12400.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12400.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.flame_throwing[11100.0] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.flame_throwing[12353.0] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- [x] talent.improved_fireball[11069.0] APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [x] talent.improved_fireball[12338.0] APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -200, target: TARGET_UNIT_CASTER
-        -- [x] talent.improved_fireball[12339.0] APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -300, target: TARGET_UNIT_CASTER
-        -- [x] talent.improved_fireball[12340.0] APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -400, target: TARGET_UNIT_CASTER
-        -- [x] talent.improved_fireball[12341.0] APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -500, target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31679.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 6, value: 4919, schools: ['physical', 'holy', 'fire', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31680.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 12, value: 4920, schools: ['nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.playing_with_fire[31638.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.playing_with_fire[31639.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.playing_with_fire[31640.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29438.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29439.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29440.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34293.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34295.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34296.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 3, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[11170.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12982.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12983.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[11242.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[12467.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[12469.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-
-
-        copy = { 133, 143, 145, 3140, 8400, 8401, 8402, 10148, 10149, 10150, 10151, 25306, 27070, 38692 },
-    },
-
-    -- Calls down a pillar of fire, burning all enemies within the area for $s1 Fire damage and an additional $o2 Fire damage over $d.
-    flamestrike = {
-        id = 27086,
-        cast = function() return ( buff.firestarter.up or buff.presence_of_mind.up ) and 0 or 2 * haste end,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = function() return ( buff.firestarter.up or buff.clearcasting.up ) and 0 or 0.300 * ( 1 - 0.01 * talent.precision.rank ) * ( buff.arcane_power.up and 1.2 or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = true,
-
-        handler = function()
-            if buff.firestarter.up then
-                removeBuff( "firestarter" )
-            else
-                if buff.clearcasting.up then removeBuff( "clearcasting" ) end
-                if buff.presence_of_mind.up then removeBuff( "presence_of_mind" ) end
-            end
-
-            -- Effects:
-            -- [ ] 1.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 0.6, points: 51, addl_points: 17, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-            -- [ ] 1.1 PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 12, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-            -- [ ] 2.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 0.8, points: 95, addl_points: 27, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-            -- [ ] 2.1 PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 22, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-            -- [ ] 3.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 1.0, points: 153, addl_points: 39, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-            -- [ ] 3.1 PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 35, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-            -- [ ] 4.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 1.3, points: 219, addl_points: 53, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-            -- [ ] 4.1 PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 49, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-            -- [ ] 5.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 1.5, points: 290, addl_points: 69, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-            -- [ ] 5.1 PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 66, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-            -- [ ] 6.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 1.7, points: 374, addl_points: 85, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-            -- [ ] 6.1 PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 85, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-            -- [ ] 7.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 1.9, points: 470, addl_points: 105, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-            -- [ ] 7.1 PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 106, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-            -- [ ] 8.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 2.8, points: 687, addl_points: 155, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-            -- [ ] 8.1 PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 155, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-            -- [ ] 9.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.243, points_per_level: 3.5, points: 872, addl_points: 195, radius: 5.0, target: TARGET_UNIT_DEST_AREA_ENEMY
-            -- [ ] 9.1 PERSISTENT_AREA_AURA, PERIODIC_DAMAGE, tick_time: 2.0, sp_bonus: 0.122, points: 195, radius: 5.0, target: TARGET_DEST_DYNOBJ_ENEMY
-        end,
-
-        -- Affected by:
-        -- [ ] aura.arcane_power[12042.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_power[12042.1] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] aura.arcane_power[12042.2] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] aura.blazing_speed[31641.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 18350, points: 0, target: TARGET_UNIT_CASTER
-        -- [ ] aura.blazing_speed[31642.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 18350, points: 0, target: TARGET_UNIT_CASTER
-        -- [ ] aura.blazing_speed[31643.0] APPLY_AURA, MOD_INCREASE_SPEED, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] aura.burning_determination[54747.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54748, points: 0, value: 6971, schools: ['physical', 'holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] aura.burning_determination[54748.0] APPLY_AURA, MECHANIC_IMMUNITY, points: 0, target: TARGET_UNIT_CASTER, mechanic: silenced
-        -- [ ] aura.burning_determination[54749.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54748, triggers: burning_determination, points: 0, value: 6971, schools: ['physical', 'holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [x] aura.clearcasting[12536.0] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[11129.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[28682.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] aura.firestarter[44442.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54741, points: 0, value: 6971, schools: ['physical', 'holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] aura.firestarter[44443.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 54741, points: 0, value: 6970, schools: ['holy', 'nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [x] aura.firestarter[54741.0] APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [x] aura.firestarter[54741.1] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] aura.icy_veins[12472.1] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- [ ] aura.living_bomb[44457.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 153, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[44461.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 306, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.living_bomb[55359.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 256, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[55360.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 345, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[55361.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 512, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.living_bomb[55362.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 690, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [x] aura.presence_of_mind[12043.0] APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] aura.slow[31589.0] APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.slow[31589.1] APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, DAMAGE_HEALING, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.slow[31589.2] APPLY_AURA, HASTE_SPELLS, points: -30, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] talent.arcane_instability[15058.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15058.1] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15059.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15059.1] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15060.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15060.1] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.burning_soul[11083.0] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 35, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burning_soul[12351.0] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 70, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44449.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44469.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44470.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44471.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 40, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44472.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11115.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11367.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 4, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11368.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 6, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[11124.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[11124.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12378.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12378.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12398.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12398.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12399.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12399.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12400.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12400.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.flame_throwing[11100.0] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.flame_throwing[12353.0] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31679.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 6, value: 4919, schools: ['physical', 'holy', 'fire', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31680.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 12, value: 4920, schools: ['nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.playing_with_fire[31638.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.playing_with_fire[31639.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.playing_with_fire[31640.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29438.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29439.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29440.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34293.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34295.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34296.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 3, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[11170.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12982.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12983.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] talent.world_in_flames[11108.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.world_in_flames[12349.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.world_in_flames[12350.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 6, target: TARGET_UNIT_CASTER
-
-        copy = { 2120, 2121, 8422, 8423, 10215, 10216, 27086 },
-    },
-
-    -- Increases Armor by $s1.  If an enemy strikes the caster, they may have their movement slowed by $6136s1% and the time between their attacks increased by $6136s2% for $6136d.  Only one type of Armor spell can be active on the Mage at any time.  Lasts $d.
-    frost_armor = {
-        id = 7301,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = function() return 0.240 * ( 1 - ( 0.01 * talent.precision.rank ) ) * ( 1 - ( talent.frost_channeling.enabled and ( 1 + talent.frost_channeling.rank * 0.03 ) or 0 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-        essential = true,
-        nobuff = "frost_armor",
-
-        handler = function()
-            removeBuff( "unique_armor" )
-            applyBuff( "frost_armor" )
-
-            -- Effects:
-            -- [x] 1.0 APPLY_AURA, MOD_RESISTANCE, points: 30, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-            -- [ ] 1.1 APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 6136, target: TARGET_UNIT_CASTER
-            -- [x] 2.0 APPLY_AURA, MOD_RESISTANCE, points: 110, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-            -- [ ] 2.1 APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 6136, target: TARGET_UNIT_CASTER
-            -- [x] 3.0 APPLY_AURA, MOD_RESISTANCE, points: 200, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-            -- [ ] 3.1 APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 6136, target: TARGET_UNIT_CASTER
-        end,
-
-        -- Affected by:
-        -- [x] aura.frost_armor[57928.0] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 1800000, target: TARGET_UNIT_CASTER
-        -- [ ] aura.ice_armor[56384.0] APPLY_AURA, ADD_PCT_MODIFIER, EFFECT_1_VALUE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] aura.ice_armor[56384.1] APPLY_AURA, ADD_PCT_MODIFIER, EFFECT_3_VALUE, points: 50, target: TARGET_UNIT_CASTER
-        -- [x] talent.frost_channeling[11160.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -4, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [x] talent.frost_channeling[12518.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -7, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [x] talent.frost_channeling[12519.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -10, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.frost_warding[11189.0] APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 25, target: TARGET_UNIT_CASTER
-        -- [ ] talent.frost_warding[28332.0] APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 50, target: TARGET_UNIT_CASTER
-        -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[11170.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12982.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12983.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-
-        copy = { 168, 7300, 7301 },
-    },
-
-    -- Blasts enemies near the caster for ${$m1*$<mult>} to ${$M1*$<mult>} Frost damage and freezes them in place for up to $d.  Damage caused may interrupt the effect.
-    frost_nova = {
-        id = 27088,
-        cast = 0,
-        cooldown = function() return 25 * ( 1 - ( min( 0.2, 0.07 * talent.ice_floes.rank ) ) ) end,
-        gcd = "spell",
-
-        spend = function() return buff.clearcasting.up and 0 or 0.070 * ( 1 - 0.01 * buff.precision.rank ) * ( buff.arcane_power.up and 1.2 or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = true,
-
-        handler = function()
-            if target[ "within" .. ( 10 + target.arctic_reach.rank ) ] then
-                applyDebuff( "target", "frost_nova" )
-            end
-
-            -- Effects:
-            -- [ ] 1.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.018, points_per_level: 0.5, points: 18, addl_points: 3, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [x] 1.1 APPLY_AURA, MOD_ROOT, mechanic: rooted, points: 0, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [ ] 2.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.043, points_per_level: 0.5, points: 32, addl_points: 5, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [x] 2.1 APPLY_AURA, MOD_ROOT, mechanic: rooted, points: 0, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [ ] 3.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.043, points_per_level: 0.5, points: 51, addl_points: 7, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [x] 3.1 APPLY_AURA, MOD_ROOT, mechanic: rooted, points: 0, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [ ] 4.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.043, points_per_level: 0.5, points: 69, addl_points: 11, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [x] 4.1 APPLY_AURA, MOD_ROOT, mechanic: rooted, points: 0, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [ ] 5.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 0.5, points: 229, addl_points: 31, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [x] 5.1 APPLY_AURA, MOD_ROOT, mechanic: rooted, points: 0, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [ ] 6.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.193, points_per_level: 0.8, points: 364, addl_points: 51, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-            -- [x] 6.1 APPLY_AURA, MOD_ROOT, mechanic: rooted, points: 0, radius: 10.0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY
-        end,
-
-        -- Affected by:
-        -- [ ] aura.arcane_power[12042.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_power[12042.1] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.clearcasting[12536.0] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- [ ] aura.frost_nova[56376.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, points: 20, value: 7801, schools: ['physical', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] aura.slow[31589.0] APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.slow[31589.1] APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, DAMAGE_HEALING, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] talent.arcane_instability[15058.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15059.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15060.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [x] talent.arctic_reach[16757.1] APPLY_AURA, ADD_PCT_MODIFIER, RADIUS, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- [x] talent.arctic_reach[16758.1] APPLY_AURA, ADD_PCT_MODIFIER, RADIUS, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31674.1] APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31675.1] APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31676.1] APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31677.1] APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31678.1] APPLY_AURA, MOD_ATTACKER_RANGED_HIT_CHANCE, points: -5, target: TARGET_UNIT_CASTER
-        -- [ ] talent.brain_freeze[44546.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 57761, points: 0, value: 23, schools: ['physical', 'holy', 'fire', 'frost'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.brain_freeze[44548.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 57761, points: 0, value: 23, schools: ['physical', 'holy', 'fire', 'frost'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.brain_freeze[44549.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 57761, points: 0, value: 23, schools: ['physical', 'holy', 'fire', 'frost'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44449.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44469.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44470.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44471.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 40, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44472.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [x] talent.ice_floes[31670.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -7, target: TARGET_UNIT_CASTER
-        -- [x] talent.ice_floes[31672.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -14, target: TARGET_UNIT_CASTER
-        -- [x] talent.ice_floes[55094.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[11207.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 33, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[12672.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 66, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[15047.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 100, target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31679.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 6, value: 4919, schools: ['physical', 'holy', 'fire', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31680.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 12, value: 4920, schools: ['nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.piercing_ice[11151.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.piercing_ice[12952.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 4, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.piercing_ice[12953.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 6, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29438.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29439.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29440.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[11170.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12982.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12983.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-
-        copy = { 122, 865, 6131, 10230, 27088 },
-    },
-
-    -- Absorbs $s1 Frost damage.  Lasts $d.
-    frost_ward = {
-        id = 28609,
-        cast = 0,
-        cooldown = 30,
-        gcd = "spell",
-
-        spend = function() return 0.140 * ( 1 - 0.01 * talent.precision.rank ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-
-        handler = function()
-            applyBuff( "frost_ward" )
-
-            -- Effects:
-            -- [x] 1.0 APPLY_AURA, SCHOOL_ABSORB, points: 165, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [ ] 1.1 APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [x] 2.0 APPLY_AURA, SCHOOL_ABSORB, points: 290, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [ ] 2.1 APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [x] 3.0 APPLY_AURA, SCHOOL_ABSORB, points: 470, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [ ] 3.1 APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [x] 4.0 APPLY_AURA, SCHOOL_ABSORB, points: 675, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [ ] 4.1 APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [x] 5.0 APPLY_AURA, SCHOOL_ABSORB, points: 875, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [ ] 5.1 APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [x] 6.0 APPLY_AURA, SCHOOL_ABSORB, points: 1125, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [ ] 6.1 APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [x] 7.0 APPLY_AURA, SCHOOL_ABSORB, points: 1950, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [ ] 7.1 APPLY_AURA, REFLECT_SPELLS_SCHOOL, amplitude: 1.0, points: 0, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        end,
-
-        -- Affected by:
-        -- [ ] glyph.frost_ward[57927.0] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 5, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[11210.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_shields[11094.0] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_shields[13043.0] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 30, target: TARGET_UNIT_CASTER
-        -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-
-        copy = { 6143, 8461, 8462, 10177, 28609, 32796 },
-    },
-
-    -- Launches a bolt of frost at the enemy, causing ${$m2*$<mult>} to ${$M2*$<mult>} Frost damage and slowing movement speed by $s1% for $d.
-    frostbolt = {
-        id = 38697,
-        cast = function() return buff.presence_of_mind.up and 0 or 1.5 - ( 0.1 * ( talent.improved_frostbolt.rank + talent.empowered_frostbolt.rank ) ) end,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = function() return buff.clearcasting.up and 0 or 0.110 * ( 1 - 0.01 * talent.precision.rank ) * ( buff.arcane_power.up and 1.2 or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = true,
-        velocity = 28,
-
-        handler = function()
-            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
-            if buff.presence_of_mind.up then removeBuff( "presence_of_mind" ) end
-        end,
-
-        impact = function()
-            if buff.fingers_of_frost.up then removeStack( "fingers_of_frost" ) end
-            applyDebuff( "target", "frostbolt" )
-        end,
+        duration = 8,
+        category_cooldown = 24,
+        school = "arcane",
+        texture = 135856,
+        cooldown_category_id = 88,
+        cooldown_category = "Silence",
+        range = 30,
+        spend = 100,
+        spendType = "Mana",
+        max_stack = 1,
 
         -- Effects:
-        -- [ ] 1.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 1.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.172, points_per_level: 0.5, points: 17, addl_points: 3, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 1.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 2.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 2.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.283, points_per_level: 0.7, points: 30, addl_points: 5, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 2.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 3.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 3.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.488, points_per_level: 0.9, points: 50, addl_points: 7, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 3.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 4.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 4.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.743, points_per_level: 1.1, points: 73, addl_points: 9, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 4.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 5.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 5.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 1.5, points: 125, addl_points: 13, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 5.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 6.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 6.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 1.7, points: 173, addl_points: 17, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 6.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 7.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 7.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 2.0, points: 226, addl_points: 21, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 7.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 8.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 8.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 2.3, points: 291, addl_points: 25, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 8.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 9.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 9.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 2.6, points: 352, addl_points: 31, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 9.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 10.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 10.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 2.9, points: 428, addl_points: 35, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 10.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 11.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 11.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 3.2, points: 514, addl_points: 41, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 11.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 12.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 12.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 3.2, points: 535, addl_points: 43, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 12.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 13.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 13.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 3.5, points: 596, addl_points: 47, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 13.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 14.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 14.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 3.8, points: 629, addl_points: 51, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 14.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 15.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 15.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 4.2, points: 701, addl_points: 57, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 15.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 16.0 APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -40, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 16.1 SCHOOL_DAMAGE, NONE, sp_bonus: 0.857, points_per_level: 4.8, points: 798, addl_points: 63, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] 16.2 APPLY_AURA, MOD_HEALING_PCT, points: 0, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
+        -- [ ] Rank 2139 #0 -- effect: INTERRUPT_CAST, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+    },
 
-        -- Affected by:
-        -- [ ] aura.arcane_power[12042.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_power[12042.1] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.clearcasting[12536.0] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- [ ] aura.frostbite[11071.0] APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, points: 5, target: TARGET_UNIT_CASTER
-        -- [ ] aura.frostbite[12496.0] APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, triggers: frostbite, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] aura.frostbite[12497.0] APPLY_AURA, ADD_TARGET_TRIGGER, trigger_spell: 12494, triggers: frostbite, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] aura.icy_veins[12472.1] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- [x] aura.presence_of_mind[12043.0] APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] aura.slow[31589.0] APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.slow[31589.1] APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, DAMAGE_HEALING, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.winters_chill[11180.1] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- [ ] aura.winters_chill[28592.1] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] aura.winters_chill[28593.1] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] glyph.frostbolt[56370.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 5, target: TARGET_UNIT_CASTER
-        -- [ ] glyph.ice_block[56372.0] APPLY_AURA, DUMMY, points: 5, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15058.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15059.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15060.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_reach[16757.0] APPLY_AURA, ADD_PCT_MODIFIER, RANGE, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_reach[16758.0] APPLY_AURA, ADD_PCT_MODIFIER, RANGE, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44449.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44469.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44470.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44471.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 40, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44472.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44566.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44566.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44567.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44567.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44568.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44568.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44570.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44570.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44571.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 5, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44571.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.empowered_frostbolt[31682.0] APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 5, target: TARGET_UNIT_CASTER
-        -- [x] talent.empowered_frostbolt[31682.1] APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] talent.empowered_frostbolt[31683.0] APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 10, target: TARGET_UNIT_CASTER
-        -- [x] talent.empowered_frostbolt[31683.1] APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -200, target: TARGET_UNIT_CASTER
-        -- [ ] talent.frozen_core[31667.0] APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, sp_bonus: 1.0, points: -2, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.frozen_core[31668.0] APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, sp_bonus: 1.0, points: -4, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.frozen_core[31669.0] APPLY_AURA, MOD_DAMAGE_PERCENT_TAKEN, sp_bonus: 1.0, points: -6, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[11207.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 33, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[12672.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 66, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[15047.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 100, target: TARGET_UNIT_CASTER
-        -- [x] talent.improved_frostbolt[11070.0] APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [x] talent.improved_frostbolt[12473.0] APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -200, target: TARGET_UNIT_CASTER
-        -- [x] talent.improved_frostbolt[16763.0] APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -300, target: TARGET_UNIT_CASTER
-        -- [x] talent.improved_frostbolt[16765.0] APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -400, target: TARGET_UNIT_CASTER
-        -- [x] talent.improved_frostbolt[16766.0] APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -500, target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31679.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 6, value: 4919, schools: ['physical', 'holy', 'fire', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31680.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 12, value: 4920, schools: ['nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[11175.0] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 1000, target: TARGET_UNIT_CASTER
-        -- [ ] talent.permafrost[11175.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.permafrost[11175.2] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: -7, target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[12569.0] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 2000, target: TARGET_UNIT_CASTER
-        -- [ ] talent.permafrost[12569.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -7, target: TARGET_UNIT_CASTER
-        -- [ ] talent.permafrost[12569.2] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: -13, target: TARGET_UNIT_CASTER
-        -- [x] talent.permafrost[12571.0] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 3000, target: TARGET_UNIT_CASTER
-        -- [ ] talent.permafrost[12571.1] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_1_VALUE, points: -10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.permafrost[12571.2] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: -20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.piercing_ice[11151.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.piercing_ice[12952.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 4, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.piercing_ice[12953.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 6, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29438.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29439.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29440.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[11170.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12982.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12983.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
+-- Dampen Magic - Dampens magic used against the targeted party member, decreasing damage taken from spells by up to 10-120 and healing spells by up to 20-240. Lasts 600 sec.
+    dampen_magic = {
+        id = 604,
+        cast = 0,
+        duration = 600,
+        gcd = "spell",
+        school = "arcane",
+        texture = 136006,
+        range = 30,
+        spend = 100,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 604, 8450, 8451, 10173, 10174, 33944 },
 
+        -- Effects:
+        -- [ ] Rank 604 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: -11, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 604 #1 -- effect: APPLY_AURA, aura: MOD_HEALING, points: -21, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 8450 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: -21, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 8450 #1 -- effect: APPLY_AURA, aura: MOD_HEALING, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 8451 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 8451 #1 -- effect: APPLY_AURA, aura: MOD_HEALING, points: -81, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 10173 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: -61, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 10173 #1 -- effect: APPLY_AURA, aura: MOD_HEALING, points: -121, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 10174 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: -91, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 10174 #1 -- effect: APPLY_AURA, aura: MOD_HEALING, points: -181, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 33944 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: -121, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 33944 #1 -- effect: APPLY_AURA, aura: MOD_HEALING, points: -241, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+
+        handler = function ()
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Destruction Holo-gogs
+    destruction_holo_gogs = {
+        id = 41320,
+        cast = 50,
+        texture = 136243,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 41320 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Dragon's Breath - Targets in a cone in front of the caster take 370/454/574/680 Fire damage and are Disoriented for 3 sec. Any direct damaging attack will revive targets. Turns off your attack when used.
+    dragons_breath = {
+        id = 31661,
+        cast = 0,
+        duration = 3,
+        category_cooldown = 20,
+        gcd = "spell",
+        school = "fire",
+        texture = 134153,
+        cooldown_category_id = 50,
+        cooldown_category = "Direct Damage (AE-Cone) - Ability",
+        spend = 475,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 31661, 33041, 33042, 33043 },
+
+        -- Effects:
+        -- [x] Rank 31661 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 369, addl_points: 61, points_per_level: 1.5, sp_bonus: 0.193, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: 0
+        -- [ ] Rank 31661 #1 -- effect: APPLY_AURA, aura: MOD_CONFUSE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: disoriented
+        -- [ ] Rank 31661 #2 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: ensnared
+        -- [x] Rank 33041 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 453, addl_points: 73, points_per_level: 1.6, sp_bonus: 0.193, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: 0
+        -- [ ] Rank 33041 #1 -- effect: APPLY_AURA, aura: MOD_CONFUSE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: disoriented
+        -- [ ] Rank 33041 #2 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: ensnared
+        -- [x] Rank 33042 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 573, addl_points: 93, points_per_level: 1.8, sp_bonus: 0.193, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: 0
+        -- [ ] Rank 33042 #1 -- effect: APPLY_AURA, aura: MOD_CONFUSE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: disoriented
+        -- [ ] Rank 33042 #2 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: ensnared
+        -- [x] Rank 33043 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 679, addl_points: 111, points_per_level: 2, sp_bonus: 0.193, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: 0
+        -- [ ] Rank 33043 #1 -- effect: APPLY_AURA, aura: MOD_CONFUSE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: disoriented
+        -- [ ] Rank 33043 #2 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_UNIT_CONE_ENEMY_24, target2: NONE, mechanic: ensnared
+        startsCombat = true,
+
+        radius = 10,
+
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "dragons_breath" ) end
+        end,
+
+        proc_chance = 100,
+        proc_charges = 1,
+        proc_type_mask = { 139944, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability; Take Ranged Attack; Take Ranged Ability; Take Harmful Ability; Take Harmful Spell
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Fire Blast - Blasts the enemy for 24-664 Fire damage.
+    fire_blast = {
+        id = 2136,
+        cast = 0,
+        cooldown = function () return max( 0, 8 + -0.5 * ( talent.improved_fire_blast.rank or 0 ) ) end,
+        category_cooldown = 8,
+        gcd = "spell",
+        school = "fire",
+        texture = 135807,
+        cooldown_category_id = 19,
+        cooldown_category = "Quick Damage - Spell",
+        range = 20,
+        spend = 40,
+        -- Talent cooldown scaling (category source): improved_fire_blast (-0.5s per rank)
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 2136, 2137, 2138, 8412, 8413, 10197, 10199, 27078, 27079 },
+
+        -- Effects:
+        -- [x] Rank 2136 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 23, addl_points: 9, points_per_level: 0.6, sp_bonus: 0.204, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 2137 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 56, addl_points: 15, points_per_level: 1, sp_bonus: 0.332, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 2138 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 102, addl_points: 25, points_per_level: 1.4, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8412 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 167, addl_points: 35, points_per_level: 1.8, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8413 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 241, addl_points: 49, points_per_level: 2.2, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10197 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 331, addl_points: 63, points_per_level: 2.6, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10199 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 430, addl_points: 79, points_per_level: 3, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27078 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 538, addl_points: 99, points_per_level: 3.3, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27079 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 663, addl_points: 123, points_per_level: 3.7, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "fire_blast" ) end
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Fire Vulnerability - Increases Fire damage taken by 3%.
+    fire_vulnerability = {
+        id = 22959,
+        cast = 0,
+        duration = 30,
+        school = "fire",
+        texture = 135827,
+        range = 100,
+        max_stack = 5,
+
+        -- Effects:
+        -- [x] Rank 22959 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_PERCENT_TAKEN, points: 2, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            if debuff.fire_vulnerability.up then
+                applyDebuff( "target", "fire_vulnerability", nil, min( debuff.fire_vulnerability.max_stack, debuff.fire_vulnerability.stack + 1 ) )
+            else
+                applyDebuff( "target", "fire_vulnerability", nil, 1 )
+            end
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Fire Ward - Absorbs 165-1125 Fire damage. Lasts 30 sec.
+    fire_ward = {
+        id = 543,
+        cast = 0,
+        duration = 30,
+        category_cooldown = 30,
+        gcd = "spell",
+        school = "fire",
+        texture = 135806,
+        cooldown_category_id = 56,
+        cooldown_category = "Instant Heal - Spell",
+        spend = 85,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 543, 8457, 8458, 10223, 10225, 27128 },
+
+        -- Effects:
+        -- [x] Rank 543 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 164, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 543 #1 -- effect: APPLY_AURA, aura: REFLECT_SPELLS_SCHOOL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8457 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 289, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8457 #1 -- effect: APPLY_AURA, aura: REFLECT_SPELLS_SCHOOL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8458 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 469, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8458 #1 -- effect: APPLY_AURA, aura: REFLECT_SPELLS_SCHOOL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10223 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 674, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10223 #1 -- effect: APPLY_AURA, aura: REFLECT_SPELLS_SCHOOL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10225 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 874, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10225 #1 -- effect: APPLY_AURA, aura: REFLECT_SPELLS_SCHOOL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27128 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 1124, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27128 #1 -- effect: APPLY_AURA, aura: REFLECT_SPELLS_SCHOOL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "fire_ward" )
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Fireball - Hurls a fiery ball that causes 14-717 Fire damage and an additional 2-84 Fire damage over 4/6/8 sec.
+    fireball = {
+        id = 133,
+        cast = function () return max( 0, 1.5 + -0.1 * ( talent.improved_fireball.rank or 0 ) ) end,
+        duration = 8,
+        gcd = "spell",
+        school = "fire",
+        texture = 135812,
+        range = 35,
+        spend = 30,
+        -- Talent cast scaling: improved_fireball (-0.1s per rank)
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 133, 143, 145, 3140, 8400, 8401, 8402, 10148, 10149, 10150, 10151, 25306, 27070, 38692 },
+
+        -- Effects:
+        -- [x] Rank 133 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 13, addl_points: 9, points_per_level: 0.6, sp_bonus: 0.123, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 133 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 143 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 30, addl_points: 15, points_per_level: 0.8, sp_bonus: 0.271, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 143 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 145 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 52, addl_points: 21, points_per_level: 1, sp_bonus: 0.5, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 145 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 3140 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 83, addl_points: 33, points_per_level: 1.3, sp_bonus: 0.793, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 3140 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 2, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8400 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 138, addl_points: 49, points_per_level: 1.8, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8400 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 4, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8401 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 198, addl_points: 67, points_per_level: 2.1, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8401 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 6, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8402 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 254, addl_points: 81, points_per_level: 2.4, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8402 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 7, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10148 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 317, addl_points: 97, points_per_level: 2.7, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10148 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10149 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 391, addl_points: 115, points_per_level: 3, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10149 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 12, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10150 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 474, addl_points: 135, points_per_level: 3.4, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10150 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 14, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10151 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 560, addl_points: 155, points_per_level: 3.7, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10151 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 17, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25306 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 595, addl_points: 165, points_per_level: 3.8, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25306 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 18, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27070 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 632, addl_points: 173, points_per_level: 4, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27070 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 20, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 38692 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 716, addl_points: 197, points_per_level: 4.2, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 38692 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 20, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            applyDebuff( "target", "fireball" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "fireball" ) end
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Flamestrike - Calls down a pillar of fire, burning all enemies within the area for 52-471 Fire damage and an additional 48-424 Fire damage over 8 sec.
+    flamestrike = {
+        id = 2120,
+        cast = 3,
+        duration = 8,
+        gcd = "spell",
+        school = "fire",
+        texture = 135826,
+        range = 30,
+        spend = 195,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 2120, 2121, 8422, 8423, 10215, 10216, 27086 },
+
+        -- Effects:
+        -- [x] Rank 2120 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 51, addl_points: 17, points_per_level: 0.6, sp_bonus: 0.2, radius_idx: 8, target: TARGET_UNIT_DEST_AREA_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 2120 #1 -- effect: PERSISTENT_AREA_AURA, aura: PERIODIC_DAMAGE, points: 11, addl_points: 1, points_per_level: 0, sp_bonus: 0.026, radius_idx: 8, target: TARGET_DEST_DYNOBJ_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 2121 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 95, addl_points: 27, points_per_level: 0.8, sp_bonus: 0.236, radius_idx: 8, target: TARGET_UNIT_DEST_AREA_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 2121 #1 -- effect: PERSISTENT_AREA_AURA, aura: PERIODIC_DAMAGE, points: 21, addl_points: 1, points_per_level: 0, sp_bonus: 0.03, radius_idx: 8, target: TARGET_DEST_DYNOBJ_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8422 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 153, addl_points: 39, points_per_level: 1, sp_bonus: 0.236, radius_idx: 8, target: TARGET_UNIT_DEST_AREA_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8422 #1 -- effect: PERSISTENT_AREA_AURA, aura: PERIODIC_DAMAGE, points: 34, addl_points: 1, points_per_level: 0, sp_bonus: 0.03, radius_idx: 8, target: TARGET_DEST_DYNOBJ_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8423 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 219, addl_points: 53, points_per_level: 1.3, sp_bonus: 0.236, radius_idx: 8, target: TARGET_UNIT_DEST_AREA_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8423 #1 -- effect: PERSISTENT_AREA_AURA, aura: PERIODIC_DAMAGE, points: 48, addl_points: 1, points_per_level: 0, sp_bonus: 0.03, radius_idx: 8, target: TARGET_DEST_DYNOBJ_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10215 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 290, addl_points: 69, points_per_level: 1.5, sp_bonus: 0.236, radius_idx: 8, target: TARGET_UNIT_DEST_AREA_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 10215 #1 -- effect: PERSISTENT_AREA_AURA, aura: PERIODIC_DAMAGE, points: 65, addl_points: 1, points_per_level: 0, sp_bonus: 0.03, radius_idx: 8, target: TARGET_DEST_DYNOBJ_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10216 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 374, addl_points: 85, points_per_level: 1.7, sp_bonus: 0.236, radius_idx: 8, target: TARGET_UNIT_DEST_AREA_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 10216 #1 -- effect: PERSISTENT_AREA_AURA, aura: PERIODIC_DAMAGE, points: 84, addl_points: 1, points_per_level: 0, sp_bonus: 0.03, radius_idx: 8, target: TARGET_DEST_DYNOBJ_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27086 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 470, addl_points: 105, points_per_level: 1.9, sp_bonus: 0.236, radius_idx: 8, target: TARGET_UNIT_DEST_AREA_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 27086 #1 -- effect: PERSISTENT_AREA_AURA, aura: PERIODIC_DAMAGE, points: 105, addl_points: 1, points_per_level: 0, sp_bonus: 0.03, radius_idx: 8, target: TARGET_DEST_DYNOBJ_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        radius = 5,
+
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "flamestrike" ) end
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Frost Armor - Increases Armor by 30/110/200. If an enemy strikes the caster, they may have their movement slowed by 30% and the time between their attacks increased by 25% for $6136d. Only one type of Armor spell can be active on the Mage at any time. Lasts 1800 sec.
+    frost_armor = {
+        id = 168,
+        cast = 0,
+        duration = 1800,
+        gcd = "spell",
+        school = "frost",
+        texture = 135843,
+        spend = function () return max( 0, 60 * ( 1 + -0.05 * ( talent.frost_channeling.rank or 0 ) ) ) end,
+        -- Talent spend scaling: frost_channeling (-5% per rank, frost school)
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 168, 7300, 7301 },
+
+        -- Effects:
+        -- [x] Rank 168 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 168 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 6136
+        -- [x] Rank 7300 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 109, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 7300 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 6136
+        -- [x] Rank 7301 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 199, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 7301 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 6136
+
+        handler = function ()
+            applyBuff( "frost_armor" )
+        end,
+
+        proc_chance = 100,
+        proc_type_mask = { 40, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability
+    },
+
+-- Frost Nova - Blasts enemies near the caster for 19/33/52/71/99 Frost damage and freezes them in place for up to 8 sec. Damage caused may interrupt the effect.
+    frost_nova = {
+        id = 122,
+        cast = 0,
+        duration = 8,
+        cooldown = function () return max( 0, 25 + -2 * ( talent.improved_frost_nova.rank or 0 ) ) end,
+        category_cooldown = 25,
+        gcd = "spell",
+        school = "frost",
+        texture = 135848,
+        cooldown_category_id = 35,
+        cooldown_category = "Direct Damage (AE) - Spell",
+        spend = function () return max( 0, 55 * ( 1 + -0.05 * ( talent.frost_channeling.rank or 0 ) ) ) end,
+        -- Talent cooldown scaling (category source): improved_frost_nova (-2s per rank)
+        -- Talent spend scaling: frost_channeling (-5% per rank, frost school)
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 122, 865, 6131, 10230, 27088 },
+
+        -- Effects:
+        -- [x] Rank 122 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 18, addl_points: 3, points_per_level: 0.5, sp_bonus: 0.018, radius_idx: 0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 122 #1 -- effect: APPLY_AURA, aura: MOD_ROOT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: rooted
+        -- [x] Rank 865 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 32, addl_points: 5, points_per_level: 0.5, sp_bonus: 0.043, radius_idx: 0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 865 #1 -- effect: APPLY_AURA, aura: MOD_ROOT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: rooted
+        -- [x] Rank 6131 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 51, addl_points: 7, points_per_level: 0.5, sp_bonus: 0.043, radius_idx: 0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 6131 #1 -- effect: APPLY_AURA, aura: MOD_ROOT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: rooted
+        -- [x] Rank 10230 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 70, addl_points: 9, points_per_level: 0.5, sp_bonus: 0.043, radius_idx: 0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 10230 #1 -- effect: APPLY_AURA, aura: MOD_ROOT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: rooted
+        -- [x] Rank 27088 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 98, addl_points: 13, points_per_level: 0.5, sp_bonus: 0.043, radius_idx: 0, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 27088 #1 -- effect: APPLY_AURA, aura: MOD_ROOT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: rooted
+        startsCombat = true,
+
+        radius = 10,
+
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "frost_nova" ) end
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Frost Ward - Absorbs 165-1125 Frost damage. Lasts 30 sec.
+    frost_ward = {
+        id = 6143,
+        cast = 0,
+        duration = 30,
+        category_cooldown = 30,
+        gcd = "spell",
+        school = "frost",
+        texture = 135850,
+        cooldown_category_id = 56,
+        cooldown_category = "Instant Heal - Spell",
+        spend = function () return max( 0, 85 * ( 1 + -0.05 * ( talent.frost_channeling.rank or 0 ) ) ) end,
+        -- Talent spend scaling: frost_channeling (-5% per rank, frost school)
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 6143, 8461, 8462, 10177, 28609, 32796 },
+
+        -- Effects:
+        -- [x] Rank 6143 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 164, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 6143 #1 -- effect: APPLY_AURA, aura: REFLECT_SPELLS_SCHOOL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8461 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 289, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8461 #1 -- effect: APPLY_AURA, aura: REFLECT_SPELLS_SCHOOL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8462 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 469, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8462 #1 -- effect: APPLY_AURA, aura: REFLECT_SPELLS_SCHOOL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10177 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 674, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10177 #1 -- effect: APPLY_AURA, aura: REFLECT_SPELLS_SCHOOL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 28609 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 874, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 28609 #1 -- effect: APPLY_AURA, aura: REFLECT_SPELLS_SCHOOL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 32796 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 1124, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 32796 #1 -- effect: APPLY_AURA, aura: REFLECT_SPELLS_SCHOOL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "frost_ward" )
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Frostbite - Gives your Chill effects a 0/5/10/15% chance to freeze the target for $12494d.
+    frostbite = {
+        id = 11071,
+        cast = 0,
+        duration = 5,
+        school = "frost",
+        texture = 135842,
+        range = 100,
+        -- Talent spend scaling: frost_channeling (-5% per rank, frost school)
+        max_stack = 1,
+        copy = { 11071, 12494, 12496, 12497 },
+
+        -- Effects:
+        -- [x] Rank 11071 #0 -- effect: APPLY_AURA, aura: ADD_TARGET_TRIGGER, points: 4, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 12494
+        -- [ ] Rank 12494 #0 -- effect: APPLY_AURA, aura: MOD_ROOT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ANY, target2: NONE, mechanic: 0
+        -- [x] Rank 12496 #0 -- effect: APPLY_AURA, aura: ADD_TARGET_TRIGGER, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 12494
+        -- [x] Rank 12497 #0 -- effect: APPLY_AURA, aura: ADD_TARGET_TRIGGER, points: 14, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 12494
+
+        handler = function ()
+            applyBuff( "frostbite" )
+        end,
+
+        proc_chance = 100,
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Frostbolt - Launches a bolt of frost at the enemy, causing 18-630 Frost damage and slowing movement speed by 40% for 5/6/7/8/9 sec.
+    frostbolt = {
+        id = 116,
+        cast = function () return max( 0, 1.5 + -0.1 * ( talent.improved_frostbolt.rank or 0 ) ) end,
+        duration = 9,
+        gcd = "spell",
+        school = "frost",
+        texture = 135846,
+        range = 30,
+        spend = function () return max( 0, 25 * ( 1 + -0.05 * ( talent.frost_channeling.rank or 0 ) ) ) end,
+        -- Talent cast scaling: improved_frostbolt (-0.1s per rank)
+        -- Talent spend scaling: frost_channeling (-5% per rank, frost school)
+        spendType = "Mana",
+        max_stack = 1,
         copy = { 116, 205, 837, 7322, 8406, 8407, 8408, 10179, 10180, 10181, 25304, 27071, 27072, 38697 },
+
+        -- Effects:
+        -- [x] Rank 116 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 116 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 17, addl_points: 3, points_per_level: 0.5, sp_bonus: 0.163, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 205 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 205 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 30, addl_points: 5, points_per_level: 0.7, sp_bonus: 0.269, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 837 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 837 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 50, addl_points: 7, points_per_level: 0.9, sp_bonus: 0.463, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 7322 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 7322 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 73, addl_points: 9, points_per_level: 1.1, sp_bonus: 0.706, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8406 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 8406 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 125, addl_points: 13, points_per_level: 1.5, sp_bonus: 0.814, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8407 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 8407 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 173, addl_points: 17, points_per_level: 1.7, sp_bonus: 0.814, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8408 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 8408 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 226, addl_points: 21, points_per_level: 2, sp_bonus: 0.814, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10179 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 10179 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 291, addl_points: 25, points_per_level: 2.3, sp_bonus: 0.814, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10180 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 10180 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 352, addl_points: 31, points_per_level: 2.6, sp_bonus: 0.814, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10181 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 10181 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 428, addl_points: 35, points_per_level: 2.9, sp_bonus: 0.814, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25304 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 25304 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 514, addl_points: 41, points_per_level: 3.2, sp_bonus: 0.814, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27071 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 27071 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 535, addl_points: 43, points_per_level: 3.2, sp_bonus: 0.814, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27072 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 27072 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 596, addl_points: 47, points_per_level: 3.5, sp_bonus: 0.814, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 38697 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 38697 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 629, addl_points: 51, points_per_level: 3.8, sp_bonus: 0.814, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            applyDebuff( "target", "frostbolt" )
+            if talent.winters_chill.enabled then
+                if debuff.winters_chill.up then
+                    applyDebuff( "target", "winters_chill", nil, min( debuff.winters_chill.max_stack, debuff.winters_chill.stack + 1 ) )
+                else
+                    applyDebuff( "target", "winters_chill", nil, 1 )
+                end
+            end
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "frostbolt" ) end
+        end,
+
+        proc_chance = 100,
     },
 
-    -- Increases Armor by $s1 and Frost resistance by $s3.   If an enemy strikes the caster, they may have their movement slowed by $7321s1% and the time between their attacks increased by $7321s2% for $7321d.  Only one type of Armor spell can be active on the Mage at any time.  Lasts $d.
+-- Ice Armor - Increases Armor by 290/380/470/560/645 and frost resistance by 6/9/12/15/18. If an enemy strikes the caster, they may have their movement slowed by 30% and the time between their attacks increased by 25% for $7321d. Only one type of Armor spell can be active on the Mage at any time. Lasts 1800 sec.
     ice_armor = {
-        id = 27124,
+        id = 7302,
         cast = 0,
-        cooldown = 0,
+        duration = 1800,
         gcd = "spell",
-
-        spend = function() return 0.240 * ( 1 - 0.01 * talent.precision.rank ) * ( talent.frost_channeling.enabled and ( 0.99 - 0.03 * talent.frost_channeling.rank ) or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-        essential = true,
-        nobuff = "ice_armor",
-
-        handler = function()
-            removeBuff( "unique_armor" )
-            applyBuff( "ice_armor" )
-
-            -- Effects:
-            -- [x] 1.0 APPLY_AURA, MOD_RESISTANCE, points: 290, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-            -- [ ] 1.1 APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 7321, target: TARGET_UNIT_CASTER
-            -- [x] 1.2 APPLY_AURA, MOD_RESISTANCE, points: 6, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [x] 2.0 APPLY_AURA, MOD_RESISTANCE, points: 380, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-            -- [ ] 2.1 APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 7321, target: TARGET_UNIT_CASTER
-            -- [x] 2.2 APPLY_AURA, MOD_RESISTANCE, points: 9, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [x] 3.0 APPLY_AURA, MOD_RESISTANCE, points: 470, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-            -- [ ] 3.1 APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 7321, target: TARGET_UNIT_CASTER
-            -- [x] 3.2 APPLY_AURA, MOD_RESISTANCE, points: 12, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [x] 4.0 APPLY_AURA, MOD_RESISTANCE, points: 560, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-            -- [ ] 4.1 APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 7321, target: TARGET_UNIT_CASTER
-            -- [x] 4.2 APPLY_AURA, MOD_RESISTANCE, points: 15, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [x] 5.0 APPLY_AURA, MOD_RESISTANCE, points: 645, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-            -- [ ] 5.1 APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 7321, target: TARGET_UNIT_CASTER
-            -- [x] 5.2 APPLY_AURA, MOD_RESISTANCE, points: 18, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [x] 6.0 APPLY_AURA, MOD_RESISTANCE, points: 930, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-            -- [ ] 6.1 APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 7321, target: TARGET_UNIT_CASTER
-            -- [x] 6.2 APPLY_AURA, MOD_RESISTANCE, points: 40, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-            -- [ ] 6.3 APPLY_AURA, PERIODIC_DUMMY, tick_time: 6.0, target: TARGET_UNIT_CASTER
-        end,
-
-        -- Affected by:
-        -- [x] glyph.frost_armor[57928.0] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 1800000, target: TARGET_UNIT_CASTER
-        -- [ ] glyph.ice_armor[56384.0] APPLY_AURA, ADD_PCT_MODIFIER, EFFECT_1_VALUE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] glyph.ice_armor[56384.1] APPLY_AURA, ADD_PCT_MODIFIER, EFFECT_3_VALUE, points: 50, target: TARGET_UNIT_CASTER
-        -- [x] talent.frost_channeling[11160.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -4, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [x] talent.frost_channeling[12518.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -7, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [x] talent.frost_channeling[12519.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -10, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.frost_warding[11189.0] APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 25, target: TARGET_UNIT_CASTER
-        -- [ ] talent.frost_warding[28332.0] APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 50, target: TARGET_UNIT_CASTER
-        -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[11170.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12982.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12983.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-
+        school = "frost",
+        texture = 135843,
+        spend = function () return max( 0, 240 * ( 1 + -0.05 * ( talent.frost_channeling.rank or 0 ) ) ) end,
+        -- Talent spend scaling: frost_channeling (-5% per rank, frost school)
+        spendType = "Mana",
+        max_stack = 1,
         copy = { 7302, 7320, 10219, 10220, 27124 },
-    },
 
-    -- Instantly shields you, absorbing $s1 damage.  Lasts $d.  While the shield holds, spellcasting will not be delayed by damage.
-    ice_barrier = {
-        id = 27134,
-        cast = 0,
-        cooldown = function() return 30 * ( 1 - 0.01 * talent.precision.rank ) * ( 1 - 0.1 * talent.cold_as_ice.rank ) * ( talent.frost_channeling.enabled and ( 0.99 - 0.03 * talent.frost_channeling.rank ) or 1 ) end,
-        gcd = "spell",
+        -- Effects:
+        -- [x] Rank 7302 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 289, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 7302 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 7321
+        -- [x] Rank 7302 #2 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 5, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 7320 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 379, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 7320 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 7321
+        -- [x] Rank 7320 #2 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 8, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10219 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 469, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10219 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 7321
+        -- [x] Rank 10219 #2 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 11, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10220 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 559, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10220 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 7321
+        -- [x] Rank 10220 #2 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 14, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27124 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 644, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27124 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 7321
+        -- [x] Rank 27124 #2 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 17, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        spend = 0.210,
-        spendType = "mana",
-
-        startsCombat = false,
-
-        handler = function()
-            applyBuff( "ice_barrier" )
-
-            -- Effects:
-            -- [x] 1.0 APPLY_AURA, SCHOOL_ABSORB, points_per_level: 2.8, points: 438, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [x] 2.0 APPLY_AURA, SCHOOL_ABSORB, points_per_level: 3.2, points: 549, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [x] 3.0 APPLY_AURA, SCHOOL_ABSORB, points_per_level: 3.6, points: 678, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [x] 4.0 APPLY_AURA, SCHOOL_ABSORB, points_per_level: 4.0, points: 818, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [x] 5.0 APPLY_AURA, SCHOOL_ABSORB, points_per_level: 4.4, points: 925, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [x] 6.0 APPLY_AURA, SCHOOL_ABSORB, points_per_level: 4.8, points: 1075, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [x] 7.0 APPLY_AURA, SCHOOL_ABSORB, points_per_level: 15.0, points: 2800, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [x] 8.0 APPLY_AURA, SCHOOL_ABSORB, points_per_level: 15.0, points: 3300, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
+        handler = function ()
+            applyBuff( "ice_armor" )
         end,
 
-        -- Affected by:
-        -- [ ] glyph.ice_barrier[63095.0] APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[11210.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31674.0] APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31675.0] APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31676.0] APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31677.0] APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_winds[31678.0] APPLY_AURA, MOD_ATTACKER_MELEE_HIT_CHANCE, sp_bonus: 1.0, points: -5, target: TARGET_UNIT_CASTER
-        -- [x] talent.cold_as_ice[55091.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -10, target: TARGET_UNIT_CASTER
-        -- [x] talent.cold_as_ice[55092.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -20, target: TARGET_UNIT_CASTER
-        -- [x] talent.frost_channeling[11160.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -4, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [x] talent.frost_channeling[12518.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -7, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [x] talent.frost_channeling[12519.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -10, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-
-        copy = { 11426, 13031, 13032, 13033, 27134, 33405 },
+        proc_chance = 100,
+        proc_type_mask = { 40, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability
     },
 
-    -- You become encased in a block of ice, protecting you from all physical attacks and spells for $d, but during that time you cannot attack, move or cast spells.  Also causes Hypothermia, preventing you from recasting Ice Block for $41425d.
+-- Ice Barrier - Instantly shields you, absorbing 438-1075 damage. Lasts 60 sec. While the shield holds, spells will not be interrupted.
+    ice_barrier = {
+        id = 11426,
+        cast = 0,
+        duration = 60,
+        category_cooldown = 30,
+        gcd = "spell",
+        school = "frost",
+        texture = 135988,
+        cooldown_category_id = 471,
+        cooldown_category = "Ice Barrier",
+        spend = function () return max( 0, 305 * ( 1 + -0.05 * ( talent.frost_channeling.rank or 0 ) ) ) end,
+        -- Talent spend scaling: frost_channeling (-5% per rank, frost school)
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 11426, 13031, 13032, 13033, 27134, 33405 },
+
+        -- Effects:
+        -- [x] Rank 11426 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 437, addl_points: 1, points_per_level: 2.8, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 13031 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 548, addl_points: 1, points_per_level: 3.2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 13032 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 677, addl_points: 1, points_per_level: 3.6, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 13033 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 817, addl_points: 1, points_per_level: 4, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27134 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 924, addl_points: 1, points_per_level: 4.4, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 33405 #0 -- effect: APPLY_AURA, aura: SCHOOL_ABSORB, points: 1074, addl_points: 1, points_per_level: 4.8, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "ice_barrier" )
+        end,
+
+        proc_chance = 100,
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Ice Block - You become encased in a block of ice, protecting you from all physical attacks and spells for 10 sec, but during that time you cannot attack, move or cast spells. Also causes Hypothermia, preventing you from recasting Ice Block for $41425d.
     ice_block = {
         id = 45438,
         cast = 0,
-        cooldown = function() return 300 * ( talent.ice_floes.enabled and ( 1 - min( 0.2, 0.07 * talent.ice_floes.rank ) ) or 1 ) end,
+        duration = 10,
+        category_cooldown = 300,
         gcd = "spell",
+        school = "frost",
+        texture = 135841,
+        cooldown_category_id = 37,
+        cooldown_category = "Invulnerability",
+        spend = function () return max( 0, 15 * ( 1 + -0.05 * ( talent.frost_channeling.rank or 0 ) ) ) end,
+        -- Talent spend scaling: frost_channeling (-5% per rank, frost school)
+        spendType = "Mana",
+        max_stack = 1,
 
-        spend = 15,
-        spendType = "mana",
+        -- Effects:
+        -- [x] Rank 45438 #0 -- effect: APPLY_AURA, aura: MOD_STUN, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 45438 #1 -- effect: APPLY_AURA, aura: SCHOOL_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 45438 #2 -- effect: APPLY_AURA, aura: SCHOOL_IMMUNITY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        startsCombat = false,
-
-        nodebuff = "hypothermia",
-        handler = function()
+        handler = function ()
             applyBuff( "ice_block" )
-            removeDebuff( "player", "hypothermia" )
-
-            -- Effects:
-            -- [x] 0. APPLY_AURA, MOD_STUN, points: 0, target: TARGET_UNIT_CASTER
-            -- [x] 1. APPLY_AURA, SCHOOL_IMMUNITY, points: 0, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-            -- [x] 2. APPLY_AURA, SCHOOL_IMMUNITY, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
         end,
 
-        -- Affected by:
-        -- [ ] talent.arcane_subtlety[11210.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- [x] talent.ice_floes[31670.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -7, target: TARGET_UNIT_CASTER
-        -- [x] talent.ice_floes[31672.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -14, target: TARGET_UNIT_CASTER
-        -- [x] talent.ice_floes[55094.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -20, target: TARGET_UNIT_CASTER
+        proc_chance = 100,
+
+        -- Aura restrictions: exclude_caster_state=19
     },
 
-    -- Deals ${$m1*$<mult>} to ${$M1*$<mult>} Frost damage to an enemy target.  Causes triple damage against Frozen targets.
-    ice_lance = {
-        id = 30455,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = function() return buff.clearcasting.up and 0 or 0.060 * ( 1 - 0.01 * talent.precision.rank ) * ( buff.arcane_power.up and 1.2 or 1 ) * ( talent.frost_channeling.enabled and ( 0.99 - 0.03 * talent.frost_channeling.rank ) or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = true,
-        velocity = 38,
-
-        handler = function()
-            -- Effects:
-            -- [ ] 1.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 3.2, points: 160, addl_points: 27, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 2.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 1.3, points: 181, addl_points: 29, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 3.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.143, points_per_level: 1.3, points: 220, addl_points: 35, target: TARGET_UNIT_TARGET_ENEMY
-        end,
-
-        impact = function()
-            if buff.fingers_of_frost.up then removeBuff( "fingers_of_frost" )
-            elseif debuff.frost_nova.up then removeDebuff( "target", "frost_nova" )
-            elseif debuff.frostbite.up then removeDebuff( "target", "frostbite" ) end
-        end,
-
-        -- Affected by:
-        -- [ ] aura.arcane_power[12042.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_power[12042.1] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.clearcasting[12536.0] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- [ ] glyph.ice_lance[56377.0] APPLY_AURA, DUMMY, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_reach[16757.0] APPLY_AURA, ADD_PCT_MODIFIER, RANGE, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arctic_reach[16758.0] APPLY_AURA, ADD_PCT_MODIFIER, RANGE, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44449.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44469.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44470.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44471.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 40, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44472.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44566.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44567.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44568.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44570.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.chilled_to_the_bone[44571.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 5, target: TARGET_UNIT_CASTER
-        -- [x] talent.frost_channeling[11160.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -4, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [x] talent.frost_channeling[12518.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -7, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [x] talent.frost_channeling[12519.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -10, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[11207.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 33, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[12672.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 66, target: TARGET_UNIT_CASTER
-        -- [ ] talent.ice_shards[15047.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 100, target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31679.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 6, value: 4919, schools: ['physical', 'holy', 'fire', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31680.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 12, value: 4920, schools: ['nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.piercing_ice[11151.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.piercing_ice[12952.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 4, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.piercing_ice[12953.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 6, value: 16, schools: ['frost'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29438.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29439.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29440.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[11170.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12982.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12983.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[11242.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[12467.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[12469.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-
-        copy = { 30455 },
-    },
-
-    -- Hastens your spellcasting, increasing spell casting speed by $s1% and reduces the pushback suffered from damaging attacks while casting by $s2%.  Lasts $d.
+-- Icy Veins - Hastens your spellcasting, increasing spell casting speed by 20% and gives you 100% chance to avoid interruption caused by damage while casting. Lasts 20 sec.
     icy_veins = {
         id = 12472,
         cast = 0,
-        cooldown = function() return 180 * ( talent.ice_floes.enabled and ( 1 - min( 0.2, 0.07 * talent.ice_floes.rank ) ) or 1 ) end,
-        gcd = "off",
-
-        spend = 0.030,
-        spendType = "mana",
-
-        startsCombat = false,
-        toggle = "cooldowns",
-
-        handler = function()
-            applyBuff( "icy_veins" )
-            stat.haste = stat.haste + 20
-
-            -- Effects:
-            -- [x] 0. APPLY_AURA, MOD_CASTING_SPEED_NOT_STACK, points: 20, target: TARGET_UNIT_CASTER
-            -- [ ] 1. APPLY_AURA, ADD_PCT_MODIFIER, points: 100, target: TARGET_UNIT_CASTER
-        end,
-
-        -- Affected by:
-        -- [ ] talent.arcane_subtlety[11210.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- [x] talent.ice_floes[31670.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -7, target: TARGET_UNIT_CASTER
-        -- [x] talent.ice_floes[31672.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -14, target: TARGET_UNIT_CASTER
-        -- [x] talent.ice_floes[55094.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -20, target: TARGET_UNIT_CASTER
-    },
-
-    -- $?s54354[Instantly makes the caster invisible, reducing all threat.][Fades the caster to invisibility over $66d, reducing threat each second.]  The effect is cancelled if you perform any actions.  While invisible, you can only see other invisible targets and those who can see invisible.  Lasts $32612d.
-    invisibility = {
-        id = 66,
-        cast = 0,
-        cooldown = function() return 180 * ( 1 - 0.15 * talent.arcane_flows.rank ) end,
-        gcd = "spell",
-
-        spend = 0.160,
-        spendType = "mana",
-
-        startsCombat = false,
-        toggle = "defensives",
-
-        handler = function()
-            if talent.prismatic_cloak.rank == 3 then
-                applyBuff( "invisibility" )
-            else
-                applyBuff( "invisibility_fading" )
-                applyBuff( "invisibility" )
-                buff.invisibility.applied = buff.invisibility_fading.expires
-            end
-
-            -- Effects:
-            -- [x] 0. APPLY_AURA, PERIODIC_TRIGGER_SPELL, tick_time: 1.0, trigger_spell: 35009, points: 0, target: TARGET_UNIT_CASTER
-        end,
-
-        -- Affected by:
-        -- [x] talent.arcane_flows[44378.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, points: -15, target: TARGET_UNIT_CASTER
-        -- [x] talent.arcane_flows[44379.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, points: -30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[11222.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[12839.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[12840.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[11247.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[12606.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31584.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31585.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31586.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [x] talent.prismatic_cloak[31574.1] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: -1000, target: TARGET_UNIT_CASTER
-        -- [x] talent.prismatic_cloak[31575.1] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: -2000, target: TARGET_UNIT_CASTER
-        -- [x] talent.prismatic_cloak[54354.1] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: -3000, target: TARGET_UNIT_CASTER
-    },
-
-    -- The target becomes a Living Bomb, taking $o1 Fire damage over $d.  After $d or when the spell is dispelled, the target explodes dealing $44461s1 Fire damage to all enemies within $44461a1 yards.
-    living_bomb = {
-        id = 44461,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = 0.220,
-        spendType = "mana",
-
-        startsCombat = true,
-
-        handler = function()
-            applyDebuff( "target", "living_bomb" )
-
-            -- Effects:
-            -- [ ] 1.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 306, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-            -- [ ] 2.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 512, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-            -- [ ] 3.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 690, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        end,
-
-        -- Affected by:
-        -- [ ] aura.combustion[11129.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[28682.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] glyph.living_bomb[63091.0] APPLY_AURA, ABILITY_PERIODIC_CRIT, points: 10, value: 5, schools: ['physical', 'fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[11210.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[11124.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12378.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12398.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12399.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12400.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.flame_throwing[11100.0] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.flame_throwing[12353.0] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-
-        copy = { 44457, 44459, 44461 },
-    },
-
-    -- Increases your resistance to all magic by $s1 and allows $s2% of your mana regeneration to continue while casting.  Only one type of Armor spell can be active on the Mage at any time.  Lasts $d.
-    mage_armor = {
-        id = 27125,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = 0.260,
-        spendType = "mana",
-
-        startsCombat = false,
-
-        nobuff = "mage_armor",
-        handler = function()
-            removeBuff( "unique_armor" )
-            applyBuff( "mage_armor" )
-
-            -- Effects:
-            -- [ ] 1.0 APPLY_AURA, MOD_RESISTANCE, points: 5, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [ ] 1.1 APPLY_AURA, MOD_MANA_REGEN_INTERRUPT, points: 50, target: TARGET_UNIT_CASTER
-            -- [ ] 2.0 APPLY_AURA, MOD_RESISTANCE, points: 10, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [ ] 2.1 APPLY_AURA, MOD_MANA_REGEN_INTERRUPT, points: 50, target: TARGET_UNIT_CASTER
-            -- [ ] 3.0 APPLY_AURA, MOD_RESISTANCE, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [ ] 3.1 APPLY_AURA, MOD_MANA_REGEN_INTERRUPT, points: 50, target: TARGET_UNIT_CASTER
-            -- [ ] 4.0 APPLY_AURA, MOD_RESISTANCE, points: 18, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [ ] 4.1 APPLY_AURA, MOD_MANA_REGEN_INTERRUPT, points: 50, target: TARGET_UNIT_CASTER
-            -- [ ] 5.0 APPLY_AURA, MOD_RESISTANCE, points: 21, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [ ] 5.1 APPLY_AURA, MOD_MANA_REGEN_INTERRUPT, points: 50, target: TARGET_UNIT_CASTER
-            -- [ ] 5.2 APPLY_AURA, MOD_AURA_DURATION_BY_DISPEL, points: -50, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-            -- [ ] 6.0 APPLY_AURA, MOD_RESISTANCE, points: 40, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [ ] 6.1 APPLY_AURA, MOD_MANA_REGEN_INTERRUPT, points: 50, target: TARGET_UNIT_CASTER
-            -- [ ] 6.2 APPLY_AURA, MOD_AURA_DURATION_BY_DISPEL, points: -50, value: 1, schools: ['physical'], target: TARGET_UNIT_CASTER
-            -- [ ] 6.3 APPLY_AURA, PERIODIC_DUMMY, tick_time: 6.0, target: TARGET_UNIT_CASTER
-        end,
-
-        -- Affected by:
-        -- [ ] glyph.mage_armor[56383.0] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_2_VALUE, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_shielding[11252.1] APPLY_AURA, ADD_PCT_MODIFIER, EFFECT_1_VALUE, points: 25, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_shielding[12605.1] APPLY_AURA, ADD_PCT_MODIFIER, EFFECT_1_VALUE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_absorption[29441.1] APPLY_AURA, MOD_RESISTANCE, points_per_level: 0.5, points: 0, value: 124, schools: ['fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_absorption[29444.1] APPLY_AURA, MOD_RESISTANCE, points_per_level: 1.0, points: 0, value: 124, schools: ['fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31584.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31585.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31586.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-
-        copy = { 6117, 22782, 22783, 27125 },
-    },
-
-    -- Absorbs $s1 damage, draining mana instead.  Drains $e mana per damage absorbed.  Lasts $d.
-    mana_shield = {
-        id = 27131,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = 0.070,
-        spendType = "mana",
-
-        startsCombat = false,
-
-        handler = function()
-            applyBuff( "mana_shield" )
-
-            -- Effects:
-            -- [x] 1.0 APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 120, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [x] 2.0 APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 210, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [x] 3.0 APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 300, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [x] 4.0 APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 390, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [x] 5.0 APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 480, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [x] 6.0 APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 570, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [x] 7.0 APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 715, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [x] 8.0 APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 1080, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-            -- [x] 9.0 APPLY_AURA, MANA_SHIELD, amplitude: 1.5, points: 1330, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        end,
-
-        -- Affected by:
-        -- [ ] talent.arcane_shielding[11252.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_TAKEN, points: -17, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_shielding[12605.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_TAKEN, points: -33, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[11210.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31584.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31585.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31586.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-
-        copy = { 1463, 8494, 8495, 10191, 10192, 10193, 27131 },
-    },
-
-    -- Creates $<images> copies of the caster nearby, which cast spells and attack the mage's enemies.  Lasts $55342d.
-    mirror_image = {
-        id = 36847,
-        cast = 0,
+        duration = 20,
         cooldown = 180,
+        school = "frost",
+        texture = 135838,
+        spend_pct = function () return 3 * ( 1 + -0.05 * ( talent.frost_channeling.rank or 0 ) ) end,
+        -- Talent spend scaling: frost_channeling (-5% per rank, frost school)
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 12472 #0 -- effect: APPLY_AURA, aura: MOD_CASTING_SPEED_NOT_STACK, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 12472 #1 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "icy_veins" )
+        end,
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Impact - Gives your Fire spells a $h% chance to stun the target for $12355d.
+    impact = {
+        id = 11103,
+        cast = 0,
+        duration = 2,
+        school = "fire",
+        texture = 135821,
+        range = 100,
+        max_stack = 1,
+        copy = { 11103, 12355, 12357, 12358, 12359, 12360 },
+
+        -- Effects:
+        -- [x] Rank 11103 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 12355
+        -- [x] Rank 12355 #0 -- effect: APPLY_AURA, aura: MOD_STUN, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12357 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 12355
+        -- [x] Rank 12358 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 12355
+        -- [x] Rank 12359 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 12355
+        -- [x] Rank 12360 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 12355
+
+        handler = function ()
+            applyDebuff( "target", "impact" )
+            applyBuff( "impact" )
+        end,
+
+        proc_chance = 2,
+        proc_type_mask = { 87376, 0 },
+        -- Proc type flags: mask0: Deal Melee Ability; Deal Ranged Attack; Deal Ranged Ability; Deal Helpful Ability; Deal Harmful Ability; Deal Helpful Spell; Deal Harmful Spell
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Mage Armor - Increases your resistance to all magic by 5/10/15/18 and allows 30% of your mana regeneration to continue while casting. Only one type of Armor spell can be active on the Mage at any time. Lasts 1800 sec.
+    mage_armor = {
+        id = 6117,
+        cast = 0,
+        duration = 1800,
         gcd = "spell",
+        school = "arcane",
+        texture = 135991,
+        spend = 270,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 6117, 22782, 22783, 27125 },
 
-        spend = 0.100,
-        spendType = "mana",
+        -- Effects:
+        -- [x] Rank 6117 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 4, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 6117 #1 -- effect: APPLY_AURA, aura: MOD_MANA_REGEN_INTERRUPT, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 22782 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 22782 #1 -- effect: APPLY_AURA, aura: MOD_MANA_REGEN_INTERRUPT, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 22783 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 14, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 22783 #1 -- effect: APPLY_AURA, aura: MOD_MANA_REGEN_INTERRUPT, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27125 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 17, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27125 #1 -- effect: APPLY_AURA, aura: MOD_MANA_REGEN_INTERRUPT, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        startsCombat = false,
-        toggle = "cooldowns",
-
-        handler = function()
-            applyBuff( "mirror_image" )
-
-            -- Effects:
-            -- [x] 0. APPLY_AURA, MOD_TOTAL_THREAT, points: -90000000, target: TARGET_UNIT_CASTER
-            -- [ ] 1. TRIGGER_SPELL, NONE, trigger_spell: 58832, points: 3, target: TARGET_UNIT_CASTER
-            -- [ ] 2. APPLY_AURA, PERIODIC_DUMMY, tick_time: 1.0, trigger_spell: 58836, points: 0, target: TARGET_UNIT_CASTER
+        handler = function ()
+            applyBuff( "mage_armor" )
         end,
     },
 
-    -- Causes $34913s1 Fire damage when hit, increases your critical strike rating by $30482s3% of your Spirit, and reduces the chance you are critically hit by $30482s2%.  Only one type of Armor spell can be active on the Mage at any time.  Lasts $30482d.
+-- Magic Absorption - Increases all resistances by 2/4/6/8/10 and causes all spells you fully resist to restore 0-5% of your total mana. 1 sec. cooldown.
+    magic_absorption = {
+        id = 29441,
+        cast = 0,
+        school = "arcane",
+        texture = 136011,
+        max_stack = 1,
+        copy = { 29441, 29442, 29444, 29445, 29446, 29447 },
+
+        -- Effects:
+        -- [x] Rank 29441 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29441 #1 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 29442 #0 -- effect: ENERGIZE, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29444 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29444 #1 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 3, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29445 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 2, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29445 #1 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 5, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29446 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 3, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29446 #1 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 7, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29447 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 4, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29447 #1 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "magic_absorption" )
+        end,
+
+        proc_chance = 100,
+        proc_category_recovery = 1,
+        proc_type_mask = { 131072, 0 },
+        -- Proc type flags: mask0: Take Harmful Spell
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Mana Shield - Absorbs 120-715 damage, draining mana instead. Drains $e mana per damage absorbed. Lasts 60 sec.
+    mana_shield = {
+        id = 1463,
+        cast = 0,
+        duration = 60,
+        gcd = "spell",
+        school = "arcane",
+        texture = 136153,
+        spend = 40,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 1463, 8494, 8495, 10191, 10192, 10193, 27131 },
+
+        -- Effects:
+        -- [x] Rank 1463 #0 -- effect: APPLY_AURA, aura: MANA_SHIELD, points: 119, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8494 #0 -- effect: APPLY_AURA, aura: MANA_SHIELD, points: 209, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 8495 #0 -- effect: APPLY_AURA, aura: MANA_SHIELD, points: 299, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10191 #0 -- effect: APPLY_AURA, aura: MANA_SHIELD, points: 389, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10192 #0 -- effect: APPLY_AURA, aura: MANA_SHIELD, points: 479, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 10193 #0 -- effect: APPLY_AURA, aura: MANA_SHIELD, points: 569, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27131 #0 -- effect: APPLY_AURA, aura: MANA_SHIELD, points: 714, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "mana_shield" )
+        end,
+
+        proc_chance = 100,
+        proc_type_mask = { 139944, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability; Take Ranged Attack; Take Ranged Ability; Take Harmful Ability; Take Harmful Spell
+    },
+
+-- Master of Elements - Your Fire and Frost spell criticals will refund 1/10/20/30% of their base mana cost.
+    master_of_elements = {
+        id = 29074,
+        cast = 0,
+        school = "fire",
+        texture = 135820,
+        range = 50000,
+        max_stack = 1,
+        copy = { 29074, 29075, 29076, 29077 },
+
+        -- Effects:
+        -- [x] Rank 29074 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29075 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29076 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 29077 #0 -- effect: ENERGIZE, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "master_of_elements" )
+        end,
+
+        proc_chance = 100,
+        proc_category_recovery = 0.009,
+        proc_type_mask = { 65536, 0 },
+        -- Proc type flags: mask0: Deal Harmful Spell
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Molten Armor - Causes 75 Fire damage when hit, increases your chance to critically hit with spells by 3%, and reduces the chance you are critically hit by 5%. Only one type of Armor spell can be active on the Mage at any time. Lasts 1800 sec.
     molten_armor = {
         id = 30482,
         cast = 0,
-        cooldown = 0,
+        duration = 1800,
         gcd = "spell",
+        school = "fire",
+        texture = 132221,
+        spend = 630,
+        spendType = "Mana",
+        max_stack = 1,
 
-        spend = function() return 0.280 * ( 1 - 0.01 * talent.precision.rank ) end,
-        spendType = "mana",
+        -- Effects:
+        -- [x] Rank 30482 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 34913
+        -- [x] Rank 30482 #1 -- effect: APPLY_AURA, aura: MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, points: -6, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 30482 #2 -- effect: APPLY_AURA, aura: MOD_SPELL_CRIT_CHANCE, points: 2, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        startsCombat = false,
-        essential = true,
-        nobuff = "molten_armor",
-
-        handler = function()
-            removeBuff( "unique_armor" )
+        handler = function ()
             applyBuff( "molten_armor" )
-
-            -- Effects:
-            -- [ ] 1.0 SCHOOL_DAMAGE, NONE, points: 75, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 2.0 APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 43043, triggers: molten_armor, points: 0, target: TARGET_UNIT_CASTER
-            -- [x] 2.1 APPLY_AURA, MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, points: -5, target: TARGET_UNIT_CASTER
-            -- [x] 2.2 APPLY_AURA, MOD_ABILITY_SCHOOL_MASK, points: 35, value: 1792, value1: 4, target: TARGET_UNIT_CASTER
-            -- [x] 2.3 APPLY_AURA, PERIODIC_DUMMY, tick_time: 6.0, target: TARGET_UNIT_CASTER
-            -- [x] 3.0 APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 43044, triggers: molten_armor, points: 0, target: TARGET_UNIT_CASTER
-            -- [x] 3.1 APPLY_AURA, MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, points: -5, target: TARGET_UNIT_CASTER
-            -- [x] 3.2 APPLY_AURA, MOD_ABILITY_SCHOOL_MASK, points: 35, value: 1792, value1: 4, target: TARGET_UNIT_CASTER
-            -- [x] 3.3 APPLY_AURA, PERIODIC_DUMMY, tick_time: 6.0, target: TARGET_UNIT_CASTER
         end,
 
-        -- Affected by:
-        -- [ ] glyph.molten_armor[56382.0] APPLY_AURA, ADD_FLAT_MODIFIER, EFFECT_3_VALUE, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15058.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15059.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15060.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[11124.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12378.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12398.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12399.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12400.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_absorption[29441.0] APPLY_AURA, DUMMY, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_absorption[29444.0] APPLY_AURA, DUMMY, points: 2, target: TARGET_UNIT_CASTER
-        -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.torment_the_weak[29447.0] APPLY_AURA, DUMMY, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.torment_the_weak[55339.0] APPLY_AURA, DUMMY, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.torment_the_weak[55340.0] APPLY_AURA, DUMMY, points: 12, target: TARGET_UNIT_CASTER
-
-        copy = { 30482, 34913 },
+        proc_chance = 100,
+        proc_type_mask = { 139944, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability; Take Ranged Attack; Take Ranged Ability; Take Harmful Ability; Take Harmful Spell
     },
 
-    -- Transforms the enemy into a sheep, forcing it to wander around for up to $d.  While wandering, the sheep cannot attack or cast spells but will regenerate very quickly.  Any damage will transform the target back into its normal form.  Only one target can be polymorphed at a time.  Only works on Beasts, Humanoids and Critters.
+-- Polymorph - Transforms the enemy into a sheep, forcing it to wander around for up to 20/30/40/50 sec. While wandering, the sheep cannot attack or cast spells but will regenerate very quickly. Any damage will transform the target back into its normal form. Only one target can be polymorphed at a time. Only works on Beasts, Humanoids and Critters.
     polymorph = {
-        id = 12826,
-        cast = function() return buff.presence_of_mind.up and 0 or 1.5 * haste end,
-        cooldown = 0,
+        id = 118,
+        cast = 1.5,
+        duration = 50,
         gcd = "spell",
+        school = "arcane",
+        texture = 136071,
+        range = 30,
+        spend = 60,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 118, 12824, 12825, 12826, 28271, 28272 },
 
-        spend = function() return 0.070 * ( 1 - 0.01 * talent.arcane_focus.rank ) end,
-        spendType = "mana",
-
+        -- Effects:
+        -- [x] Rank 118 #0 -- effect: APPLY_AURA, aura: MOD_CONFUSE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 118 #1 -- effect: APPLY_AURA, aura: TRANSFORM, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12824 #0 -- effect: APPLY_AURA, aura: MOD_CONFUSE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12824 #1 -- effect: APPLY_AURA, aura: TRANSFORM, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12825 #0 -- effect: APPLY_AURA, aura: MOD_CONFUSE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12825 #1 -- effect: APPLY_AURA, aura: TRANSFORM, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12826 #0 -- effect: APPLY_AURA, aura: MOD_CONFUSE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12826 #1 -- effect: APPLY_AURA, aura: TRANSFORM, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 28271 #0 -- effect: APPLY_AURA, aura: MOD_CONFUSE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 28271 #1 -- effect: APPLY_AURA, aura: TRANSFORM, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 28272 #0 -- effect: APPLY_AURA, aura: MOD_CONFUSE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 28272 #1 -- effect: APPLY_AURA, aura: TRANSFORM, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         startsCombat = true,
 
-        handler = function()
-            if buff.presence_of_mind.up then removeBuff( "presence_of_mind" ) end
-
-            active_dot.polymorph = 0
+        handler = function ()
             applyDebuff( "target", "polymorph" )
-
-            -- Effects:
-            -- [x] 1.0 APPLY_AURA, MOD_CONFUSE, points: 0, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 1.1 APPLY_AURA, TRANSFORM, value: 16372, schools: ['fire', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 2.0 APPLY_AURA, MOD_CONFUSE, points: 0, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 2.1 APPLY_AURA, TRANSFORM, value: 16372, schools: ['fire', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 3.0 APPLY_AURA, MOD_CONFUSE, points: 0, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 3.1 APPLY_AURA, TRANSFORM, value: 16372, schools: ['fire', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 4.0 APPLY_AURA, MOD_CONFUSE, points: 0, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 4.1 APPLY_AURA, TRANSFORM, value: 16372, schools: ['fire', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_TARGET_ENEMY
         end,
 
-        -- Affected by:
-        -- [ ] aura.icy_veins[12472.1] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- [x] aura.presence_of_mind[12043.0] APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[11222.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[12839.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[12840.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[11247.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[12606.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31584.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31585.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31586.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-
-        copy = { 118, 12824, 12825, 12826, 28271, 28272 },
+        proc_chance = 100,
     },
 
-    -- When activated, your next Mage spell with a casting time less than 10 sec becomes an instant cast spell.
+-- Portal: Darnassus - Creates a portal, teleporting group members that use it to Darnassus.
+    portal_darnassus = {
+        id = 11419,
+        cast = 10,
+        duration = 60,
+        cooldown = 60,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135741,
+        range = 10,
+        spend = 850,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 11419 #0 -- effect: TRANS_DOOR, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 15, target: TARGET_DEST_CASTER_FRONT, target2: NONE, mechanic: 0
+
+        radius = 3,
+    },
+
+-- Portal: Exodar - Creates a portal, teleporting group members that use it to Exodar.
+    portal_exodar = {
+        id = 32266,
+        cast = 10,
+        duration = 60,
+        cooldown = 60,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135742,
+        range = 10,
+        spend = 850,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 32266 #0 -- effect: TRANS_DOOR, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 15, target: TARGET_DEST_CASTER_FRONT, target2: NONE, mechanic: 0
+
+        radius = 3,
+
+        proc_chance = 100,
+    },
+
+-- Portal: Ironforge - Creates a portal, teleporting group members that use it to Ironforge.
+    portal_ironforge = {
+        id = 11416,
+        cast = 10,
+        duration = 60,
+        cooldown = 60,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135743,
+        range = 10,
+        spend = 850,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 11416 #0 -- effect: TRANS_DOOR, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 15, target: TARGET_DEST_CASTER_FRONT, target2: NONE, mechanic: 0
+
+        radius = 3,
+    },
+
+-- Portal: Orgrimmar - Creates a portal, teleporting group members that use it to Orgrimmar.
+    portal_orgrimmar = {
+        id = 11417,
+        cast = 10,
+        duration = 60,
+        cooldown = 60,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135744,
+        range = 10,
+        spend = 850,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 11417 #0 -- effect: TRANS_DOOR, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 15, target: TARGET_DEST_CASTER_FRONT, target2: NONE, mechanic: 0
+
+        radius = 3,
+    },
+
+-- Portal: Shattrath - Creates a portal, teleporting group members that use it to Shattrath.
+    portal_shattrath = {
+        id = 33691,
+        cast = 10,
+        duration = 60,
+        cooldown = 60,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135745,
+        range = 10,
+        spend = 850,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 33691, 35717 },
+
+        -- Effects:
+        -- [ ] Rank 33691 #0 -- effect: TRANS_DOOR, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 15, target: TARGET_DEST_CASTER_FRONT, target2: NONE, mechanic: 0
+        -- [ ] Rank 35717 #0 -- effect: TRANS_DOOR, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 15, target: TARGET_DEST_CASTER_FRONT, target2: NONE, mechanic: 0
+
+        radius = 3,
+
+        proc_chance = 100,
+    },
+
+-- Portal: Silvermoon - Creates a portal, teleporting group members that use it to Silvermoon.
+    portal_silvermoon = {
+        id = 32267,
+        cast = 10,
+        duration = 60,
+        cooldown = 60,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135746,
+        range = 10,
+        spend = 850,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 32267 #0 -- effect: TRANS_DOOR, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 15, target: TARGET_DEST_CASTER_FRONT, target2: NONE, mechanic: 0
+
+        radius = 3,
+
+        proc_chance = 100,
+    },
+
+-- Portal: Stonard - Creates a portal, teleporting group members that use it to Stonard.
+    portal_stonard = {
+        id = 49361,
+        cast = 10,
+        duration = 60,
+        cooldown = 60,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135747,
+        range = 10,
+        spend = 850,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 49361 #0 -- effect: TRANS_DOOR, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 15, target: TARGET_DEST_CASTER_FRONT, target2: NONE, mechanic: 0
+
+        radius = 3,
+
+        proc_chance = 100,
+    },
+
+-- Portal: Stormwind - Creates a portal, teleporting group members that use it to Stormwind.
+    portal_stormwind = {
+        id = 10059,
+        cast = 10,
+        duration = 60,
+        cooldown = 60,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135748,
+        range = 10,
+        spend = 850,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 10059 #0 -- effect: TRANS_DOOR, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 15, target: TARGET_DEST_CASTER_FRONT, target2: NONE, mechanic: 0
+
+        radius = 3,
+    },
+
+-- Portal: Theramore - Creates a portal, teleporting group members that use it to Theramore.
+    portal_theramore = {
+        id = 49360,
+        cast = 10,
+        duration = 60,
+        cooldown = 60,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135749,
+        range = 10,
+        spend = 850,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 49360 #0 -- effect: TRANS_DOOR, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 15, target: TARGET_DEST_CASTER_FRONT, target2: NONE, mechanic: 0
+
+        radius = 3,
+
+        proc_chance = 100,
+    },
+
+-- Portal: Thunder Bluff - Creates a portal, teleporting group members that use it to Thunder Bluff.
+    portal_thunder_bluff = {
+        id = 11420,
+        cast = 10,
+        duration = 60,
+        cooldown = 60,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135750,
+        range = 10,
+        spend = 850,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 11420 #0 -- effect: TRANS_DOOR, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 15, target: TARGET_DEST_CASTER_FRONT, target2: NONE, mechanic: 0
+
+        radius = 3,
+    },
+
+-- Portal: Undercity - Creates a portal, teleporting group members that use it to Undercity.
+    portal_undercity = {
+        id = 11418,
+        cast = 10,
+        duration = 60,
+        cooldown = 60,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135751,
+        range = 10,
+        spend = 850,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 11418 #0 -- effect: TRANS_DOOR, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 15, target: TARGET_DEST_CASTER_FRONT, target2: NONE, mechanic: 0
+
+        radius = 3,
+    },
+
+-- Presence of Mind - When activated, your next Mage spell with a casting time less than 10 sec becomes an instant cast spell.
     presence_of_mind = {
         id = 12043,
         cast = 0,
-        cooldown = function() return 120 - ( 1 - 0.15 * talent.arcane_flows.rank ) end,
-        gcd = "off",
+        cooldown = 180,
+        category_cooldown = 1.5,
+        school = "physical",
+        texture = 136031,
+        cooldown_category_id = 1151,
+        cooldown_category = "Talent - DPS",
+        max_stack = 1,
 
-        startsCombat = false,
-        toggle = "cooldowns",
+        -- Effects:
+        -- [x] Rank 12043 #0 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER, points: -101, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        handler = function()
+        handler = function ()
             applyBuff( "presence_of_mind" )
-            -- Effects:
-            -- [x] 0. APPLY_AURA, ADD_PCT_MODIFIER, points: -100, target: TARGET_UNIT_CASTER
         end,
 
-        -- Affected by:
-        -- [x] talent.arcane_flows[44378.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, points: -15, target: TARGET_UNIT_CASTER
-        -- [x] talent.arcane_flows[44379.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, points: -30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_potency[31571.0] APPLY_AURA, DUMMY, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_potency[31572.0] APPLY_AURA, DUMMY, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[11210.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
+        proc_chance = 100,
+        proc_charges = 1,
+        proc_type_mask = { 87376, 0 },
+        -- Proc type flags: mask0: Deal Melee Ability; Deal Ranged Attack; Deal Ranged Ability; Deal Helpful Ability; Deal Harmful Ability; Deal Helpful Spell; Deal Harmful Spell
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-    -- Hurls an immense fiery boulder that causes $s1 Fire damage and an additional $o2 Fire damage over $d.
+-- Pyroblast - Hurls an immense fiery boulder that causes 141-939 Fire damage and an additional 56-356 Fire damage over 12 sec.
     pyroblast = {
-        id = 33938,
-        cast = function() return buff.presence_of_mind.up and 0 or 5 end,
-        cooldown = 0,
+        id = 11366,
+        cast = 6,
+        duration = 12,
         gcd = "spell",
-
-        spend = function() return ( buff.clearcasting.up or buff.hot_streak.up ) and 0 or 0.220 * ( 1 - 0.01 * talent.precision.rank ) * ( buff.arcane_power.up and 1.2 or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = true,
-        velocity = 24,
-
-        handler = function()
-            if buff.clearcasting.up then removeBuff( "clearcasting" )
-            elseif buff.hot_streak.up then removeBuff( "hot_streak" ) end
-            if buff.presence_of_mind.up then removeBuff( "presence_of_mind" ) end
-        end,
-
-        impact = function()
-            applyDebuff( "target", "pyroblast" )
-
-            -- Effects:
-            -- [x] 1.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 1.9, points: 140, addl_points: 47, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 1.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 14, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 2.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 2.2, points: 179, addl_points: 57, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 2.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 18, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 3.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 2.6, points: 254, addl_points: 73, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 3.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 24, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 4.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 3.0, points: 328, addl_points: 91, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 4.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 31, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 5.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 3.4, points: 406, addl_points: 109, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 5.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 39, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 6.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 3.8, points: 502, addl_points: 129, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 6.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 47, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 7.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 4.2, points: 599, addl_points: 151, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 7.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 57, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 8.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 4.6, points: 707, addl_points: 191, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 8.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 67, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 9.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 5.0, points: 845, addl_points: 229, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 9.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 78, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 10.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 5.4, points: 938, addl_points: 253, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 10.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 89, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 11.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 5.8, points: 1013, addl_points: 273, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 11.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 96, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 12.0 SCHOOL_DAMAGE, NONE, sp_bonus: 1.15, points_per_level: 6.8, points: 1189, addl_points: 321, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 12.1 APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.05, points: 113, target: TARGET_UNIT_TARGET_ENEMY
-        end,
-
-        -- Affected by:
-        -- [ ] aura.arcane_power[12042.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_power[12042.1] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] aura.arcane_power[12042.2] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] aura.blazing_speed[31641.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 18350, points: 0, target: TARGET_UNIT_CASTER
-        -- [ ] aura.blazing_speed[31642.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 18350, points: 0, target: TARGET_UNIT_CASTER
-        -- [ ] aura.blazing_speed[31643.0] APPLY_AURA, MOD_INCREASE_SPEED, points: 50, target: TARGET_UNIT_CASTER
-        -- [x] aura.clearcasting[12536.0] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[11129.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[28682.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
-        -- [x] aura.fiery_payback[44440.1] APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -1750, target: TARGET_UNIT_CASTER
-        -- [x] aura.fiery_payback[44440.2] APPLY_AURA, ADD_FLAT_MODIFIER, COOLDOWN, points: 2500, target: TARGET_UNIT_CASTER
-        -- [x] aura.fiery_payback[44441.1] APPLY_AURA, ADD_FLAT_MODIFIER, CAST_TIME, points: -3500, target: TARGET_UNIT_CASTER
-        -- [x] aura.fiery_payback[44441.2] APPLY_AURA, ADD_FLAT_MODIFIER, COOLDOWN, points: 5000, target: TARGET_UNIT_CASTER
-        -- [x] aura.hot_streak[48108.0] APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, sp_bonus: 1.0, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] aura.icy_veins[12472.1] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- [ ] aura.living_bomb[44457.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 153, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[44461.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 306, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.living_bomb[55359.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 256, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[55360.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 345, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[55361.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 512, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.living_bomb[55362.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 690, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [x] aura.presence_of_mind[12043.0] APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] aura.slow[31589.0] APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.slow[31589.1] APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, DAMAGE_HEALING, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.slow[31589.2] APPLY_AURA, HASTE_SPELLS, points: -30, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] talent.arcane_instability[15058.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15058.1] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15059.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15059.1] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15060.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15060.1] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, sp_bonus: 1.0, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[11210.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burning_soul[11083.0] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 35, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burning_soul[12351.0] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 70, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44449.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44469.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44470.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44471.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 40, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44472.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11115.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11367.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 4, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11368.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 6, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.empowered_fire[31656.0] APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 5, target: TARGET_UNIT_CASTER
-        -- [ ] talent.empowered_fire[31657.0] APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.empowered_fire[31658.0] APPLY_AURA, ADD_FLAT_MODIFIER, SPELL_POWER, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[11124.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[11124.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12378.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12378.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12398.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12398.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12399.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12399.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12400.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12400.1] APPLY_AURA, ADD_PCT_MODIFIER, PERIODIC_DAMAGE_HEALING, sp_bonus: 1.0, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.flame_throwing[11100.0] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.flame_throwing[12353.0] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31679.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 6, value: 4919, schools: ['physical', 'holy', 'fire', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31680.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 12, value: 4920, schools: ['nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.playing_with_fire[31638.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.playing_with_fire[31639.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.playing_with_fire[31640.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29438.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29439.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29440.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34293.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34295.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34296.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 3, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[11170.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12982.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12983.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] talent.world_in_flames[11108.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.world_in_flames[12349.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.world_in_flames[12350.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 6, target: TARGET_UNIT_CASTER
-
+        school = "fire",
+        texture = 135808,
+        range = 35,
+        spend = 125,
+        spendType = "Mana",
+        max_stack = 1,
         copy = { 11366, 12505, 12522, 12523, 12524, 12525, 12526, 18809, 27132, 33938 },
+
+        -- Effects:
+        -- [x] Rank 11366 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 140, addl_points: 47, points_per_level: 1.9, sp_bonus: 1.15, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 11366 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 13, addl_points: 1, points_per_level: 0, sp_bonus: 0.05, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12505 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 179, addl_points: 57, points_per_level: 2.2, sp_bonus: 1.15, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12505 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 17, addl_points: 1, points_per_level: 0, sp_bonus: 0.05, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12522 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 254, addl_points: 73, points_per_level: 2.6, sp_bonus: 1.15, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12522 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 23, addl_points: 1, points_per_level: 0, sp_bonus: 0.05, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12523 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 328, addl_points: 91, points_per_level: 3, sp_bonus: 1.15, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12523 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 30, addl_points: 1, points_per_level: 0, sp_bonus: 0.05, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12524 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 406, addl_points: 109, points_per_level: 3.4, sp_bonus: 1.15, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12524 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 38, addl_points: 1, points_per_level: 0, sp_bonus: 0.05, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12525 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 502, addl_points: 129, points_per_level: 3.8, sp_bonus: 1.15, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12525 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 46, addl_points: 1, points_per_level: 0, sp_bonus: 0.05, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12526 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 599, addl_points: 151, points_per_level: 4.2, sp_bonus: 1.15, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 12526 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 56, addl_points: 1, points_per_level: 0, sp_bonus: 0.05, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 18809 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 707, addl_points: 191, points_per_level: 4.6, sp_bonus: 1.15, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 18809 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 66, addl_points: 1, points_per_level: 0, sp_bonus: 0.05, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27132 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 845, addl_points: 229, points_per_level: 5, sp_bonus: 1.15, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27132 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 77, addl_points: 1, points_per_level: 0, sp_bonus: 0.05, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 33938 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 938, addl_points: 253, points_per_level: 5.4, sp_bonus: 1.15, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 33938 #1 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 88, addl_points: 1, points_per_level: 0, sp_bonus: 0.05, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            applyDebuff( "target", "pyroblast" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "pyroblast" ) end
+        end,
+
+        proc_chance = 100,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-    -- Removes $m1 Curse from a friendly target.
-    remove_curse = {
+-- Remove Lesser Curse - Removes $m1 Curse from a friendly target.
+    remove_lesser_curse = {
         id = 475,
         cast = 0,
-        cooldown = 0,
         gcd = "spell",
+        school = "arcane",
+        texture = 136082,
+        range = 40,
+        spend_pct = 8,
+        spendType = "Mana",
+        max_stack = 1,
 
-        spend = function() return 0.080 * ( 1 - 0.01 * talent.arcane_focus.rank ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-
-        buff = "dispellable_curse",
-        handler = function()
-            removeBuff( "dispellable_curse" )
-
-            -- Effects:
-            -- [x] 0. DISPEL, NONE, value: curse, schools: ['holy'], target: TARGET_UNIT_TARGET_ALLY
-        end,
-
-        -- Affected by:
-        -- [x] talent.arcane_focus[11222.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- [x] talent.arcane_focus[12839.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [x] talent.arcane_focus[12840.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[11247.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[12606.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31584.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31585.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31586.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
+        -- Effects:
+        -- [ ] Rank 475 #0 -- effect: DISPEL, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
     },
 
-    -- TODO: Replace with Use Mana Gem.
-    -- Restores $s1 mana.
-    replenish_mana = {
-        id = 27103,
-        name = "|cff00ccff[Mana Gem]|r",
-        link = "|cff00ccff[Mana Gem]|r",
-        known = function()
-            return state.mana_gem_charges > 0
-        end,
+-- Ritual of Refreshment - Begins a ritual that creates a refreshment table. Raid members can click the table to acquire Conjured Manna Biscuits. The tables lasts for $43985d or 50 charges. Requires the caster and 2 additional party members to complete the ritual. In order to participate, all players must right-click the refreshment portal and not move until the ritual is complete.
+    ritual_of_refreshment = {
+        id = 43987,
         cast = 0,
-        cooldown = 120,
-        gcd = "off",
+        duration = 60,
+        category_cooldown = 300,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135739,
+        cooldown_category_id = 1177,
+        cooldown_category = "Ritual of Souls/Refreshment",
+        range = 30,
+        spend_pct = 80,
+        spendType = "Mana",
+        max_stack = 1,
 
-        startsCombat = false,
+        -- Effects:
+        -- [ ] Rank 43987 #0 -- effect: TRANS_DOOR, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 8, target: TARGET_DEST_CASTER_FRONT, target2: NONE, mechanic: 0
 
-        item = function() return state.mana_gem_id or 36799 end,
-        bagItem = true,
-        texture = function() return GetItemIcon( state.mana_gem_id or 36799 ) end,
+        radius = 5,
 
-        usable = function ()
-            return mana_gem_charges > 0, "requires mana_gem in bags"
-        end,
-
-        readyTime = function ()
-            local start, duration = GetItemCooldown( state.mana_gem_id )
-            return max( 0, start + duration - query_time )
-        end,
-
-        handler = function()
-            gain( mana_gem_values[ state.mana_gem_id ] * ( glyph.mana_gem.enabled and 1.4 or 1 ), "mana" )
-            mana_gem_charges = mana_gem_charges - 1
-
-            -- Effects:
-            -- Rank 1 #0 -- ENERGIZE, NONE, points: 389, addl_points: 21, target: TARGET_UNIT_CASTER, resource: mana
-            -- Rank 2 #0 -- ENERGIZE, NONE, points: 584, addl_points: 31, target: TARGET_UNIT_CASTER, resource: mana
-            -- Rank 3 #0 -- ENERGIZE, NONE, points: 828, addl_points: 43, target: TARGET_UNIT_CASTER, resource: mana
-            -- Rank 4 #0 -- ENERGIZE, NONE, points: 1072, addl_points: 55, target: TARGET_UNIT_CASTER, resource: mana
-            -- Rank 5 #0 -- ENERGIZE, NONE, points: 2339, addl_points: 121, target: TARGET_UNIT_CASTER, resource: mana
-            -- Rank 6 #0 -- ENERGIZE, NONE, points: 3329, addl_points: 171, target: TARGET_UNIT_CASTER, resource: mana
-        end,
-
-        -- Affected by:
-        -- talent.icy_veins[12472] #1 -- APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- glyph.mana_gem[56367] #0 -- APPLY_AURA, ADD_PCT_MODIFIER, SPELL_EFFECTIVENESS, points: 40, target: TARGET_UNIT_CASTER
-
-        copy = { 5405, 10052, 10057, 10058, 27103, "mana_gem", "use_mana_gem" },
+        proc_chance = 100,
     },
 
-    -- Scorch the enemy for $s1 Fire damage.
+-- Scorch - Scorch the enemy for 53-305 Fire damage.
     scorch = {
-        id = 27074,
-        cast = function() return buff.presence_of_mind.up and 0 or 1.5 * haste end,
-        cooldown = 0,
+        id = 2948,
+        cast = 1.5,
         gcd = "spell",
+        school = "fire",
+        texture = 135827,
+        range = 30,
+        spend = 50,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 2948, 8444, 8445, 8446, 10205, 10206, 10207, 27073, 27074 },
 
-        spend = function() return buff.clearcasting.up and 0 or 0.080 * ( 1 - 0.01 * talent.precision.rank ) * ( buff.arcane_power.up and 1.2 or 1 ) end,
-        spendType = "mana",
-
+        -- Effects:
+        -- [x] Rank 2948 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 52, addl_points: 13, points_per_level: 0.9, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8444 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 76, addl_points: 17, points_per_level: 1.1, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8445 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 99, addl_points: 21, points_per_level: 1.3, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8446 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 132, addl_points: 27, points_per_level: 1.5, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10205 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 161, addl_points: 31, points_per_level: 1.7, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10206 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 199, addl_points: 40, points_per_level: 1.9, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10207 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 232, addl_points: 43, points_per_level: 2.1, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27073 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 268, addl_points: 49, points_per_level: 2.3, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27074 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 304, addl_points: 57, points_per_level: 2.5, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         startsCombat = true,
 
-        handler = function()
-            if talent.improved_scorch.rank == 3 then
-                applyDebuff( "target", "improved_scorch" )
-            end
-
-            -- Effects:
-            -- [ ] 1.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 0.9, points: 52, addl_points: 13, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 10.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 2.6, points: 320, addl_points: 59, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 11.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 3.1, points: 375, addl_points: 69, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 2.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 1.1, points: 76, addl_points: 17, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 3.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 1.3, points: 99, addl_points: 21, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 4.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 1.5, points: 132, addl_points: 27, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 5.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 1.7, points: 161, addl_points: 31, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 6.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 1.9, points: 199, addl_points: 40, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 7.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 2.1, points: 232, addl_points: 43, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 8.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 2.3, points: 268, addl_points: 49, target: TARGET_UNIT_TARGET_ENEMY
-            -- [ ] 9.0 SCHOOL_DAMAGE, NONE, sp_bonus: 0.429, points_per_level: 2.5, points: 304, addl_points: 57, target: TARGET_UNIT_TARGET_ENEMY
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "scorch" ) end
         end,
 
-        -- Affected by:
-        -- [ ] aura.arcane_power[12042.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 20, target: TARGET_UNIT_CASTER
-        -- [x] aura.arcane_power[12042.1] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] aura.blazing_speed[31641.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 18350, points: 0, target: TARGET_UNIT_CASTER
-        -- [ ] aura.blazing_speed[31642.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 18350, points: 0, target: TARGET_UNIT_CASTER
-        -- [ ] aura.blazing_speed[31643.0] APPLY_AURA, MOD_INCREASE_SPEED, points: 50, target: TARGET_UNIT_CASTER
-        -- [x] aura.clearcasting[12536.0] APPLY_AURA, ADD_PCT_MODIFIER, POWER_COST, points: -1000, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[11129.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] aura.combustion[28682.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] aura.icy_veins[12472.1] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 100, target: TARGET_UNIT_CASTER
-        -- [x] aura.improved_scorch[11095.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 22959, points: 0, target: TARGET_UNIT_CASTER
-        -- [x] aura.improved_scorch[11095.1] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- [x] aura.improved_scorch[12872.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 22959, points: 0, target: TARGET_UNIT_CASTER
-        -- [x] aura.improved_scorch[12872.1] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [x] aura.improved_scorch[12873.0] APPLY_AURA, PROC_TRIGGER_SPELL, trigger_spell: 22959, points: 0, target: TARGET_UNIT_CASTER
-        -- [x] aura.improved_scorch[12873.1] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] aura.living_bomb[44457.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 153, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[44461.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 306, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.living_bomb[55359.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 256, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[55360.0] APPLY_AURA, PERIODIC_DAMAGE, tick_time: 3.0, sp_bonus: 0.2, points: 345, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.living_bomb[55361.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 512, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [ ] aura.living_bomb[55362.0] SCHOOL_DAMAGE, NONE, sp_bonus: 0.4, points: 690, radius: 10.0, target: TARGET_DEST_TARGET_ENEMY, target2: TARGET_UNIT_DEST_AREA_ENEMY
-        -- [x] aura.presence_of_mind[12043.0] APPLY_AURA, ADD_PCT_MODIFIER, CAST_TIME, points: -100, target: TARGET_UNIT_CASTER
-        -- [ ] aura.slow[31589.0] APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] aura.slow[31589.1] APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, DAMAGE_HEALING, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-        -- [ ] glyph.scorch[56371.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15058.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15059.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_instability[15060.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.burning_soul[11083.0] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 35, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burning_soul[12351.0] APPLY_AURA, ADD_PCT_MODIFIER, PUSHBACK_REDUCTION, points: 70, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44449.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44469.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 20, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44470.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44471.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 40, target: TARGET_UNIT_CASTER
-        -- [ ] talent.burnout[44472.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11115.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11367.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 4, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.critical_mass[11368.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 6, value: 4, schools: ['fire'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[11124.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12378.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12398.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12399.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 8, target: TARGET_UNIT_CASTER
-        -- [ ] talent.fire_power[12400.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 10, target: TARGET_UNIT_CASTER
-        -- [ ] talent.flame_throwing[11100.0] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.flame_throwing[12353.0] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.incineration[18459.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.incineration[18460.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.incineration[54734.0] APPLY_AURA, ADD_FLAT_MODIFIER, CRIT_CHANCE, sp_bonus: 1.0, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31679.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 6, value: 4919, schools: ['physical', 'holy', 'fire', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.molten_fury[31680.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, sp_bonus: 1.0, points: 12, value: 4920, schools: ['nature', 'frost', 'shadow'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.playing_with_fire[31638.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.playing_with_fire[31639.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.playing_with_fire[31640.0] APPLY_AURA, MOD_DAMAGE_PERCENT_DONE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29438.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [x] talent.precision[29438.1] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -1, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29439.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 2, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.precision[29440.0] APPLY_AURA, MOD_SPELL_HIT_CHANCE, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34293.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34295.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 2, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.pyromaniac[34296.0] APPLY_AURA, MOD_SPELL_CRIT_CHANCE_SCHOOL, points: 3, value: 127, schools: ['physical', 'holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[11170.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 849, schools: ['physical', 'frost', 'arcane'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12982.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 910, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.shatter[12983.0] APPLY_AURA, OVERRIDE_CLASS_SCRIPTS, value: 911, schools: ['physical', 'holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[11242.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[12467.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 4, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_impact[12469.0] APPLY_AURA, ADD_PCT_MODIFIER, DAMAGE_HEALING, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35578.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 25, target: TARGET_UNIT_CASTER
-        -- [ ] talent.spell_power[35581.0] APPLY_AURA, ADD_PCT_MODIFIER, CRIT_DAMAGE, points: 50, target: TARGET_UNIT_CASTER
-
-        copy = { 2948, 8444, 8445, 8446, 10205, 10206, 10207, 27073, 27074 },
+        proc_chance = 100,
     },
 
-    -- Reduces target's movement speed by $s1%, increases the time between ranged attacks by $s2% and increases casting time by $s3%.  Lasts $d.  Slow can only affect one target at a time.
+-- Shoot - Attack with an equipped wand.
+    shoot = {
+        id = 5019,
+        cast = 0,
+        texture = 132317,
+        cooldown_category_id = 351,
+        cooldown_category = "Ranged Weapon",
+        range = 30,
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 5019 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+    },
+
+-- Slow - Reduces target's movement speed by 50%, increases the time between ranged attacks by 50% and increases casting time by 50%. Lasts 15 sec. Slow can only affect one target at a time.
     slow = {
         id = 31589,
         cast = 0,
-        cooldown = 0,
+        duration = 15,
         gcd = "spell",
+        school = "arcane",
+        texture = 136091,
+        range = 30,
+        spend_pct = 20,
+        spendType = "Mana",
+        max_stack = 1,
 
-        spend = 0.120,
-        spendType = "mana",
-
+        -- Effects:
+        -- [x] Rank 31589 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 31589 #1 -- effect: APPLY_AURA, aura: ADD_PCT_MODIFIER_BY_SPELL_LABEL, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 31589 #2 -- effect: APPLY_AURA, aura: HASTE_SPELLS, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         startsCombat = true,
 
-        handler = function()
+        handler = function ()
             applyDebuff( "target", "slow" )
-            -- Effects:
-            -- [x] 0. APPLY_AURA, MOD_DECREASE_SPEED, mechanic: snared, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 1. APPLY_AURA, ADD_PCT_MODIFIER_BY_LABEL, points: -60, target: TARGET_UNIT_TARGET_ENEMY
-            -- [x] 2. APPLY_AURA, HASTE_SPELLS, points: -30, target: TARGET_UNIT_TARGET_ENEMY
         end,
 
-        -- Affected by:
-        -- [ ] talent.arcane_focus[11222.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[12839.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[12840.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[11247.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[12606.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31584.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31585.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31586.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
+        proc_chance = 100,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-    -- Slows friendly party or raid target's falling speed for $d.
+-- Slow Fall - Slows falling speed for 30 sec.
     slow_fall = {
         id = 130,
         cast = 0,
-        cooldown = 0,
+        duration = 30,
         gcd = "spell",
+        school = "arcane",
+        texture = 135992,
+        spend = 40,
+        spendType = "Mana",
+        max_stack = 1,
 
-        spend = 0.060,
-        spendType = "mana",
+        -- Effects:
+        -- [x] Rank 130 #0 -- effect: APPLY_AURA, aura: FEATHER_FALL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        startsCombat = false,
-        bagItem = function()
-            if glyph.slow_fall.enabled then return end
-            return 17056
-        end,
-
-        handler = function()
+        handler = function ()
             applyBuff( "slow_fall" )
-            -- Effects:
-            -- [x] 0. APPLY_AURA, FEATHER_FALL, target: TARGET_UNIT_TARGET_RAID
         end,
-
-        -- Affected by:
-        -- [x] glyph.slow_fall[57925.0] APPLY_AURA, NO_REAGENT_USE, points: 0, value: 14, schools: ['holy', 'fire', 'nature'], target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[11222.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[12839.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[12840.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[11210.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 15, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_subtlety[12592.1] APPLY_AURA, ADD_FLAT_MODIFIER, RESOURCE_GENERATION, points: 30, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[11247.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[12606.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31584.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 3, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31585.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 6, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31586.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 9, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31587.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 12, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.mind_mastery[31588.0] APPLY_AURA, MOD_SPELL_DAMAGE_OF_STAT_PERCENT, points: 15, value: 126, schools: ['holy', 'fire', 'nature', 'frost', 'shadow', 'arcane'], value1: 3, target: TARGET_UNIT_CASTER
     },
 
-    -- Steals a beneficial magic effect from the target.  This effect lasts a maximum of 2 min.
-    spellsteal = {
-        id = 30449,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = 0.200,
-        spendType = "mana",
-
-        startsCombat = true,
-
-        debuff = "stealable_magic",
-        handler = function()
-            removeDebuff( "target", "stealable_magic" )
-
-            -- Effects:
-            -- [x] 0. STEAL_BENEFICIAL_BUFF, NONE, value: 1, schools: ['physical'], target: TARGET_UNIT_TARGET_ENEMY
-        end,
-
-        -- Affected by:
-        -- [ ] talent.arcane_focus[11222.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[12839.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] talent.arcane_focus[12840.0] APPLY_AURA, ADD_FLAT_MODIFIER, HIT_CHANCE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[11247.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 3, target: TARGET_UNIT_CASTER
-        -- [ ] talent.magic_attunement[12606.1] APPLY_AURA, ADD_FLAT_MODIFIER, RANGE, points: 6, target: TARGET_UNIT_CASTER
-    },
-
-    -- Summon a Water Elemental to fight for the caster$?(s70937)[][ for $70907d].
+-- Summon Water Elemental - Summon a Water Elemental to fight for the caster for 45 sec.
     summon_water_elemental = {
         id = 31687,
         cast = 0,
-        cooldown = function() return ( glyph.water_elemental.enabled and 150 or 180 ) * ( 1 - 0.1 * talent.cold_as_ice.rank ) end,
+        duration = 45,
+        cooldown = 180,
         gcd = "spell",
+        school = "frost",
+        texture = 135862,
+        spend_pct = function () return 16 * ( 1 + -0.05 * ( talent.frost_channeling.rank or 0 ) ) end,
+        -- Talent spend scaling: frost_channeling (-5% per rank, frost school)
+        spendType = "Mana",
+        max_stack = 1,
 
-        spend = function() return 0.160 * ( talent.frost_channeling.enabled and ( 0.99 - 0.03 * talent.frost_channeling.rank ) or 1 ) end,
-        spendType = "mana",
+        -- Effects:
+        -- [x] Rank 31687 #0 -- effect: SUMMON, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 7, target: TARGET_DEST_CASTER_FRONT, target2: NONE, mechanic: 0
 
-        startsCombat = false,
+        radius = 2,
 
-        handler = function()
-            summonPet( "water_elemental", spec.auras.water_elemental.duration )
-            applyBuff( "water_elemental" )
-
-            -- Effects:
-            -- [ ] 0. DUMMY, NONE, target: TARGET_DEST_CASTER_FRONT
+        handler = function ()
+            if type( summonPet ) == "function" then summonPet( "water_elemental", 45 ) end
         end,
 
-        -- Affected by:
-        -- [ ] aura.icy_veins[56374.0] APPLY_AURA, DUMMY, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] aura.polymorph[56375.0] APPLY_AURA, DUMMY, points: 2, target: TARGET_UNIT_CASTER
-        -- [ ] glyph.eternal_water[70937.0] APPLY_AURA, DUMMY, points: 0, target: TARGET_UNIT_CASTER
-        -- [ ] glyph.water_elemental[56373.0] APPLY_AURA, ADD_FLAT_MODIFIER, COOLDOWN, points: -30000, target: TARGET_UNIT_CASTER
-        -- [x] talent.cold_as_ice[55091.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -10, target: TARGET_UNIT_CASTER
-        -- [x] talent.cold_as_ice[55092.0] APPLY_AURA, ADD_PCT_MODIFIER, COOLDOWN, sp_bonus: 1.0, points: -20, target: TARGET_UNIT_CASTER
-        -- [x] talent.enduring_winter[44557.0] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 5000, target: TARGET_UNIT_CASTER
-        -- [x] talent.enduring_winter[44560.0] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 10000, target: TARGET_UNIT_CASTER
-        -- [x] talent.enduring_winter[44561.0] APPLY_AURA, ADD_FLAT_MODIFIER, BUFF_DURATION, points: 15000, target: TARGET_UNIT_CASTER
-        -- [x] talent.frost_channeling[11160.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -4, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [x] talent.frost_channeling[12518.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -7, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-        -- [x] talent.frost_channeling[12519.0] APPLY_AURA, MOD_POWER_COST_SCHOOL_PCT, points: -10, value: 84, schools: ['fire', 'frost', 'arcane'], value1: 1, target: TARGET_UNIT_CASTER
-    }
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Teleport: Darnassus - Teleports the caster to Darnassus.
+    teleport_darnassus = {
+        id = 3565,
+        cast = 10,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135755,
+        spend = 120,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 3565 #0 -- effect: TELEPORT_UNITS, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: TARGET_DEST_DB, mechanic: 0
+        -- [ ] Rank 3565 #1 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Teleport: Exodar - Teleports the caster to Exodar.
+    teleport_exodar = {
+        id = 32271,
+        cast = 10,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135756,
+        spend = 120,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 32271 #0 -- effect: TELEPORT_UNITS, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: TARGET_DEST_DB, mechanic: 0
+        -- [ ] Rank 32271 #1 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Teleport: Ironforge - Teleports the caster to Ironforge.
+    teleport_ironforge = {
+        id = 3562,
+        cast = 10,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135757,
+        spend = 120,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 3562 #0 -- effect: TELEPORT_UNITS, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: TARGET_DEST_DB, mechanic: 0
+        -- [ ] Rank 3562 #1 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Teleport: Orgrimmar - Teleports the caster to Orgrimmar.
+    teleport_orgrimmar = {
+        id = 3567,
+        cast = 10,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135759,
+        spend = 120,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 3567 #0 -- effect: TELEPORT_UNITS, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: TARGET_DEST_DB, mechanic: 0
+        -- [ ] Rank 3567 #1 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Teleport: Shattrath - Teleports the caster to Shattrath.
+    teleport_shattrath = {
+        id = 33690,
+        cast = 10,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135760,
+        spend = 120,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 33690, 35715 },
+
+        -- Effects:
+        -- [ ] Rank 33690 #0 -- effect: TELEPORT_UNITS, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: TARGET_DEST_DB, mechanic: 0
+        -- [ ] Rank 33690 #1 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 35715 #0 -- effect: TELEPORT_UNITS, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: TARGET_DEST_DB, mechanic: 0
+        -- [ ] Rank 35715 #1 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Teleport: Silvermoon - Teleports the caster to Silvermoon.
+    teleport_silvermoon = {
+        id = 32272,
+        cast = 10,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135761,
+        spend = 120,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 32272 #0 -- effect: TELEPORT_UNITS, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: TARGET_DEST_DB, mechanic: 0
+        -- [ ] Rank 32272 #1 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Teleport: Stonard - Teleports the caster to Stonard.
+    teleport_stonard = {
+        id = 49358,
+        cast = 10,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135762,
+        spend = 120,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 49358 #0 -- effect: TELEPORT_UNITS, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: TARGET_DEST_DB, mechanic: 0
+        -- [ ] Rank 49358 #1 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Teleport: Stormwind - Teleports the caster to Stormwind.
+    teleport_stormwind = {
+        id = 3561,
+        cast = 10,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135763,
+        spend = 120,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 3561 #0 -- effect: TELEPORT_UNITS, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: TARGET_DEST_DB, mechanic: 0
+        -- [ ] Rank 3561 #1 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Teleport: Theramore - Teleports the caster to Theramore.
+    teleport_theramore = {
+        id = 49359,
+        cast = 10,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135764,
+        spend = 120,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 49359 #0 -- effect: TELEPORT_UNITS, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: TARGET_DEST_DB, mechanic: 0
+        -- [ ] Rank 49359 #1 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Teleport: Thunder Bluff - Teleports the caster to Thunder Bluff.
+    teleport_thunder_bluff = {
+        id = 3566,
+        cast = 10,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135765,
+        spend = 120,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 3566 #0 -- effect: TELEPORT_UNITS, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: TARGET_DEST_DB, mechanic: 0
+        -- [ ] Rank 3566 #1 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Teleport: Undercity - Teleports the caster to Undercity.
+    teleport_undercity = {
+        id = 3563,
+        cast = 10,
+        gcd = "spell",
+        school = "arcane",
+        texture = 135766,
+        spend = 120,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 3563 #0 -- effect: TELEPORT_UNITS, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: TARGET_DEST_DB, mechanic: 0
+        -- [ ] Rank 3563 #1 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
 } )
 
+-- Resources
+if spec.RegisterResource then
+    spec:RegisterResource( "mana" )
+end
+
+spec:RegisterRanges( "fire_blast", "flamestrike", "frostbolt", "scorch", "fireball", "pyroblast" )
 
 spec:RegisterOptions( {
     enabled = true,
 
     aoe = 3,
+    cycle = false,
 
-    gcd = 1459,
+    nameplates = false,
+    nameplateRange = 40,
+    rangeFilter = false,
 
-    nameplates = true,
-    nameplateRange = 8,
-
-    damage = false,
+    damage = true,
+    damageDots = true,
     damageExpiration = 6,
 
-    potion = "potion_of_speed",
+    potion = "tempered_potion",
 
-    -- package = "",
-    -- package1 = "",
-    -- package2 = "",
-    -- package3 = "",
+    package = "Mage",
 } )
 
-spec:RegisterSetting( "spellsteal_cooldown", 0, {
-    type = "range",
-    name = strformat( CAPACITANCE_SHIPMENT_COOLDOWN, Hekili:GetSpellLinkWithTexture( spec.abilities.spellsteal.id ) ),
-    desc = strformat( "If set above zero, %s will not be recommended more frequently than the specified timeframe (in seconds).\n\n"
-        .. "This setting can prevent %s from remaining the first recommendation when your enemy has stacking buffs or multiple buffs.",
-        Hekili:GetSpellLinkWithTexture( spec.abilities.spellsteal.id ), spec.abilities.spellsteal.name ),
-    width = "full",
-    min = 0,
-    max = 15,
-    step = 0.1
-} )
-
-spec:RegisterStateExpr( "spellsteal_cooldown", function()
-    return settings.spellsteal_cooldown or 0
-end )
-
-
-spec:RegisterSetting( "living_bomb_cap", 3, {
-    type = "range",
-    name = strformat( SPELL_MAX_CHARGES:gsub( "%%d", "%%s"), Hekili:GetSpellLinkWithTexture( spec.abilities.living_bomb.id ) ),
-    desc = strformat( "When target swapping is enabled, %s may be recommended on the specified number of targets.\n\n"
-        .. "This setting can help balance mana expenditure vs. multi-target damage.",
-        Hekili:GetSpellLinkWithTexture( spec.abilities.living_bomb.id ) ),
-    width = "full",
-    min = 1,
-    max = 10,
-    step = 1
-} )
-
-spec:RegisterStateExpr( "living_bomb_cap", function()
-    return settings.living_bomb_cap or 3
-end )
-
-
-spec:RegisterSetting( "use_cold_snap", false, {
+--[[
+spec:RegisterSetting( "scaffold_strict_range", false, {
+    name = "Scaffold: Strict Range Checks",
+    desc = "If checked, this generated profile can use stricter range checks where supported.",
     type = "toggle",
-    name = strformat( "%s %s", USE, Hekili:GetSpellLinkWithTexture( spec.abilities.cold_snap.id ) ),
-    desc = strformat( "If enabled, the default Frost priority %s may recommend to reset the cooldown of %s.",
-        Hekili:GetSpellLinkWithTexture( spec.abilities.cold_snap.id ),
-        Hekili:GetSpellLinkWithTexture( spec.abilities.icy_veins.id ) ),
+    width = "full",
 } )
+]]--
 
-spec:RegisterStateExpr( "use_cold_snap", function()
-    return settings.use_cold_snap
-end )
-
-
-spec:RegisterPackSelector( "arcane", "Arcane Wowhead", "|T135932:0|t Arcane",
-    "If you have spent more points in |W|T135932:0|t Arcane|w than in any other tree, this priority will be automatically selected for you.",
-    function( tab1, tab2, tab3 )
-        return tab1 > max( tab2, tab3 )
-    end )
-
-spec:RegisterPackSelector( "fire", "Fire Wowhead", "|T135810:0|t Fire",
-    "If you have spent more points in |W|T135810:0|t Fire|w than in any other tree, this priority will be automatically selected for you.",
-    function( tab1, tab2, tab3 )
-        return tab2 > max( tab1, tab3 )
-    end )
-
-spec:RegisterPackSelector( "frost", "Frost Wowhead", "|T135846:0|t Frost",
-    "If you have spent more points in |W|T135846:0|t Frost|w than in any other tree, this priority will be automatically selected for you.",
-    function( tab1, tab2, tab3 )
-        return tab3 > max( tab1, tab2 )
-    end )
+-- Pets (Hekili-style scaffold)
+spec:RegisterPet( "water_elemental", 31687, "summon_water_elemental", 45 )
 
 spec:RegisterPack( "Arcane Wowhead", 20230924, [[Hekili:9EvBVTTnq4FlffWjfRw2X5TLIMc01bSLGTGH5o09jjrjF2MiuKAKu2nfb63(UJ6Lqjl7g0c0Vyjt(W7nE39Ck8KWpgoFbZcH3nB6StNE1SZdMoD6StonCU9HCiCEol9E2k8fjld)996uMekJ)KA7AGTG2)bHcFbLJrvOtrmRT2CZBMmz72TbBRWfKQYMSvzf3pzvbFbmjvWmgWmjdL9eMtOtwKBgRvwMLRKJtvkXc1wPzmlHl4woygNVbLEsbxyVrgMmSHplCoRWUwPdN)7W94jr7HVybuDaWKgoNoW4PxnE2zVPm(gjkBMOm2QzsJWP8Y4LAvwRtgeoxWnwd5JmfGpUZf3ajlralc)LW5PAUf0Cgg1y6vGnyl3UMlpzkEIusK4tNtgbFoxOm0kw00DISgqUgmGmfIulJY4Yf(kaXEQp2eb)lFHP7J5mFmlf4nMXQ53dDHzPaXswHW26knNjvvirhXKdcrpz3XwDamwG1hvhRudzQnquAH2adzP7jakaPnGlXWfzkrSeJsNtsmO(aLXJkJtkwUCyuuAJdsLDeSsOsyIi7AqNHpnS8CqhLUMUPc04f8dEbnUgI2srw0ip)hHr6G0Q2GI8NmMdz4K9DrN0hv1ZoH5l9ruNbMR2c6E4(zFC80hI2aCPPhOR8bLX1ALoIN5Ao0bhM13nUrLDAEE1b)hd2(GjFGQ44Y7bRbFBnZIlQb5r4tf5WB5eomplLVKdunyJMlmqeEpKzC6A)vIeEm7dKqg28Om(DLXZ8Y0zcru1FIOQ7QA8OQUCuvoj8z7v4la39wDinb7MzdmwSxzz81LXN5UzpU(YnJBmCbIIP1y0cVIlJF8XYySGFt0Q0fbx0roLXVAN7SAru5YN(DzvdAsTzJyblxUAh9xJZP(ZgiNYPQ(Pb7V8jJjzb5POR(2Y4lN63XihlS4M1reeNuU45jf)wTWgvQRrEvZomoJ0pjm7qDU77iAUqWzsIhRtA7CihZ5sanMfH8h(2HMX9Q23rqUGBBh0b9Kxug)CeYo7ZX2kcbKAR0rFNPD7D6mtvTrmDMs3NAaJxBWwveQgMv0zXwtsmVa7i8P3)33DZD)gYCwg)X1yjkplxPX7GLkm0CunXYrOdb)xb2vdDkJkJk5lSQmKWgxa7GjxbMGYB)donmbXd)bLe1RB7JQ7U(VOuSkV)30Afx)4t(8RAp)5FZNV82BCMpDStBimkJD0942uUJAjwOeo)LLX)jg0qnvpc0T4k(t6GDnh76A(0SoJDt5WtRhWzmf1htt5GdYCWjDCcVxghzSVex(VAYMlVTYCnbTj4)01t2jZ518LxtjxJouI1HevBwejPx81e1O9NFoSwEkvSXd)1QCOw4ii)5s8x)P5q8x1FUJkr(HMySpSwsxYXoaJ(OdZIp6zpMHVYpe6Vt7zNjk81B1yc(R4pwG)6TJb4VOpTVll9BKo3xMTe6DUX7Xp)AIz(AKyMcoDP2F3SbCNggtc(EPfV(SrhVhk6hFCp0ZVAaLvFSVMU2l17OkA3HKSBIGo52(mKKgBObF7Lt9b2sc2bZjtPQSM6qmC(KQA)YKQ0VoFgt)J0)Bv6VFZ3N0F9oFtcLnqJEsKoH))]] )
 spec:RegisterPack( "Fire Wowhead", 20230925, [[Hekili:DAvxVTTnu0FlffW5HflBR20LuahG9b2wc2cgIBrFtsuuuweMIuLKkAUpOF77EPSKPKTZkgcqSn5LhE)4CVhgTk6trBYiww0tHldF3Y7cVjy5T3egUkAJDFflAtfHUJSf(IKuc))34AwBYxunfmsgU7EHc(cGIrvRPGffwBL5Jlw000e00zxavvUOrzf7wSTMNXwqfeJHzwuciVihGCrwLzUwzjwUsoNQuImvJ0mNKYfClNzMx9cGDAnxyFqgLEwNE1DGxuXOrpDl4g8SmwNLmdnAdA58L3np8Mp2M8GeaLiAtSAI0iC3ABsUwvoeBbrBeCJ1GHgrXGpEYLSyssQGLf9ZrBOAULP5eivr0Bz2GgUTGlxTeobfHeCyiqTXneW5TG3obGERYfqU1y18DmFutRZZdWSJbWhwlOUcDkjlMcP(BreF33PlfE8YY0KTkPjovZi2ceK37IXbpM)TVr0z(WAH)G0yoPwyhse9hGQQLWDcjEHy8HUy86S1yzeHx8CCX4(6)qe2FWsUwR0X8shJC0D9(X(uzATP77JS6gFR409XVW4sZeJ(GVrUAtmLunXOF03Ok1zURBNe9ipuZR6S8ZgOnIi3JuqUChZAGVvqSWIAM8k4tLTGPB4ODiPMNZziPS)kRnSyOwxAWR6UlKOf8x4YTXPq6ask7PcwChVWGfXnLK)jE8Q(NOlOpHrz5q(WQIZ4GNDFBYQW2KzTjzmhD178bUs44W(z22Abr3M88HED07HgMlXIXa5fwmtYkHHaU7ZJktjcrC3pIXM1Uw24Ujvytlc(L7ADoCHYgdTEmYUa4FuRxrDVw56FDWmLlFeMsfgYEmgOJn(4bVCl6wX(QIayQJXINjO3OJi1VfKpfDOnIMJBLsM22bHqLMHTae75gB1FAIMsGEVunxi4ejo7EuTAdRc4xPmOAHdp99CnHN5Q6Uu4jaf038E5K2BAt(Ea5K95WSgHGrThyxtcMHTF9HJoeRL8VwZIj6sLEcALq6Mj72Ay4Y5RHAvDLZlpqvZu2GCfT2eddP402K1TjEccEB5kvqX6fy4jU3Gyw0MgIwcCkOF8l)0Zp9Wt)oOz1M8PcOJJxwP0W4HCfuxU6Wq5RGSj7R1aDaYOgvjoBP2QkbnsybAbrULzcAF8pHHTTjFaq7ZstDfIeAqNZbWnmS7kW42hFOS3I3D0iNQiSnet12ci)S5py7avAK1PY5cGg922K)cMqdxJ75cpc)2)vbWC35U5UhFxWC3lc4u3JbMJJ3NJViae9F1xf4GEcpfD83cl)399aTp256MGH2IFy9It4BxZZxJuYzVgD81GAG7Hi9M)lOMDzw95VfFojEdNNdF(Z6X6WJ6iTZopHD9Y(e4V2XTgqeWXxR3F9JA3xFqpF9zKZ7G9x6lJ(a4lSp(c7fY9xDq42FXbUR)IDcZoAY)tfxF0g0CDaEIwMVPE6GxpsID9QRpr2D9evxSgDQA79RcNDbv2rPSjIIxJYHRb1qe1X6P3hokx1R3nWUMQnokDpOYHM3PboA)rAxow35L7MckkOHuWEEm45WohFiTxYP)92tn2790d8XBhIQXVOE6zh)84tVSWt9SdpyghMh9V]] )
 spec:RegisterPack( "Frost Wowhead", 20230930, [[Hekili:fJ1FpsTnq0plOkT3Du2S)4G7a0DivkQTGApv1qf9VsI3Kj76Eo2bBNBzpDkF27yNnjoztwOuHQqcYAp(nppEM5ztWIG3h4Nq0qWnlNV885V485ElE6Y5p95b(6D5qGFoj(wYA8dojd)7Fsku6YOpi2UbijMP3Xe4himkrHmgnzJwNRE5SzB3U1BBLDEXISzBfA2TZwxqtGzXmIsbQzzi0Zsnyoljxnvk0envWNgleSeXwUAkzfLr1uqnn)oe8vfuM(T8Gvdt7lrAKdXb3G8FdnjbQSeuXb()g6RxwgvTdENllPX7MEhq5QwEo1YqACf5MA45uddrsCuww(oFixdzRazzKHByisksPmK7FxzuxoGd8nJgi29ys57WrXH)DjG4VIGeGeBaq5Lxp03F9mImMWHWvskJrj8y4j00RLeAYKvfPPEhmTNX1hfkkxdmgeRni9OphuDMRzPhXlXc(FxiHWmcNeUgYmEP(7W4ne5AqD1YHxBMGPbEirMjKM1z9DbN(XcOAWJ4xvrwMGhUftdLHadYaUMWS7XCq7zwYDWK1SD5B8a0goHvzShWjRyqYWWMkIlu4Mznn2G1APOiFsfyHjcTNZ8xpFyiY3jfRWehBaFLqPQp6FdKskyTh82OxbgJLyvdJ5oUDaLgWDeJINeXjx3ouyDkxfS)yDcOlazuPuidPMC2oapEy7ljwHiG1jH26e3b3NWKl2I57oJNYW(wHXKC3bZfMVEsHccfPPHRXn3IUbfwsOItYn0YyvZavzNnmOkJToA4mUeYi4)(QlMBlf)tfugr47kJ0sk)wqRWV2GLGrejWpb)xHEdi3sn2z6GrtPqINlNm0GI1ZQwaFda5MMjaCp(lTOmcRfW4l(JDyZ4YitoaAaLVgpHrFKw36jQQUa9fndtiWiNOqXq6TLQ3GKAVDRWYdCzY9)mLkXL8ACWomlbPryQLfM41PjGniHTSUh4Ef5p8q1VRObgXdTDZ8uAuB56fNn50kS8sRDsOXXEuEykJUEJ(HhCnO7CN15WUE(MA5dCkwmHPByoNNdTBpbDgS(m8QymkgQPzWJpY(4aA0SpA4YkS1hVfC0E3fTIrV)EImXy((YDGdzyZ8xTCYJYe3HUTBok3K9AtnhCnAZjS2ZCIs5lMp5qi2xZaFkNjuMcIVoyQ2P19BQMV7YwoVZofW4PTd9NRo0mrtB9owv3K3lpwF1LDGhUteBfg7yZ5ZhmrjW)o8SehT9Meb(BjsoUhub(F4h(JBE7n)mkzxg9(nyYpnlxiXAIutrXjjv9tpPmscFSaddjyfLWu)rk0ImSbwITudtyuyjZVInslJwS8LMwMC0X25pzF(4FDsvnCZVR79HJF6IpDMNPl(BT(3SSLOtS7hSmNQ0g8d8r3Urid8)f4w8Mab(2zS3XRIP4N3yVZx1sd8DB)h4V3HbVoqJXdJDTJ0SKwzad(wPb3bB0gmyCURVCve65RN2ZxXsSvNKsc8Fuz0rKfCy1GYkgSFMlhA6q3Jax4AKRwsp7U01UgTLEg9CJroPRMyEZIQY57TIxm6(VJ6tz0KYObuGSJpUkuz0RkJUyU7P(Ean(EX8Eo3CDzjnVY0VsLRwF1OBz91IrsQC67oeb(FuPZ9W40YO(IBLrp8W(ZKregIUgR5lJoZEiDADv7OIDvaoUGhIKns2V8SLLJj8zjWHIFnxXQts0acHLrxHgulgwg94JUVDktAA2A495hN3hks2dOMqMfTXBC0viZwcS0UfXokvAuTaxR9AH8z)7HSNgPDS((WvV26Nl(24N(I6wFD5O(AVC(bOV0PDrRaVfSJ2ERV4EVgDlgVtxTuTnn7sh3lHCmNLQ2yX9axBKQ63cBeup3b1MRjybOJOOZTdCjV28w(9VYQriDGEzh8U2ED0o4)HGw2AECCBt(HFG8qAZD0l)sa5G57(s7d2mnt3OQpA029D32O(YofbDER(X1(h(14oxOW517nk9JfvAFtUDV)F8sfJx8AFWU1f7lJ79ODREGBXv7unxWy4Ob(qENRru)g)G2)e8pd]] )
+

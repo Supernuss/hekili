@@ -1,2307 +1,2748 @@
-if UnitClassBase( 'player' ) ~= 'PALADIN' then return end
+-- Paladin.lua
+-- Auto-generated class spell blocks
+-- Build: 2.5.5.66150
+-- Class: Paladin (#2)
+
+if UnitClassBase( "player" ) ~= "PALADIN" then return end
 
 local addon, ns = ...
 local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
-
 local spec = Hekili:NewSpecialization( 2 )
 
-spec:RegisterResource( Enum.PowerType.Mana )
 
-
--- Idols
-spec:RegisterGear( "libram_of_discord", 45510 )
-spec:RegisterGear( "libram_of_fortitude", 42611, 42851, 42852, 42853, 42854 )
-spec:RegisterGear( "libram_of_valiance", 47661 )
-spec:RegisterGear( "libram_of_three_truths", 50455 )
-
--- Sets
-spec:RegisterGear( "tier7ret", 43794, 43796, 43801, 43803, 43805, 40574, 40575, 40576, 40577, 40578 )
-spec:RegisterGear( "tier10ret", 50324, 50325, 50326, 50327, 50328, 51160, 51161, 51162, 51163, 51164, 51275, 51276, 51277, 51278, 51279 )
-
--- Hooks
-local LastConsecrationCast = 0
-spec:RegisterCombatLogEvent( function( _, subtype, _, sourceGUID, sourceName, _, _, destGUID, destName, destFlags, _, spellID, spellName )
-    if sourceGUID ~= state.GUID then
-        return
-    end
-end, false )
-
-local aura_assigned
-local blessing_assigned
-spec:RegisterHook( "reset_precast", function()
-    if not aura_assigned then
-        class.abilityList.assigned_aura = "|cff00ccff[Assigned Aura]|r"
-        class.abilities.assigned_aura = class.abilities[ settings.assigned_aura or "devotion_aura" ]
-
-        if faction == "horde" then
-            class.abilities.seal_of_vengeance = class.abilities.seal_of_corruption
-        end
-        aura_assigned = true
-    end
-
-    if not blessing_assigned then
-        class.abilityList.assigned_blessing = "|cff00ccff[Assigned Blessing]|r"
-        class.abilities.assigned_blessing = class.abilities[ settings.assigned_blessing or "blessing_of_kings" ]
-        blessing_assigned = true
-    end
-end )
-
+-- Effect implementation status (class-wide):
+-- Profile: mvp
+-- [x] TALENT_SPEC_SELECT (points 0/1 => primary/secondary)
+-- [x] CREATE_ITEM (basic item creation counter)
+-- [x] SCHOOL_DAMAGE (basic damage event tracking)
+-- [x] SUMMON_PET (basic active pet tracking)
+-- [x] SUMMON (basic summon event tracking)
+-- [x] APPLY_AURA (basic aura tracking for caster/enemy/ally)
 
 -- Talents
 spec:RegisterTalents( {
-    anticipation                    = {  1629, 5, 20096, 20097, 20098, 20099, 20100 },
-    ardent_defender                 = {  1751, 3, 31850, 31851, 31852 },
-    aura_mastery                    = {  1435, 1, 31821 },
-    avengers_shield                 = {  1754, 5, 31935, 32699, 32700, 48826, 48827 },
-    beacon_of_light                 = {  2192, 1, 53563 },
-    benediction                     = {  1407, 5, 20101, 20102, 20103, 20104, 20105 },
-    blessed_hands                   = {  2198, 2, 53660, 53661 },
-    blessed_life                    = {  1744, 3, 31828, 31829, 31830 },
-    blessing_of_sanctuary           = {  1431, 1, 20911 },
-    combat_expertise                = {  1753, 3, 31858, 31859, 31860 },
-    conviction                      = {  1411, 5, 20117, 20118, 20119, 20120, 20121 },
-    crusade                         = {  1755, 3, 31866, 31867, 31868 },
-    crusader_strike                 = {  1823, 1, 35395 },
-    deflection                      = {  1403, 5, 20060, 20061, 20062, 20063, 20064 },
-    divine_favor                    = {  1433, 1, 20216 },
-    divine_guardian                 = {  2281, 2, 53527, 53530 },
-    divine_illumination             = {  1747, 1, 31842 },
-    divine_intellect                = {  1449, 5, 20257, 20258, 20259, 20260, 20261 },
-    divine_purpose                  = {  1757, 2, 31871, 31872 },
-    divine_sacrifice                = {  2280, 1, 64205 },
-    divine_storm                    = {  2150, 1, 53385 },
-    divine_strength                 = {  2185, 5, 20262, 20263, 20264, 20265, 20266 },
-    divinity                        = {  1442, 5, 63646, 63647, 63648, 63649, 63650 },
-    enlightened_judgements          = {  2191, 2, 53556, 53557 },
-    eye_for_an_eye                  = {  1632, 2,  9799, 25988 },
-    fanaticism                      = {  1759, 3, 31879, 31880, 31881 },
-    guarded_by_the_light            = {  2194, 2, 53583, 53585 },
-    guardians_favor                 = {  1425, 2, 20174, 20175 },
-    hammer_of_the_righteous         = {  2196, 1, 53595 },
-    healing_light                   = {  1444, 3, 20237, 20238, 20239 },
-    heart_of_the_crusader           = {  1464, 3, 20335, 20336, 20337 },
-    holy_guidance                   = {  1746, 5, 31837, 31838, 31839, 31840, 31841 },
-    holy_power                      = {  1627, 5,  5923,  5924,  5925,  5926, 25829 },
-    holy_shield                     = {  1430, 6, 20925, 20928, 20927, 27179, 48951, 48952 },
-    holy_shock                      = {  1502, 1, 20473 },
-    illumination                    = {  1461, 5, 20210, 20212, 20213, 20214, 20215 },
-    improved_blessing_of_might      = {  1401, 2, 20042, 20045 },
-    improved_blessing_of_wisdom     = {  1446, 2, 20244, 20245 },
-    improved_concentration_aura     = {  1450, 3, 20254, 20255, 20256 },
-    improved_devotion_aura          = {  1422, 3, 20138, 20139, 20140 },
-    improved_hammer_of_justice      = {  1521, 2, 20487, 20488 },
-    improved_judgements             = {  1631, 2, 25956, 25957 },
-    improved_lay_on_hands           = {  1443, 2, 20234, 20235 },
-    improved_righteous_fury         = {  1501, 3, 20468, 20469, 20470 },
-    infusion_of_light               = {  2193, 2, 53569, 53576 },
-    judgements_of_the_just          = {  2200, 2, 53695, 53696 },
-    judgements_of_the_pure          = {  2199, 5, 53671, 53673, 54151, 54154, 54155 },
-    judgements_of_the_wise          = {  1758, 3, 31876, 31877, 31878 },
-    lights_grace                    = {  1745, 3, 31833, 31835, 31836 },
-    onehanded_weapon_specialization = {  1429, 3, 20196, 20197, 20198 },
-    pure_of_heart                   = {  1742, 2, 31822, 31823 },
-    purifying_power                 = {  1743, 2, 31825, 31826 },
-    pursuit_of_justice              = {  1634, 2, 26022, 26023 },
-    reckoning                       = {  1426, 5, 20177, 20179, 20181, 20180, 20182 },
-    redoubt                         = {  1421, 3, 20127, 20130, 20135 },
-    repentance                      = {  1441, 1, 20066 },
-    righteous_vengeance             = {  2149, 3, 53380, 53381, 53382 },
-    sacred_cleansing                = {  2190, 3, 53551, 53552, 53553 },
-    sacred_duty                     = {  1750, 2, 31848, 31849 },
-    sanctified_light                = {  1465, 3, 20359, 20360, 20361 },
-    sanctified_retribution          = {  1756, 1, 31869 },
-    sanctified_wrath                = {  2147, 2, 53375, 53376 },
-    sanctity_of_battle              = {  1761, 3, 32043, 35396, 35397 },
-    seal_of_command                 = {  1481, 1, 20375 },
-    seals_of_the_pure               = {  1463, 5, 20224, 20225, 20330, 20331, 20332 },
-    sheath_of_light                 = {  2179, 3, 53501, 53502, 53503 },
-    shield_of_the_templar           = {  2204, 3, 53709, 53710, 53711 },
-    spiritual_attunement            = {  2282, 2, 31785, 33776 },
-    spiritual_focus                 = {  1432, 5, 20205, 20206, 20207, 20209, 20208 },
-    stoicism                        = {  1748, 3, 31844, 31845, 53519 },
-    swift_retribution               = {  2148, 3, 53379, 53484, 53648 },
-    the_art_of_war                  = {  2176, 2, 53486, 53488 },
-    touched_by_the_light            = {  2195, 3, 53590, 53591, 53592 },
-    toughness                       = {  1423, 5, 20143, 20144, 20145, 20146, 20147 },
-    twohanded_weapon_specialization = {  1410, 3, 20111, 20112, 20113 },
-    unyielding_faith                = {  1628, 2,  9453, 25836 },
-    vengeance                       = {  1402, 3, 20049, 20056, 20057 },
-    vindication                     = {  1633, 2,  9452, 26016 },
+    anticipation = { 1629, 5, 20096, 20097, 20098, 20099, 20100 },
+    ardent_defender = { 1751, 5, 31850, 31851, 31852, 31853, 31854 },
+    aura_mastery = { 1435, 1, 31821 },
+    avengers_shield = { 1754, 1, 31935 },
+    benediction = { 1407, 5, 20101, 20102, 20103, 20104, 20105 },
+    blessed_life = { 1744, 3, 31828, 31829, 31830 },
+    blessing_of_kings = { 1442, 1, 20217 },
+    blessing_of_sanctuary = { 1431, 1, 20911 },
+    combat_expertise = { 1753, 5, 31858, 31859, 31860, 31861, 31862 },
+    conviction = { 1411, 5, 20117, 20118, 20119, 20120, 20121 },
+    crusade = { 1755, 3, 31866, 31867, 31868 },
+    crusader_strike = { 1823, 1, 35395 },
+    deflection = { 1403, 5, 20060, 20061, 20062, 20063, 20064 },
+    divine_favor = { 1433, 1, 20216 },
+    divine_illumination = { 1747, 1, 31842 },
+    divine_intellect = { 1449, 5, 20257, 20258, 20259, 20260, 20261 },
+    divine_purpose = { 1757, 3, 31871, 31872, 31873 },
+    divine_strength = { 1450, 5, 20262, 20263, 20264, 20265, 20266 },
+    eye_for_an_eye = { 1632, 2, 9799, 25988 },
+    fanaticism = { 1759, 5, 31879, 31880, 31881, 31882, 31883 },
+    guardians_favor = { 1425, 2, 20174, 20175 },
+    healing_light = { 1444, 3, 20237, 20238, 20239 },
+    holy_guidance = { 1746, 5, 31837, 31838, 31839, 31840, 31841 },
+    holy_power = { 1627, 5, 5923, 5924, 5925, 5926, 25829 },
+    holy_shield = { 1430, 1, 20925 },
+    holy_shock = { 1502, 1, 20473 },
+    illumination = { 1461, 5, 20210, 20212, 20213, 20214, 20215 },
+    improved_blessing_of_might = { 1401, 5, 20042, 20045, 20046, 20047, 20048 },
+    improved_blessing_of_wisdom = { 1446, 2, 20244, 20245 },
+    improved_concentration_aura = { 1626, 3, 20254, 20255, 20256 },
+    improved_devotion_aura = { 1422, 5, 20138, 20139, 20140, 20141, 20142 },
+    improved_hammer_of_justice = { 1521, 3, 20487, 20488, 20489 },
+    improved_holy_shield = { 1829, 2, 41021, 41026 },
+    improved_judgement = { 1631, 2, 25956, 25957 },
+    improved_lay_on_hands = { 1443, 2, 20234, 20235 },
+    improved_retribution_aura = { 1405, 2, 20091, 20092 },
+    improved_righteous_fury = { 1501, 3, 20468, 20469, 20470 },
+    improved_sanctity_aura = { 1756, 2, 31869, 31870 },
+    improved_seal_of_righteousness = { 1463, 5, 20224, 20225, 20330, 20331, 20332 },
+    improved_seal_of_the_crusader = { 1464, 3, 20335, 20336, 20337 },
+    lights_grace = { 1745, 3, 31833, 31835, 31836 },
+    one_handed_weapon_specialization = { 1429, 5, 20196, 20197, 20198, 20199, 20200 },
+    precision = { 1630, 3, 20189, 20192, 20193 },
+    pure_of_heart = { 1742, 3, 31822, 31823, 31824 },
+    purifying_power = { 1743, 2, 31825, 31826 },
+    pursuit_of_justice = { 1634, 3, 26022, 26023, 44414 },
+    reckoning = { 1426, 5, 20177, 20179, 20181, 20180, 20182 },
+    redoubt = { 1421, 5, 20127, 20130, 20135, 20136, 20137 },
+    repentance = { 1441, 1, 20066 },
+    sacred_duty = { 1750, 2, 31848, 31849 },
+    sanctified_judgement = { 1758, 3, 31876, 31877, 31878 },
+    sanctified_light = { 1465, 3, 20359, 20360, 20361 },
+    sanctified_seals = { 1761, 3, 32043, 35396, 35397 },
+    sanctity_aura = { 1409, 1, 20218 },
+    seal_of_command = { 1481, 1, 20375 },
+    shield_specialization = { 1424, 3, 20148, 20149, 20150 },
+    spell_warding = { 1749, 2, 31846, 31847 },
+    spiritual_focus = { 1432, 5, 20205, 20206, 20207, 20209, 20208 },
+    stoicism = { 1748, 2, 31844, 31845 },
+    toughness = { 1423, 5, 20143, 20144, 20145, 20146, 20147 },
+    two_handed_weapon_specialization = { 1410, 3, 20111, 20112, 20113 },
+    unyielding_faith = { 1628, 2, 9453, 25836 },
+    vengeance = { 1402, 5, 20049, 20056, 20057, 20058, 20059 },
+    vindication = { 1633, 3, 9452, 26016, 26021 },
 } )
 
-
--- Auras
+-- Auras (Hekili-style scaffold)
 spec:RegisterAuras( {
-    aura = {
-        alias = { "devotion_aura", "retribution_aura", "concentration_aura", "shadow_resistance_aura", "frost_resistance_aura", "fire_resistance_aura", "crusader_aura" },
-        aliasMode = "first",
-        aliasType = "buff",
-    },
-    active_consecration = {
-        duration = function() return 8 + (glyph.consecration.enabled and 2 or 0) end,
-        max_stack = 1,
-        generate = function ( t )
-            local applied = action.consecration.lastCast
 
-            if applied and now - applied < 8 + (glyph.consecration.enabled and 2 or 0) then
-                t.count = 1
-                t.expires = applied + 8 + (glyph.consecration.enabled and 2 or 0)
-                t.applied = applied
-                t.caster = "player"
-                return
-            end
+    arcane_torrent = {
+        id = 28730,
+        duration = 2,
+        max_stack = 1,
+        -- Aura effects: MOD_SILENCE
+        -- Aura targets: TARGET_SRC_CASTER, TARGET_UNIT_SRC_AREA_ENEMY
+    },
 
-            t.count = 0
-            t.expires = 0
-            t.applied = 0
-            t.caster = "nobody"
-        end,
-    },
-    -- Ardent Defender recently prevented your death.
-    ardent_defender = {
-        id = 66233,
-        duration = 120,
-        max_stack = 1,
-    },
-    -- Increases speed by $s2%.
-    argent_charger = {
-        id = 66906,
-        duration = 3600,
-        max_stack = 1,
-    },
-    -- Increases speed by $s2%.
-    argent_warhorse = {
-        id = 66907,
-        duration = 3600,
-        max_stack = 1,
-    },
-    -- Concentration Aura provides immunity to Silence and Interrupt effects.  Effectiveness of all other auras increased by $s1%.
-    aura_mastery = {
-        id = 31821,
+    avengers_shield = {
+        id = 31935,
         duration = 6,
         max_stack = 1,
-        shared = "player"
+        copy = { 31935, 32699, 32700 },
+        -- Aura effects: MOD_DECREASE_SPEED
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Dazed.
-    avengers_shield = {
-        id = 48827,
-        duration = 10,
-        max_stack = 1,
-        copy = { 31935, 32699, 32700, 48826, 48827 },
-    },
-    -- All damage and healing caused increased by $s1%.
+
     avenging_wrath = {
         id = 31884,
         duration = 20,
         max_stack = 1,
+        -- Aura effects: MOD_DAMAGE_PERCENT_DONE
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Beacon of Light.
-    beacon_of_light = {
-        id = 53563,
-        duration = function() return glyph.beacon_of_light.enabled and 90 or 60 end,
+
+    blessing_of_freedom = {
+        id = 1044,
+        duration = 10,
         max_stack = 1,
-        dot = "buff",
-        friendly = true
+        -- Aura effects: MECHANIC_IMMUNITY
+        -- Aura targets: TARGET_UNIT_TARGET_ALLY
     },
-    blessed_life = { -- TODO: Check Aura (https://wowhead.com/wotlk/spell=31830)
-        id = 31830,
-        duration = 3600,
+
+    blessing_of_kings = {
+        id = 20217,
+        duration = 600,
         max_stack = 1,
-        copy = { 31830, 31829, 31828 },
+        -- Aura effects: MOD_TOTAL_STAT_PERCENTAGE
+        -- Aura targets: TARGET_UNIT_TARGET_ALLY
     },
-    blessing = {
-        alias = { "blessing_of_kings", "blessing_of_might", "blessing_of_sanctuary", "blessing_of_wisdom", "greater_blessing_of_kings", "greater_blessing_of_might", "greater_blessing_of_sanctuary", "greater_blessing_of_wisdom" },
-        aliasMode = "first",
-        aliasType = "buff",
-    },
-    -- Increases speed by $s2%.
-    charger = {
-        id = 23214,
-        duration = 3600,
+
+    blessing_of_light = {
+        id = 19977,
+        duration = 600,
         max_stack = 1,
+        copy = { 19977, 19978, 19979, 27144 },
+        -- Aura effects: DUMMY
+        -- Aura targets: TARGET_UNIT_TARGET_ALLY
     },
-    -- $s1 damage every $t1 $lsecond:seconds;.
-    consecration = {
-        id = 48819,
-        duration = function() return glyph.consecration.enabled and 10 or 8 end,
-        tick_time = 1,
+
+    blessing_of_might = {
+        id = 19740,
+        duration = 600,
         max_stack = 1,
-        copy = { 20116, 20922, 20923, 20924, 26573, 27173, 48818, 48819 },
+        copy = { 19740, 19834, 19835, 19836, 19837, 19838, 25291, 27140 },
+        -- Aura effects: MOD_ATTACK_POWER, MOD_RANGED_ATTACK_POWER
+        -- Aura targets: TARGET_UNIT_TARGET_ALLY
     },
-    -- Mounted speed increased by $s1%.  This does not stack with other movement speed increasing effects.
-    crusader_aura = {
-        id = 32223,
-        duration = 3600,
+
+    blessing_of_protection = {
+        id = 1022,
+        duration = 10,
         max_stack = 1,
-        shared = "player"
+        copy = { 1022, 5599, 10278 },
+        -- Aura effects: MOD_PACIFY, SCHOOL_IMMUNITY
+        -- Aura targets: TARGET_UNIT_TARGET_RAID
     },
-    -- Increases armor by $s1.
-    devotion_aura = {
-        id = 48942,
-        duration = 3600,
+
+    blessing_of_sacrifice = {
+        id = 6940,
+        duration = 30,
         max_stack = 1,
-        shared = "player",
-        copy = { 465, 643, 1032, 10290, 10291, 10292, 10293, 27149, 48941, 48942 },
+        copy = { 6940, 20729, 27147, 27148 },
+        -- Aura effects: SPLIT_DAMAGE_FLAT
+        -- Aura targets: TARGET_UNIT_TARGET_RAID
     },
-    -- Critical effect chance of next Flash of Light, Holy Light, or Holy Shock spell increased by $s1%.
+
+    blessing_of_salvation = {
+        id = 1038,
+        duration = 600,
+        max_stack = 1,
+        -- Aura effects: MOD_THREAT
+        -- Aura targets: TARGET_UNIT_TARGET_RAID
+    },
+
+    blessing_of_sanctuary = {
+        id = 20911,
+        duration = 600,
+        max_stack = 1,
+        copy = { 20911, 20912, 20913, 20914, 27168 },
+        -- Aura effects: MOD_DAMAGE_TAKEN, PROC_TRIGGER_DAMAGE
+        -- Aura targets: TARGET_UNIT_TARGET_ALLY
+    },
+
+    blessing_of_wisdom = {
+        id = 19742,
+        duration = 600,
+        max_stack = 1,
+        copy = { 19742, 19850, 19852, 19853, 19854, 25290, 27142 },
+        -- Aura effects: MOD_POWER_REGEN
+        -- Aura targets: TARGET_UNIT_TARGET_ALLY
+    },
+
+    blood_corruption = {
+        id = 356110,
+        duration = 15,
+        tick_time = 3,
+        max_stack = 5,
+        -- Aura effects: PERIODIC_DAMAGE
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
+    },
+
     divine_favor = {
         id = 20216,
-        duration = 3600,
         max_stack = 1,
+        -- Aura effects: ADD_FLAT_MODIFIER
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Reduced damage taken.
-    divine_guardian = {
-        id = 70940,
-        duration = 6,
-        max_stack = 1,
-    },
-    -- Mana cost of all spells reduced by $s1%.
+
     divine_illumination = {
         id = 31842,
         duration = 15,
         max_stack = 1,
+        -- Aura effects: MOD_POWER_COST_SCHOOL_PCT
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Complete immunity but unable to move.
-    divine_intervention = {
-        id = 19753,
-        duration = 180,
-        max_stack = 1,
-    },
-    -- Gaining $o1% of total mana.  Healing spells reduced by $s2%.
-    divine_plea = {
-        id = 54428,
-        duration = 15,
-        tick_time = 3,
-        max_stack = 1,
-    },
-    -- Damage taken reduced by $s2%.
+
     divine_protection = {
         id = 498,
-        duration = 12,
+        duration = 8,
         max_stack = 1,
+        copy = { 498, 5573 },
+        -- Aura effects: MOD_PACIFY, SCHOOL_IMMUNITY
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- $s1% of all damage taken by party members redirected to the Paladin.
-    divine_sacrifice = {
-        id = 64205,
-        duration = 10,
-        max_stack = 1,
-    },
-    -- Immune to all attacks and spells, but reduces all damage you deal by $s1%.
+
     divine_shield = {
         id = 642,
         duration = 12,
         max_stack = 1,
+        copy = { 642, 1020 },
+        -- Aura effects: MOD_MELEE_HASTE, SCHOOL_IMMUNITY
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    forbearance = {
-        id = 25771,
-        duration = 120,
+
+    eye_for_an_eye = {
+        id = 9799,
         max_stack = 1,
-        shared = "player"
+        copy = { 9799, 25988, 25997 },
+        -- Aura effects: DUMMY
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Strength increased by 44.  Stacks up to 5 times.
-    formidable = {
-        id = 71187,
-        duration = 15,
-        max_stack = 5
+
+    greater_blessing_of_kings = {
+        id = 25898,
+        duration = 1800,
+        max_stack = 1,
+        -- Aura effects: MOD_TOTAL_STAT_PERCENTAGE
+        -- Aura targets: TARGET_UNIT_TARGET_AREA_RAID_CLASS
     },
-    -- Stunned.
+
+    greater_blessing_of_light = {
+        id = 25890,
+        duration = 1800,
+        max_stack = 1,
+        copy = { 25890, 27145 },
+        -- Aura effects: DUMMY
+        -- Aura targets: TARGET_UNIT_TARGET_AREA_RAID_CLASS
+    },
+
+    greater_blessing_of_might = {
+        id = 25782,
+        duration = 1800,
+        max_stack = 1,
+        copy = { 25782, 25916, 27141 },
+        -- Aura effects: MOD_ATTACK_POWER, MOD_RANGED_ATTACK_POWER
+        -- Aura targets: TARGET_UNIT_TARGET_AREA_RAID_CLASS
+    },
+
+    greater_blessing_of_salvation = {
+        id = 25895,
+        duration = 1800,
+        max_stack = 1,
+        -- Aura effects: MOD_THREAT
+        -- Aura targets: TARGET_UNIT_TARGET_AREA_RAID_CLASS
+    },
+
+    greater_blessing_of_sanctuary = {
+        id = 25899,
+        duration = 1800,
+        max_stack = 1,
+        copy = { 25899, 27169 },
+        -- Aura effects: MOD_DAMAGE_TAKEN, PROC_TRIGGER_DAMAGE
+        -- Aura targets: TARGET_UNIT_TARGET_AREA_RAID_CLASS
+    },
+
+    greater_blessing_of_wisdom = {
+        id = 25894,
+        duration = 1800,
+        max_stack = 1,
+        copy = { 25894, 25918, 27143 },
+        -- Aura effects: MOD_POWER_REGEN
+        -- Aura targets: TARGET_UNIT_TARGET_AREA_RAID_CLASS
+    },
+
     hammer_of_justice = {
-        id = 10308,
+        id = 853,
         duration = 6,
         max_stack = 1,
         copy = { 853, 5588, 5589, 10308 },
+        -- Aura effects: MOD_STUN
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Immune to movement impairing effects.
-    hand_of_freedom = {
-        id = 1044,
-        duration = function() return 6 + 2 * talent.guardians_favor.rank end,
-        max_stack = 1,
-    },
-    -- Immune to physical attacks.  Cannot attack or use physical abilities.
-    hand_of_protection = {
-        id = 10278,
-        duration = 10,
-        max_stack = 1,
-        copy = { 1022, 5599, 10278, 66009 },
-    },
-    -- Taunted.
-    hand_of_reckoning = {
-        id = 62124,
-        duration = 3,
-        max_stack = 1,
-    },
-    -- Transfers $s1% damage taken to the paladin.
-    hand_of_sacrifice = {
-        id = 6940,
-        duration = 12,
-        max_stack = 1,
-    },
-    -- Reduces total threat by $53055s1% each second.
-    hand_of_salvation = {
-        id = 1038,
-        duration = 10,
-        tick_time = 1,
-        max_stack = 1,
-    },
-    -- Block chance increased by $s1%.  $s2 Holy damage dealt to attacker when blocked.  $n charges.
+
     holy_shield = {
         id = 20925,
         duration = 10,
         max_stack = 1,
-        copy = { 20925, 20927, 20928, 27179, 48951, 48952 },
+        copy = { 20925, 27179 },
+        -- Aura effects: MOD_BLOCK_PERCENT, MOD_RATING, PROC_TRIGGER_DAMAGE
+        -- Aura targets: TARGET_UNIT_CASTER
     },
+
     holy_vengeance = {
         id = 31803,
         duration = 15,
+        tick_time = 3,
         max_stack = 5,
-        copy = { 53742, 356110, "blood_corruption" }
-    },
-    -- Stunned.
-    holy_wrath = {
-        id = 2812,
-        duration = 3,
-        max_stack = 1,
-        copy = { 2812, 10318, 27139, 48816, 48817 },
-    },
-    -- Reduces the cast time of your next Flash of Light by ${$54149m2/-1000}.1 sec or increase the critical chance of your next Holy Light by $s1%.
-    infusion_of_light = {
-        id = 54149,
-        duration = 15,
-        max_stack = 1,
-    },
-    -- Reduces melee attack speed.
-    judgements_of_the_just = {
-        id = 68055,
-        duration = 20,
-        max_stack = 1,
-        copy = { 68055 },
+        -- Aura effects: PERIODIC_DAMAGE
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
 
-    -- Casting and melee speed increased by $s1%.
-    judgements_of_the_pure = {
-        id = 54153,
-        duration = 60,
-        max_stack = 1,
-        copy = { 53655, 53656, 53657, 54152, 54153 },
-    },
-    judgement = {
-        alias = { "judgement_of_justice", "judgement_of_light", "judgement_of_wisdom" },
-        aliasMode = "first",
-        aliasType = "debuff",
-    },
     judgement_of_justice = {
         id = 20184,
         duration = 20,
         max_stack = 1,
+        copy = { 20184, 31896 },
+        -- Aura effects: PREVENTS_FLEEING, USE_NORMAL_MOVEMENT_SPEED
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
+
     judgement_of_light = {
         id = 20185,
         duration = 20,
         max_stack = 1,
+        copy = { 20185, 20344, 20345, 20346, 27162 },
+        -- Aura effects: PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
+
+    judgement_of_the_crusader = {
+        id = 20188,
+        duration = 20,
+        max_stack = 1,
+        copy = { 20188, 20300, 20301, 20302, 20303, 21183, 27159 },
+        -- Aura effects: MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, MOD_DAMAGE_TAKEN
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
+    },
+
     judgement_of_wisdom = {
         id = 20186,
         duration = 20,
         max_stack = 1,
+        copy = { 20186, 20354, 20355, 27164 },
+        -- Aura effects: PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Physical damage taken reduced by $s1%.
-    lay_on_hands = {
-        id = 20236,
-        duration = 15,
-        max_stack = 1,
-        copy = { 20233, 20236 },
-    },
-    -- The paladin's heals on you also heal the Beacon of Light.
-    lights_beacon = {
-        id = 53651,
-        duration = 2,
-        max_stack = 1,
-    },
+
     lights_grace = {
-        id = 31834,
+        id = 31833,
         duration = 15,
-        max_stack = 1
+        max_stack = 1,
+        copy = { 31833, 31834, 31835, 31836 },
+        -- Aura effects: ADD_FLAT_MODIFIER, PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Each weapon swing generates an additional attack.
-    reckoning = {
-        id = 20178,
-        duration = 8,
-        max_stack = 4,
-    },
-    -- Block chance increased by $s1%.  Lasts maximum of $n  blocks.
-    redoubt = {
-        id = 20132,
-        duration = 10,
-        max_stack = 5,
-        copy = { 20132, 20131, 20128 },
-    },
-    -- Incapacitated.
+
     repentance = {
         id = 20066,
-        duration = 60,
-        max_stack = 1,
-    },
-    -- Increases the threat generated by your Holy spells by $s1%.
-    righteous_fury = {
-        id = 25780,
-        duration = 3600,
-        max_stack = 1,
-    },
-    righteous_vengeance = {
-        id = 61840,
-        duration = 8,
-        max_stack = 1
-    },
-    -- Resistance to Disease, Magic and Poison increased by $s1%.
-    sacred_cleansing = {
-        id = 53659,
-        duration = 10,
-        max_stack = 1,
-    },
-    -- Absorbs damage and increases the casting paladin's chance to critically hit with Flash of Light by $s2%.
-    sacred_shield = {
-        id = 53601,
-        duration = function() return 30 * ( 1 + 0.5 * ( buff.divine_sacrifice.up and talent.divine_guardian.rank or 0 ) ) end,
-        max_stack = 1,
-        no_ticks = true,
-        friendly = true,
-        dot = "buff",
-        shared = "player"
-    },
-    -- Absorbs damage and increases the casting paladin's chance to critically hit with Flash of Light by 50%.
-    sacred_shield_absorb = {
-        id = 58597,
         duration = 6,
         max_stack = 1,
+        -- Aura effects: MOD_STUN
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Melee attacks deal additional Holy damage.
+
+    righteous_fury = {
+        id = 25780,
+        duration = 1800,
+        max_stack = 1,
+        copy = { 25780, 25781 },
+        -- Aura effects: MOD_DAMAGE_PERCENT_TAKEN, MOD_THREAT
+        -- Aura targets: TARGET_UNIT_CASTER
+    },
+
+    seal_of_blood = {
+        id = 31892,
+        duration = 30,
+        max_stack = 1,
+        copy = { 31892, 31893 },
+        -- Aura effects: DUMMY
+        -- Aura targets: TARGET_UNIT_CASTER
+    },
+
     seal_of_command = {
         id = 20375,
-        duration = 1800,
+        duration = 30,
         max_stack = 1,
+        copy = { 20375, 27170 },
+        -- Aura effects: DUMMY, PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Melee attacks have a chance to stun for $20170d.
+
+    seal_of_corruption = {
+        id = 348704,
+        duration = 30,
+        max_stack = 1,
+        -- Aura effects: DUMMY
+        -- Aura targets: TARGET_UNIT_CASTER
+    },
+
     seal_of_justice = {
         id = 20164,
-        duration = 1800,
+        duration = 30,
         max_stack = 1,
+        copy = { 20164, 31895 },
+        -- Aura effects: DUMMY, PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Melee attacks have a chance to heal you.
+
     seal_of_light = {
         id = 20165,
-        duration = 1800,
+        duration = 30,
         max_stack = 1,
+        copy = { 20165, 20347, 20348, 20349, 27160 },
+        -- Aura effects: DUMMY, PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Melee attacks cause an additional  ${$MWS*(0.022*$AP+0.044*$SPH)} Holy damage.
+
     seal_of_righteousness = {
-        id = 21084,
-        duration = 1800,
+        id = 20154,
+        duration = 30,
         max_stack = 1,
-        copy = { 21084, 20154 },
+        copy = { 20154, 20287, 20288, 20289, 20290, 20291, 20292, 20293, 21084, 27155 },
+        -- Aura effects: DUMMY
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Melee attacks cause Holy damage over $31803d.
+
+    seal_of_the_crusader = {
+        id = 20162,
+        duration = 30,
+        max_stack = 1,
+        copy = { 20162, 20305, 20306, 20307, 20308, 21082, 27158 },
+        -- Aura effects: DUMMY, MOD_ATTACK_POWER, MOD_ATTACKSPEED
+        -- Aura targets: TARGET_UNIT_CASTER
+    },
+
+    seal_of_the_martyr = {
+        id = 348700,
+        duration = 30,
+        max_stack = 1,
+        copy = { 348700, 348701 },
+        -- Aura effects: DUMMY
+        -- Aura targets: TARGET_UNIT_CASTER
+    },
+
     seal_of_vengeance = {
         id = 31801,
-        duration = 1800,
+        duration = 30,
         max_stack = 1,
-        copy = { 348704, "seal_of_corruption" }
+        -- Aura effects: DUMMY
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Melee attacks have a chance to restore mana.
+
     seal_of_wisdom = {
         id = 20166,
-        duration = 1800,
+        duration = 30,
         max_stack = 1,
+        copy = { 20166, 20356, 20357, 27166 },
+        -- Aura effects: DUMMY, PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    seal = {
-        alias = { "seal_of_command", "seal_of_justice", "seal_of_light", "seal_of_righteousness", "seal_of_vengeance", "seal_of_wisdom" },
-        aliasMode = "first",
-        aliasType = "buff",
-    },
-    -- Detecting Undead.
+
     sense_undead = {
         id = 5502,
-        duration = 3600,
         max_stack = 1,
+        -- Aura effects: TRACK_CREATURES
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Silenced.
-    silenced_shield_of_the_templar = {
-        id = 63529,
-        duration = 3,
-        max_stack = 1,
-    },
-    -- Stunned.
-    stun = {
-        id = 20170,
-        duration = function() return 2 + 0.5 * talent.judgements_of_the_just.rank end,
-        max_stack = 1,
-    },
-    -- Increases speed by $s2%.
+
     summon_charger = {
-        id = 34767,
-        duration = 3600,
+        id = 23214,
         max_stack = 1,
+        copy = { 23214, 34767 },
+        -- Aura effects: MOD_INCREASE_MOUNTED_SPEED, MOUNTED
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Increases speed by $s2%.
+
     summon_warhorse = {
-        id = 34769,
-        duration = 3600,
+        id = 13819,
         max_stack = 1,
+        copy = { 13819, 34769 },
+        -- Aura effects: MOD_INCREASE_MOUNTED_SPEED, MOUNTED
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Your next Flash of Light or Exorcism spell is instant cast.
-    the_art_of_war = {
-        id = 59578,
-        duration = 15,
-        max_stack = 1,
-    },
-    -- Compelled to flee.
+
     turn_evil = {
         id = 10326,
         duration = 20,
         max_stack = 1,
+        -- Aura effects: MOD_FEAR, MOD_INCREASE_SPEED
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    vengeance = {
-        id = 20053,
-        duration = 3600,
-        max_stack = 3,
-        copy = { 20052, 20050 }
+
+    turn_undead = {
+        id = 2878,
+        duration = 15,
+        max_stack = 1,
+        copy = { 2878, 5627 },
+        -- Aura effects: MOD_FEAR, MOD_INCREASE_SPEED
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Attack power reduced by $s1.
+
     vindication = {
-        id = 26017,
-        duration = 10,
+        id = 67,
+        duration = 15,
         max_stack = 1,
-        shared = "target",
-        copy = { 67, 26017 },
+        copy = { 67, 9452, 26016, 26017, 26018, 26021 },
+        -- Aura effects: MOD_TOTAL_STAT_PERCENTAGE, PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER, TARGET_UNIT_TARGET_ENEMY
     },
-    -- Increases speed by $s2%.
-    warhorse = {
-        id = 13819,
-        duration = 3600,
-        max_stack = 1,
-    },
+
 } )
 
-
--- Glyphs
-spec:RegisterGlyphs( {
-    [54930] = "avengers_shield",
-    [54938] = "avenging_wrath",
-    [63218] = "beacon_of_light",
-    [57937] = "blessing_of_kings",
-    [57958] = "blessing_of_might",
-    [57979] = "blessing_of_wisdom",
-    [54935] = "cleansing",
-    [54928] = "consecration",
-    [54927] = "crusader_strike",
-    [63223] = "divine_plea",
-    [63220] = "divine_storm",
-    [54939] = "divinity",
-    [54934] = "exorcism",
-    [54936] = "flash_of_light",
-    [63231] = "guardian_spirit",
-    [54923] = "hammer_of_justice",
-    [63219] = "hammer_of_the_righteous",
-    [54926] = "hammer_of_wrath",
-    [54937] = "holy_light",
-    [63224] = "holy_shock",
-    [56420] = "holy_wrath",
-    [54922] = "judgement",
-    [57955] = "lay_on_hands",
-    [405004] = "reckoning",
-    [54929] = "righteous_defense",
-    [63225] = "salvation",
-    [54925] = "seal_of_command",
-    [54943] = "seal_of_light",
-    [56414] = "seal_of_righteousness",
-    [56416] = "seal_of_vengeance",
-    [54940] = "seal_of_wisdom",
-    [57947] = "sense_undead",
-    [63222] = "shield_of_righteousness",
-    [54924] = "spiritual_attunement",
-    [57954] = "wise",
-    [54931] = "turn_evil",
-} )
-
-local mod_blessed_hands = setfenv( function( base )
-    return base * ( 1 - 0.15 * talent.blessed_hands.rank )
-end, state )
-
-local mod_purifying_power_cd = setfenv( function( base )
-    return base * ( 1 - 0.1667 * talent.purifying_power.rank )
-end, state )
-
-local mod_purifying_power_cost = setfenv( function( base )
-    return base * ( 1 - 0.05 * talent.purifying_power.rank )
-end, state )
-
-local mod_divine_illumination = setfenv( function( base )
-    return base * ( buff.divine_illumination.up and 0.5 or 1 )
-end, state )
-
-local mod_benediction = setfenv( function( base )
-    return base * ( 1 - 0.02 * talent.benediction.rank )
-end, state )
-
-local mod_art_of_war = setfenv( function( base )
-    return base - 0.75 * ( buff.the_art_of_war.up and talent.the_art_of_war.rank or 0 )
-end, state )
-
-
--- Abilities
+-- Abilities (Hekili-style scaffold)
 spec:RegisterAbilities( {
-    -- Causes your Concentration Aura to make all affected targets immune to Silence and Interrupt effects and improve the effect of all other auras by 100%.  Lasts 6 sec.
-    aura_mastery = {
-        id = 31821,
+
+-- Activate Primary Spec - Switch to your Primary Talent Specialization.
+    activate_primary_spec = {
+        id = 63645,
+        cast = 5,
+        texture = 236544,
+        range = 50000,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 63645 #0 -- effect: TALENT_SPEC_SELECT, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Activate Secondary Spec - Switch to your Secondary Talent Specialization.
+    activate_secondary_spec = {
+        id = 63644,
+        cast = 5,
+        texture = 236544,
+        range = 50000,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 63644 #0 -- effect: TALENT_SPEC_SELECT, aura: NONE, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Arcane Torrent - Silence all enemies within $a1 yards for 2 sec. In addition, you gain 10 Mana for each Mana Tap charge currently affecting you.
+    arcane_torrent = {
+        id = 28730,
         cast = 0,
+        duration = 2,
         cooldown = 120,
-        gcd = "off",
+        gcd = "spell",
+        school = "arcane",
+        texture = 136222,
+        max_stack = 1,
 
-        talent = "aura_mastery",
-        startsCombat = false,
-        texture = 135872,
+        -- Effects:
+        -- [ ] Rank 28730 #0 -- effect: APPLY_AURA, aura: MOD_SILENCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 28730 #1 -- effect: DUMMY, aura: NONE, points: 9, addl_points: 1, points_per_level: 2.16, sp_bonus: 0, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
+        startsCombat = true,
 
-        toggle = "cooldowns",
+        radius = 8,
 
         handler = function ()
-            applyBuff( "aura_mastery" )
         end,
+
+        proc_chance = 100,
     },
 
-
-    -- Hurls a holy shield at the enemy, dealing 477 to 573 Holy damage, Dazing them and then jumping to additional nearby enemies.  Affects 3 total targets.  Lasts 10 sec.
+-- Avenger's Shield - Hurls a holy shield at the enemy, dealing 270/370/494 Holy damage, Dazing them and then jumping to additional nearby enemies. Affects $x1 total targets. Lasts 6 sec.
     avengers_shield = {
         id = 31935,
-        cast = 0,
-        cooldown = 30,
+        cast = 1,
+        duration = 6,
+        category_cooldown = 30,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.26 ) ) end,
-        spendType = "mana",
-
-        talent = "avengers_shield",
-        startsCombat = true,
+        school = "holy",
         texture = 135874,
+        cooldown_category_id = 1158,
+        cooldown_category = "Intercept",
+        range = 30,
+        spend = 500,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 31935, 32699, 32700 },
+
+        -- Effects:
+        -- [x] Rank 31935 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 269, addl_points: 61, points_per_level: 0, sp_bonus: 0.193, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 31935 #1 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 32699 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 369, addl_points: 83, points_per_level: 0, sp_bonus: 0.193, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 32699 #1 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 32700 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 493, addl_points: 109, points_per_level: 0, sp_bonus: 0.193, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 32700 #1 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        startsCombat = true,
 
         handler = function ()
             applyDebuff( "target", "avengers_shield" )
-            if talent.shield_of_the_templar.rank == 3 then applyDebuff( "target", "silenced_shield_of_the_templar" ); interrupt() end
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "avengers_shield" ) end
         end,
 
-        copy = { 31935, 32699, 32700, 48826, 48827 },
+        proc_chance = 100,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Increases all damage and healing caused by 20% for 20 sec.  Cannot be used within 30 sec of being the target of Divine Shield, Divine Protection, or Hand of Protection, or of using Lay on Hands on oneself.
+-- Avenging Wrath - Increases all damage caused by 30% for 20 sec. Causes Forebearance, preventing the use of Divine Shield, Divine Protection, Blessing of Protection again for $25771d.
     avenging_wrath = {
         id = 31884,
         cast = 0,
-        cooldown = function() return 180 - 30 * talent.sanctified_wrath.rank end,
-        gcd = "off",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.08 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
+        duration = 20,
+        cooldown = 180,
+        school = "holy",
         texture = 135875,
+        spend_pct = 8,
+        spendType = "Mana",
+        max_stack = 1,
 
-        toggle = "cooldowns",
-
-        nodebuff = "forbearance",
+        -- Effects:
+        -- [x] Rank 31884 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_PERCENT_DONE, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
             applyBuff( "avenging_wrath" )
         end,
+
+        proc_chance = 100,
+
+        -- Aura restrictions: exclude_caster_state=17
     },
 
-
-    -- The target becomes a Beacon of Light to all members of your party or raid within a 60 yard radius.  Any heals you cast on party or raid members will also heal the Beacon for 100% of the amount healed.  Only one target can be the Beacon of Light at a time. Lasts 1 min.
-    beacon_of_light = {
-        id = 53563,
+-- Berserking - Increases your casting and attack speed by $26635m1% to $26635M1%. At full health the speed increase is $26635m1% with a greater effect up to $26635M1% if you are badly hurt when you activate Berserking. Lasts $26635d.
+    berserking = {
+        id = 20554,
         cast = 0,
-        cooldown = 0,
+        cooldown = 180,
+        school = "physical",
+        texture = 135727,
+        spend_pct = 6,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 20554 #0 -- effect: DUMMY, aura: NONE, points: 24, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Blessing of Freedom - Places a Blessing on the friendly target, granting immunity to movement impairing effects for 10 sec. Players may only have one Blessing on them per Paladin at any one time.
+    blessing_of_freedom = {
+        id = 1044,
+        cast = 0,
+        duration = 10,
+        cooldown = 25,
         gcd = "spell",
+        school = "holy",
+        texture = 135968,
+        range = 30,
+        spend_pct = 8,
+        spendType = "Mana",
+        max_stack = 1,
 
-        spend = function() return mod_benediction( mod_divine_illumination( 0.35 ) ) end,
-        spendType = "mana",
-
-        talent = "beacon_of_light",
-        startsCombat = false,
-        texture = 236247,
+        -- Effects:
+        -- [x] Rank 1044 #0 -- effect: APPLY_AURA, aura: MECHANIC_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 1044 #1 -- effect: APPLY_AURA, aura: MECHANIC_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
 
         handler = function ()
-            applyBuff( "beacon_of_light" )
+            applyBuff( "blessing_of_freedom" )
         end,
     },
 
-
-    -- Places a Blessing on the friendly target, increasing total stats by 10% for 10 min.  Players may only have one Blessing on them per Paladin at any one time.
+-- Blessing of Kings - Places a Blessing on the friendly target, increasing total stats by 10% for 600 sec. Players may only have one Blessing on them per Paladin at any one time.
     blessing_of_kings = {
         id = 20217,
         cast = 0,
-        cooldown = 0,
+        duration = 600,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( glyph.blessing_of_kings.enabled and 0.03 or 0.06 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135995,
+        range = 30,
+        spend_pct = 6,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 20217 #0 -- effect: APPLY_AURA, aura: MOD_TOTAL_STAT_PERCENTAGE, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
 
         handler = function ()
-            removeBuff( "blessing" )
             applyBuff( "blessing_of_kings" )
+        end,
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Blessing of Light - Places a Blessing on the friendly target, increasing the effects of Holy Light spells used on the target by up to 210/300/400/580 and the effects of Flash of Light spells used on the target by up to 60/85/115/185. Lasts 600 sec. Players may only have one Blessing on them per Paladin at any one time.
+    blessing_of_light = {
+        id = 19977,
+        cast = 0,
+        duration = 600,
+        gcd = "spell",
+        school = "holy",
+        texture = 135943,
+        range = 30,
+        spend = 85,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 19977, 19978, 19979, 27144 },
+
+        -- Effects:
+        -- [x] Rank 19977 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 209, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19977 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 59, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19978 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 299, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19978 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 84, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19979 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 399, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19979 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 114, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 27144 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 579, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 27144 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 184, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "blessing_of_light" )
         end,
     },
 
-
-    -- Places a Blessing on the friendly target, increasing attack power by 20 for 10 min.  Players may only have one Blessing on them per Paladin at any one time.
+-- Blessing of Might - Places a Blessing on the friendly target, increasing attack power by 20-220 for 600 sec. Players may only have one Blessing on them per Paladin at any one time.
     blessing_of_might = {
         id = 19740,
         cast = 0,
-        cooldown = 0,
+        duration = 600,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.05 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135906,
+        range = 30,
+        spend = 20,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 19740, 19834, 19835, 19836, 19837, 19838, 25291, 27140 },
+
+        -- Effects:
+        -- [x] Rank 19740 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19740 #1 -- effect: APPLY_AURA, aura: MOD_RANGED_ATTACK_POWER, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19834 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 34, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19834 #1 -- effect: APPLY_AURA, aura: MOD_RANGED_ATTACK_POWER, points: 34, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19835 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 54, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19835 #1 -- effect: APPLY_AURA, aura: MOD_RANGED_ATTACK_POWER, points: 54, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19836 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 84, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19836 #1 -- effect: APPLY_AURA, aura: MOD_RANGED_ATTACK_POWER, points: 84, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19837 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 114, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19837 #1 -- effect: APPLY_AURA, aura: MOD_RANGED_ATTACK_POWER, points: 114, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19838 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 154, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19838 #1 -- effect: APPLY_AURA, aura: MOD_RANGED_ATTACK_POWER, points: 154, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 25291 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 184, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 25291 #1 -- effect: APPLY_AURA, aura: MOD_RANGED_ATTACK_POWER, points: 184, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 27140 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 219, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 27140 #1 -- effect: APPLY_AURA, aura: MOD_RANGED_ATTACK_POWER, points: 219, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
 
         handler = function ()
-            removeBuff( "blessing" )
             applyBuff( "blessing_of_might" )
         end,
-
-        copy = { 19834, 19835, 19836, 19837, 19838, 25291, 27140, 48931, 48932 },
     },
 
+-- Blessing of Protection - A targeted party member is protected from all physical attacks for 6/8/10 sec, but during that time they cannot attack or use physical abilities. Players may only have one Blessing on them per Paladin at any one time. Once protected, the target cannot be made invulnerable by Divine Shield, Divine Protection or Blessing of Protection again for $25771d.
+    blessing_of_protection = {
+        id = 1022,
+        cast = 0,
+        duration = 10,
+        category_cooldown = 300,
+        gcd = "spell",
+        school = "holy",
+        texture = 135964,
+        cooldown_category_id = 20,
+        cooldown_category = "Invulnerability (Other)",
+        range = 30,
+        spend = 25,
+        spend_pct = 6,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 1022, 5599, 10278 },
 
-    -- Places a Blessing on the friendly target, reducing damage taken from all sources by 3% for 10 min and increasing strength and stamina by 10%.  In addition, when the target blocks, parries, or dodges a melee attack the target will gain 2% of maximum displayed mana.  Players may only have one Blessing on them per Paladin at any one time.
+        -- Effects:
+        -- [ ] Rank 1022 #0 -- effect: APPLY_AURA, aura: SCHOOL_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 1022 #1 -- effect: APPLY_AURA, aura: MOD_PACIFY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 5599 #0 -- effect: APPLY_AURA, aura: SCHOOL_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 5599 #1 -- effect: APPLY_AURA, aura: MOD_PACIFY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 10278 #0 -- effect: APPLY_AURA, aura: SCHOOL_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 10278 #1 -- effect: APPLY_AURA, aura: MOD_PACIFY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+
+        handler = function ()
+        end,
+
+        -- Aura restrictions: exclude_target_aura_spell=25771
+
+        usable = function ()
+            return ( not debuff.forbearance or not debuff.forbearance.up )
+        end,
+    },
+
+-- Blessing of Sacrifice - Places a Blessing on the party member, transfering 45/55/81/104 damage taken per hit to the caster. Lasts 30 sec. Players may only have one Blessing on them per Paladin at any one time.
+    blessing_of_sacrifice = {
+        id = 6940,
+        cast = 0,
+        duration = 30,
+        category_cooldown = 30,
+        gcd = "spell",
+        school = "holy",
+        texture = 135966,
+        cooldown_category_id = 1186,
+        cooldown_category = "Blessing of Sacrifice",
+        range = 30,
+        spend = 80,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 6940, 20729, 27147, 27148 },
+
+        -- Effects:
+        -- [ ] Rank 6940 #0 -- effect: APPLY_AURA, aura: SPLIT_DAMAGE_FLAT, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 20729 #0 -- effect: APPLY_AURA, aura: SPLIT_DAMAGE_FLAT, points: 54, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 27147 #0 -- effect: APPLY_AURA, aura: SPLIT_DAMAGE_FLAT, points: 80, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 27148 #0 -- effect: APPLY_AURA, aura: SPLIT_DAMAGE_FLAT, points: 103, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+
+        handler = function ()
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Blessing of Salvation - Places a Blessing on the party member, reducing the amount of all threat generated by 30% for 600 sec. Players may only have one Blessing on them per Paladin at any one time.
+    blessing_of_salvation = {
+        id = 1038,
+        cast = 0,
+        duration = 600,
+        gcd = "spell",
+        school = "holy",
+        texture = 135967,
+        range = 30,
+        spend_pct = 6,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 1038 #0 -- effect: APPLY_AURA, aura: MOD_THREAT, points: -31, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+
+        handler = function ()
+        end,
+    },
+
+-- Blessing of Sanctuary - Places a Blessing on the friendly target, reducing damage dealt from all sources by up to 10/14/19/24/80 for 600 sec. In addition, when the target blocks a melee attack the attacker will take 14/21/28/35/46 Holy damage. Players may only have one Blessing on them per Paladin at any one time.
     blessing_of_sanctuary = {
         id = 20911,
         cast = 0,
-        cooldown = 0,
+        duration = 600,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.07 ) ) end,
-        spendType = "mana",
-
-        talent = "blessing_of_sanctuary",
-        startsCombat = false,
+        school = "holy",
         texture = 136051,
+        range = 30,
+        spend = 60,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 20911, 20912, 20913, 20914, 27168 },
+
+        -- Effects:
+        -- [x] Rank 20911 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: -11, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 20911 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_DAMAGE, points: 13, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 20912 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: -15, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 20912 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_DAMAGE, points: 20, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 20913 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: -20, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 20913 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_DAMAGE, points: 27, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 20914 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: -25, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 20914 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_DAMAGE, points: 34, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 27168 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: -81, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 27168 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_DAMAGE, points: 45, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
 
         handler = function ()
-            removeBuff( "blessing" )
             applyBuff( "blessing_of_sanctuary" )
         end,
+
+        proc_chance = 100,
+        proc_type_mask = { 40, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Places a Blessing on the friendly target, restoring 10 mana every 5 seconds for 10 min.  Players may only have one Blessing on them per Paladin at any one time.
+-- Blessing of Wisdom - Places a Blessing on the friendly target, restoring 10-41 mana every 5 seconds for 600 sec. Players may only have one Blessing on them per Paladin at any one time.
     blessing_of_wisdom = {
         id = 19742,
         cast = 0,
-        cooldown = 0,
+        duration = 600,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.05 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135970,
+        range = 30,
+        spend = 30,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 19742, 19850, 19852, 19853, 19854, 25290, 27142 },
+
+        -- Effects:
+        -- [x] Rank 19742 #0 -- effect: APPLY_AURA, aura: MOD_POWER_REGEN, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19850 #0 -- effect: APPLY_AURA, aura: MOD_POWER_REGEN, points: 14, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19852 #0 -- effect: APPLY_AURA, aura: MOD_POWER_REGEN, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19853 #0 -- effect: APPLY_AURA, aura: MOD_POWER_REGEN, points: 24, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 19854 #0 -- effect: APPLY_AURA, aura: MOD_POWER_REGEN, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 25290 #0 -- effect: APPLY_AURA, aura: MOD_POWER_REGEN, points: 32, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 27142 #0 -- effect: APPLY_AURA, aura: MOD_POWER_REGEN, points: 40, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
 
         handler = function ()
-            removeBuff( "blessing" )
             applyBuff( "blessing_of_wisdom" )
         end,
-
-        copy = { 19850, 19852, 19853, 19854, 25290, 27142, 48935, 48936 },
     },
 
-
-    -- Cleanses a friendly target, removing 1 poison effect, 1 disease effect, and 1 magic effect.
-    cleanse = {
-        id = 4987,
+-- Blood Corruption - 30 Holy damage every $t1 sec.
+    blood_corruption = {
+        id = 356110,
         cast = 0,
-        cooldown = 0,
-        gcd = "spell",
+        duration = 15,
+        school = "holy",
+        texture = 135969,
+        range = 100,
+        max_stack = 5,
 
-        spend = function() return mod_benediction( mod_divine_illumination( mod_purifying_power_cost( 0.06 ) ) * ( glyph.cleansing.enabled and 0.8 or 1 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-        texture = 135953,
-
-        buff = function()
-            if buff.dispellable_poison.up then return "dispellable_poison" end
-            if buff.dispellable_disease.up then return "dispellable_disease" end
-            return "dispellable_magic"
-        end,
-
-        handler = function ()
-            removeBuff( "dispellable_poison" )
-            removeBuff( "dispellable_disease" )
-            removeBuff( "dispellable_magic" )
-        end,
-    },
-
-
-    -- All party or raid members within 40 yards lose 35% less casting or channeling time when damaged.  Players may only have one Aura on them per Paladin at any one time.
-    concentration_aura = {
-        id = 19746,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        startsCombat = false,
-        texture = 135933,
-
-        handler = function ()
-            removeBuff( "aura" )
-            applyBuff( "concentration_aura" )
-        end,
-    },
-
-
-    -- Consecrates the land beneath the Paladin, doing 239 Holy damage over 8 sec to enemies who enter the area.
-    consecration = {
-        id = 26573,
-        cast = 0,
-        cooldown = function() return glyph.consecration.enabled and 10 or 8 end,
-        gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( mod_purifying_power_cost( 0.22 ) ) ) end,
-        spendType = "mana",
-
+        -- Effects:
+        -- [x] Rank 356110 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0.034, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         startsCombat = true,
-        texture = 135926,
 
         handler = function ()
-            applyBuff( "active_consecration" )
-            applyDebuff( "target", "consecration" )
-        end,
-
-        copy = { 20116, 20922, 20923, 20924, 27173, 48818, 48819 },
-    },
-
-
-    -- Increases the mounted speed by 20% for all party and raid members within 40 yards.  Players may only have one Aura on them per Paladin at any one time.  This does not stack with other movement speed increasing effects.
-    crusader_aura = {
-        id = 32223,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        startsCombat = false,
-        texture = 135890,
-
-        handler = function ()
-            removeBuff( "aura" )
-            applyBuff( "crusader_aura" )
-        end,
-    },
-
-
-    -- An instant strike that causes 75% weapon damage.
-    crusader_strike = {
-        id = 35395,
-        cast = 0,
-        cooldown = 4,
-        gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.05 ) ) * ( glyph.crusader_strike.enabled and 0.8 or 1 ) end,
-        spendType = "mana",
-
-        talent = "crusader_strike",
-        startsCombat = true,
-        texture = 135891,
-
-        handler = function ()
-            if set_bonus.libram_of_three_truths then
-                applyBuff("formidable")
+            if debuff.blood_corruption.up then
+                applyDebuff( "target", "blood_corruption", nil, min( debuff.blood_corruption.max_stack, debuff.blood_corruption.stack + 1 ) )
+            else
+                applyDebuff( "target", "blood_corruption", nil, 1 )
             end
         end,
     },
 
-
-    -- Gives 1205 additional armor to party and raid members within 40 yards.  Players may only have one Aura on them per Paladin at any one time.
-    devotion_aura = {
-        id = 48942,
+-- Cleanse - Cleanses a friendly target, removing 1 poison effect, 1 disease effect, and 1 magic effect.
+    cleanse = {
+        id = 4987,
         cast = 0,
-        cooldown = 0,
         gcd = "spell",
+        school = "holy",
+        texture = 135953,
+        range = 40,
+        spend_pct = 6,
+        spendType = "Mana",
+        max_stack = 1,
 
-        startsCombat = false,
-        texture = 135893,
-
-        nobuff = "devotion_aura",
-
-        handler = function ()
-            removeBuff( "aura" )
-            applyBuff( "devotion_aura" )
-        end,
+        -- Effects:
+        -- [ ] Rank 4987 #0 -- effect: DISPEL, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 4987 #1 -- effect: DISPEL, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 4987 #2 -- effect: DISPEL, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
     },
 
+-- Concentration Aura - Gives a 35% chance of ignoring spell interruption when damaged to all party members within $a1 yards. Players may only have one Aura on them per Paladin at any one time.
+    concentration_aura = {
+        id = 19746,
+        cast = 0,
+        gcd = "spell",
+        school = "holy",
+        texture = 135933,
+        max_stack = 1,
 
-    -- When activated, gives your next Flash of Light, Holy Light, or Holy Shock spell a 100% critical effect chance.
+        -- Effects:
+        -- [ ] Rank 19746 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: REDUCE_PUSHBACK, points: 34, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 19746 #1 -- effect: APPLY_AREA_AURA_PARTY, aura: MECHANIC_DURATION_MOD_NOT_STACK, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 19746 #2 -- effect: APPLY_AREA_AURA_PARTY, aura: MECHANIC_DURATION_MOD_NOT_STACK, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        radius = 30,
+    },
+
+-- Consecration - Consecrates the land beneath the Paladin, doing 64-512 Holy damage over 8 sec to enemies who enter the area.
+    consecration = {
+        id = 20116,
+        cast = 0,
+        duration = 8,
+        category_cooldown = 8,
+        gcd = "spell",
+        school = "holy",
+        texture = 135926,
+        cooldown_category_id = 932,
+        cooldown_category = "Consecration",
+        spend = 205,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 20116, 20922, 20923, 20924, 26573, 27173 },
+
+        -- Effects:
+        -- [ ] Rank 20116 #0 -- effect: PERSISTENT_AREA_AURA, aura: PERIODIC_DAMAGE, points: 14, addl_points: 1, points_per_level: 0, sp_bonus: 0.119, radius_idx: 14, target: TARGET_DEST_CASTER, target2: TARGET_UNIT_DEST_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 20922 #0 -- effect: PERSISTENT_AREA_AURA, aura: PERIODIC_DAMAGE, points: 23, addl_points: 1, points_per_level: 0, sp_bonus: 0.119, radius_idx: 14, target: TARGET_DEST_CASTER, target2: TARGET_UNIT_DEST_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 20923 #0 -- effect: PERSISTENT_AREA_AURA, aura: PERIODIC_DAMAGE, points: 34, addl_points: 1, points_per_level: 0, sp_bonus: 0.119, radius_idx: 14, target: TARGET_DEST_CASTER, target2: TARGET_UNIT_DEST_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 20924 #0 -- effect: PERSISTENT_AREA_AURA, aura: PERIODIC_DAMAGE, points: 47, addl_points: 1, points_per_level: 0, sp_bonus: 0.119, radius_idx: 14, target: TARGET_DEST_CASTER, target2: TARGET_UNIT_DEST_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 26573 #0 -- effect: PERSISTENT_AREA_AURA, aura: PERIODIC_DAMAGE, points: 7, addl_points: 1, points_per_level: 0, sp_bonus: 0.119, radius_idx: 14, target: TARGET_DEST_CASTER, target2: TARGET_UNIT_DEST_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 27173 #0 -- effect: PERSISTENT_AREA_AURA, aura: PERIODIC_DAMAGE, points: 63, addl_points: 1, points_per_level: 0, sp_bonus: 0.119, radius_idx: 14, target: TARGET_DEST_CASTER, target2: TARGET_UNIT_DEST_AREA_ENEMY, mechanic: 0
+        startsCombat = true,
+
+        radius = 8,
+    },
+
+-- Crusader Aura - Increases the mounted speed by 20% for all party members within $a1 yards. Players may only have one Aura on them per Paladin at any one time. This does not stack with other movement speed increasing effects.
+    crusader_aura = {
+        id = 32223,
+        cast = 0,
+        gcd = "spell",
+        school = "holy",
+        texture = 135890,
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 32223 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_MOUNTED_SPEED_NOT_STACK, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 32223 #1 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_FLIGHT_SPEED_NOT_STACK, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        radius = 30,
+
+        proc_chance = 100,
+    },
+
+-- Crusader Strike - An instant strike that causes 110% weapon damage and refreshes all Judgements on the target.
+    crusader_strike = {
+        id = 35395,
+        cast = 0,
+        cooldown = 6,
+        gcd = "spell",
+        school = "physical",
+        texture = 135891,
+        range = 5,
+        spend_pct = 8,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 35395 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 35395 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 109, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        proc_chance = 100,
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Devotion Aura - Gives 55-861 additional armor to party members within $a1 yards. Players may only have one Aura on them per Paladin at any one time.
+    devotion_aura = {
+        id = 465,
+        cast = 0,
+        gcd = "spell",
+        school = "holy",
+        texture = 135893,
+        max_stack = 1,
+        copy = { 465, 643, 1032, 10290, 10291, 10292, 10293, 27149 },
+
+        -- Effects:
+        -- [ ] Rank 465 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE, points: 54, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 643 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE, points: 274, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 1032 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE, points: 504, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 10290 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE, points: 159, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 10291 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE, points: 389, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 10292 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE, points: 619, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 10293 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE, points: 734, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 27149 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE, points: 860, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        radius = 30,
+    },
+
+-- Divine Favor - When activated, gives your next Flash of Light, Holy Light, or Holy Shock spell a 10% critical effect chance.
     divine_favor = {
         id = 20216,
         cast = 0,
         cooldown = 120,
-        gcd = "off",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.03 ) ) end,
-        spendType = "mana",
-
-        talent = "divine_favor",
-        startsCombat = false,
+        school = "holy",
         texture = 135915,
+        spend_pct = 3,
+        spendType = "Mana",
+        max_stack = 1,
 
-        toggle = "cooldowns",
+        -- Effects:
+        -- [x] Rank 20216 #0 -- effect: APPLY_AURA, aura: ADD_FLAT_MODIFIER, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
             applyBuff( "divine_favor" )
         end,
+
+        proc_chance = 100,
+        proc_charges = 1,
+        proc_type_mask = { 81920, 0 },
+        -- Proc type flags: mask0: Deal Helpful Spell; Deal Harmful Spell
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Reduces the mana cost of all spells by 50% for 15 sec.
+-- Divine Illumination - Reduces the mana cost of all spells by 50% for 15 sec.
     divine_illumination = {
         id = 31842,
         cast = 0,
+        duration = 15,
         cooldown = 180,
-        gcd = "off",
-
-        talent = "divine_illumination",
-        startsCombat = false,
+        school = "holy",
         texture = 135895,
+        max_stack = 1,
 
-        toggle = "cooldowns",
+        -- Effects:
+        -- [x] Rank 31842 #0 -- effect: APPLY_AURA, aura: MOD_POWER_COST_SCHOOL_PCT, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
             applyBuff( "divine_illumination" )
         end,
+
+        proc_chance = 100,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- The paladin sacrifices herself to remove the targeted party member from harm's way.  Enemies will stop attacking the protected party member, who will be immune to all harmful attacks but will not be able to take any action for 3 min.
+-- Divine Intervention - The paladin sacrifices $ghimself:herself; to remove the targeted party member from harms way. Enemies will stop attacking the protected party member, who will be immune to all harmful attacks but cannot take any action for $19753d.
     divine_intervention = {
         id = 19752,
         cast = 0,
-        cooldown = 600,
+        cooldown = 3600,
         gcd = "spell",
-
-        startsCombat = false,
+        school = "holy",
         texture = 136106,
+        range = 40,
+        max_stack = 1,
 
-        toggle = "cooldowns",
-
-        handler = function ()
-            applyBuff( "target", "divine_intervention" )
-            health.current = 0
-        end,
+        -- Effects:
+        -- [ ] Rank 19752 #0 -- effect: SANCTUARY, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 19752 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0, trigger_spell_id: 19753
+        -- [ ] Rank 19752 #2 -- effect: INSTAKILL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
     },
 
-
-    -- You gain 25% of your total mana over 15 sec, but the amount healed by your Flash of Light, Holy Light, and Holy Shock spells is reduced by 50%.
-    divine_plea = {
-        id = 54428,
-        cast = 0,
-        cooldown = 60,
-        gcd = "spell",
-
-        startsCombat = false,
-        texture = 237537,
-        nobuff = "divine_plea",
-
-        toggle = "cooldowns",
-
-        handler = function ()
-            applyBuff( "divine_plea" )
-        end,
-    },
-
-
-    -- Reduces all damage taken by 50% for 12 sec.  Once protected, the target cannot be targeted by Divine Shield, Divine Protection, or Hand of Protection again for 2 min.  Cannot be used within 30 sec of using Avenging Wrath.
+-- Divine Protection - You are protected from all physical attacks and spells for 6/8 sec, but during that time you cannot attack or use physical abilities yourself. Once protected, the target cannot be made invulnerable by Divine Shield, Divine Protection or Blessing of Protection again for $25771d.
     divine_protection = {
         id = 498,
         cast = 0,
-        cooldown = function() return 180 - 30 * talent.sacred_duty.rank end,
-        gcd = "off",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.03 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
+        duration = 8,
+        category_cooldown = 300,
+        gcd = "spell",
+        school = "holy",
         texture = 135954,
+        cooldown_category_id = 37,
+        cooldown_category = "Invulnerability",
+        spend = 15,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 498, 5573 },
 
-        toggle = "defensives",
-
-        nodebuff = "forbearance",
+        -- Effects:
+        -- [x] Rank 498 #0 -- effect: APPLY_AURA, aura: MOD_PACIFY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 498 #1 -- effect: APPLY_AURA, aura: SCHOOL_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 498 #2 -- effect: APPLY_AURA, aura: SCHOOL_IMMUNITY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 5573 #0 -- effect: APPLY_AURA, aura: MOD_PACIFY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 5573 #1 -- effect: APPLY_AURA, aura: SCHOOL_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 5573 #2 -- effect: APPLY_AURA, aura: SCHOOL_IMMUNITY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
             applyBuff( "divine_protection" )
-            applyDebuff( "player", "forbearance" )
         end,
+
+        -- Aura restrictions: exclude_caster_state=17
     },
 
-
-    -- 30% of all damage taken by party members within 30 yards is redirected to the Paladin (up to a maximum of 40% of the Paladin's health times the number of party members).  Damage which reduces the Paladin below 20% health will break the effect.  Lasts 10 sec.
-    divine_sacrifice = {
-        id = 64205,
-        cast = 0,
-        cooldown = 120,
-        gcd = "spell",
-
-        talent = "divine_sacrifice",
-        startsCombat = false,
-        texture = 253400,
-
-        toggle = "cooldowns",
-
-        handler = function ()
-            applyBuff( "divine_sacrifice" )
-        end,
-    },
-
-
-    -- Protects the paladin from all damage and spells for 12 sec, but reduces all damage you deal by 50%.  Once protected, the target cannot be targeted by Divine Shield, Divine Protection, or Hand of Protection again for 2 min.  Cannot be used within 30 sec. of using Avenging Wrath.
+-- Divine Shield - Protects the paladin from all damage and spells for 10/12 sec, but increases the time between your attacks by 100%. Once protected, the target cannot be made invulnerable by Divine Shield, Divine Protection, Blessing of Protection again or use Avenging Wrath for $25771d.
     divine_shield = {
         id = 642,
         cast = 0,
-        cooldown = function() return 300 - 30 * talent.sacred_duty.rank end,
+        duration = 12,
+        category_cooldown = 300,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.03 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135896,
+        cooldown_category_id = 37,
+        cooldown_category = "Invulnerability",
+        spend = 75,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 642, 1020 },
 
-        toggle = "defensives",
-
-        nodebuff = "forbearance",
+        -- Effects:
+        -- [x] Rank 642 #0 -- effect: APPLY_AURA, aura: SCHOOL_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 642 #1 -- effect: APPLY_AURA, aura: MOD_MELEE_HASTE, points: -101, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 642 #2 -- effect: APPLY_AURA, aura: SCHOOL_IMMUNITY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1020 #0 -- effect: APPLY_AURA, aura: SCHOOL_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1020 #1 -- effect: APPLY_AURA, aura: MOD_MELEE_HASTE, points: -101, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1020 #2 -- effect: APPLY_AURA, aura: SCHOOL_IMMUNITY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
             applyBuff( "divine_shield" )
-            applyDebuff( "player", "forbearance" )
         end,
+
+        -- Aura restrictions: exclude_caster_state=17
     },
 
-
-    -- An instant weapon attack that causes 110% of weapon damage to up to 4 enemies within 8 yards.  The Divine Storm heals up to 3 party or raid members totaling 25% of the damage caused.
-    divine_storm = {
-        id = 53385,
-        cast = 0,
-        cooldown = 10,
-        gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.12 ) ) end,
-        spendType = "mana",
-
-        talent = "divine_storm",
-        startsCombat = true,
-        texture = 236250,
-
-        handler = function ()
-        end,
-    },
-
-
-    -- Causes 180 to 194 Holy damage to an enemy target.  If the target is Undead or Demon, it will always critically hit.
+-- Exorcism - Causes 84-619 Holy damage to an Undead or Demon target.
     exorcism = {
         id = 879,
-        cast = function() return mod_art_of_war( 1.5 ) end,
-        cooldown = function() return mod_benediction( mod_purifying_power_cd( 15 ) ) end,
-        gcd = "spell",
-
-        spend = 0.08,
-        spendType = "mana",
-
-        startsCombat = true,
-        texture = 135903,
-
-        handler = function ()
-            removeBuff("the_art_of_war")
-        end,
-
-        copy = { 5614, 5615, 10312, 10313, 10314, 27138, 48800, 48801 },
-    },
-
-
-    -- Gives 130 additional Fire resistance to all party and raid members within 40 yards.  Players may only have one Aura on them per Paladin at any one time.
-    fire_resistance_aura = {
-        id = 48947,
         cast = 0,
-        cooldown = 0,
+        category_cooldown = 15,
         gcd = "spell",
+        school = "holy",
+        texture = 135903,
+        cooldown_category_id = 19,
+        cooldown_category = "Quick Damage - Spell",
+        range = 30,
+        spend = 70,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 879, 5614, 5615, 10312, 10313, 10314, 27138 },
 
-        startsCombat = false,
-        texture = 135824,
-
-        nobuff = "fire_resistance_aura",
+        -- Effects:
+        -- [x] Rank 879 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 83, addl_points: 13, points_per_level: 1.2, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 5614 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 151, addl_points: 21, points_per_level: 1.6, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 5615 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 216, addl_points: 29, points_per_level: 2, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10312 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 303, addl_points: 39, points_per_level: 2.4, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10313 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 392, addl_points: 47, points_per_level: 2.8, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10314 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 504, addl_points: 59, points_per_level: 3.2, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27138 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 618, addl_points: 73, points_per_level: 3.5, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
 
         handler = function ()
-            removeBuff( "aura" )
-            applyBuff( "fire_resistance_aura" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "exorcism" ) end
         end,
+
+        proc_chance = 100,
     },
 
+-- Eye for an Eye - All spell criticals against you cause 1/15/30% of the damage taken to the caster as well. The damage caused by Eye for an Eye will not exceed 50% of the Paladin's total health.
+    eye_for_an_eye = {
+        id = 9799,
+        cast = 0,
+        texture = 135904,
+        range = 100,
+        max_stack = 1,
+        copy = { 9799, 25988, 25997 },
 
-    -- Heals a friendly target for 86 to 98.
+        -- Effects:
+        -- [x] Rank 9799 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 14, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 25988 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 25997 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            applyBuff( "eye_for_an_eye" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "eye_for_an_eye" ) end
+        end,
+
+        proc_chance = 100,
+        proc_type_mask = { 131072, 0 },
+        -- Proc type flags: mask0: Take Harmful Spell
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Fire Resistance Aura - Gives 30/45/60/70 additional Fire resistance to all party members within $a1 yards. Players may only have one Aura on them per Paladin at any one time.
+    fire_resistance_aura = {
+        id = 19891,
+        cast = 0,
+        gcd = "spell",
+        school = "holy",
+        texture = 135824,
+        max_stack = 1,
+        copy = { 19891, 19899, 19900, 27153 },
+
+        -- Effects:
+        -- [ ] Rank 19891 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 19899 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 19900 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 59, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 27153 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 69, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        radius = 30,
+    },
+
+-- Flash of Light - Heals a friendly target for 62-448.
     flash_of_light = {
         id = 19750,
-        cast = function() return mod_art_of_war( 1.5 ) - 0.75 * ( buff.infusion_of_light.up and talent.infusion_of_light.rank or 0 ) end,
-        cooldown = 0,
+        cast = 1.5,
         gcd = "spell",
-
-        spend = function() return mod_divine_illumination( 0.07 ) end,
-        spendType = "mana",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135907,
+        range = 40,
+        spend = 35,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 19750, 19939, 19940, 19941, 19942, 19943, 27137 },
 
-        handler = function ()
-            removeBuff( "divine_favor" )
-            removeBuff( "infusion_of_light" )
-            removeBuff( "the_art_of_war" )
-        end,
-
-        copy = { 19939, 19940, 19941, 19942, 19943, 27137, 48784, 48785 },
+        -- Effects:
+        -- [ ] Rank 19750 #0 -- effect: HEAL, aura: NONE, points: 61, addl_points: 11, points_per_level: 1, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 19939 #0 -- effect: HEAL, aura: NONE, points: 95, addl_points: 15, points_per_level: 1.3, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 19940 #0 -- effect: HEAL, aura: NONE, points: 144, addl_points: 19, points_per_level: 1.6, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 19941 #0 -- effect: HEAL, aura: NONE, points: 196, addl_points: 25, points_per_level: 1.9, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 19942 #0 -- effect: HEAL, aura: NONE, points: 266, addl_points: 33, points_per_level: 2.2, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 19943 #0 -- effect: HEAL, aura: NONE, points: 342, addl_points: 41, points_per_level: 2.6, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 27137 #0 -- effect: HEAL, aura: NONE, points: 447, addl_points: 55, points_per_level: 2.6, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
     },
 
-
-    -- Gives 130 additional Frost resistance to all party and raid members within 40 yards.  Players may only have one Aura on them per Paladin at any one time.
+-- Frost Resistance Aura - Gives 30/45/60/70 additional Frost resistance to all party members within $a1 yards. Players may only have one Aura on them per Paladin at any one time.
     frost_resistance_aura = {
-        id = 48945,
+        id = 19888,
         cast = 0,
-        cooldown = 0,
         gcd = "spell",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135865,
+        max_stack = 1,
+        copy = { 19888, 19897, 19898, 27152 },
 
-        nobuff = "frost_resistance_aura",
+        -- Effects:
+        -- [ ] Rank 19888 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 19897 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 19898 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 59, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 27152 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 69, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        handler = function ()
-            removeBuff( "aura" )
-            applyBuff( "frost_resistance_aura" )
-        end,
+        radius = 30,
     },
 
+-- Furious Gizmatic Goggles
+    furious_gizmatic_goggles = {
+        id = 40274,
+        cast = 50,
+        texture = 136243,
+        max_stack = 1,
 
-    -- Gives all members of the raid or group that share the same class with the target the Greater Blessing of Kings, increasing total stats by 10% for 30 min.  Players may only have one Blessing on them per Paladin at any one time.
+        -- Effects:
+        -- [x] Rank 40274 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Greater Blessing of Kings - Gives all members of the raid or group that share the same class with the target the Greater Blessing of Kings, increasing total stats by 10% for 1800 sec. Players may only have one Blessing on them per Paladin at any one time.
     greater_blessing_of_kings = {
         id = 25898,
         cast = 0,
-        cooldown = 0,
+        duration = 1800,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( glyph.blessing_of_kings.enabled and 0.06 or 0.12 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135993,
+        range = 40,
+        spend_pct = 12,
+        spendType = "Mana",
+        max_stack = 1,
 
-        item = 21177,
-        bagItem = true,
+        -- Effects:
+        -- [ ] Rank 25898 #0 -- effect: APPLY_AURA, aura: MOD_TOTAL_STAT_PERCENTAGE, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+
+        radius = 100,
 
         handler = function ()
-            removeBuff( "my_greater_blessing" )
-            applyBuff( "greater_blessing_of_kings" )
         end,
     },
 
+-- Greater Blessing of Light - Gives all members of the raid or group that share the same class with the target the Greater Blessing of Light, increasing the effects of Holy Light spells used on the target by up to 400/580 and the effects of Flash of Light spells used on the target by up to 115/185. Lasts 1800 sec. Players may only have one Blessing on them per Paladin at any one time.
+    greater_blessing_of_light = {
+        id = 25890,
+        cast = 0,
+        duration = 1800,
+        gcd = "spell",
+        school = "holy",
+        texture = 135909,
+        range = 40,
+        spend = 260,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 25890, 27145 },
 
-    -- Gives all members of the raid or group that share the same class with the target the Greater Blessing of Might, increasing attack power by 185 for 30 min.  Players may only have one Blessing on them per Paladin at any one time.
+        -- Effects:
+        -- [ ] Rank 25890 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 399, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+        -- [ ] Rank 25890 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 114, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+        -- [ ] Rank 27145 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 579, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+        -- [ ] Rank 27145 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 184, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+
+        radius = 100,
+
+        handler = function ()
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Greater Blessing of Might - Gives all members of the raid or group that share the same class with the target the Greater Blessing of Might, increasing attack power by 155/185/220 for 1800 sec. Players may only have one Blessing on them per Paladin at any one time.
     greater_blessing_of_might = {
         id = 25782,
         cast = 0,
-        cooldown = 0,
+        duration = 1800,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.1 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135908,
+        range = 40,
+        spend = 220,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 25782, 25916, 27141 },
 
-        item = 21177,
-        bagItem = true,
+        -- Effects:
+        -- [ ] Rank 25782 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 154, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+        -- [ ] Rank 25782 #1 -- effect: APPLY_AURA, aura: MOD_RANGED_ATTACK_POWER, points: 154, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+        -- [ ] Rank 25916 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 184, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+        -- [ ] Rank 25916 #1 -- effect: APPLY_AURA, aura: MOD_RANGED_ATTACK_POWER, points: 184, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+        -- [ ] Rank 27141 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 219, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+        -- [ ] Rank 27141 #1 -- effect: APPLY_AURA, aura: MOD_RANGED_ATTACK_POWER, points: 219, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+
+        radius = 100,
 
         handler = function ()
-            removeBuff( "my_greater_blessing" )
-            applyBuff( "greater_blessing_of_might" )
         end,
-
-        copy = { 25916, 27141, 48933, 48934 },
     },
 
+-- Greater Blessing of Salvation - Gives all members of the raid or group that share the same class with the target the Greater Blessing of Salvation, reducing the amount of all threat generated by 30% for 1800 sec. Players may only have one Blessing on them per Paladin at any one time.
+    greater_blessing_of_salvation = {
+        id = 25895,
+        cast = 0,
+        duration = 1800,
+        gcd = "spell",
+        school = "holy",
+        texture = 135910,
+        range = 40,
+        spend_pct = 13,
+        spendType = "Mana",
+        max_stack = 1,
 
-    -- Gives all members of the raid or group that share the same class with the target the Greater Blessing of Wisdom, restoring 30 mana every 5 seconds for 30 min.  Players may only have one Blessing on them per Paladin at any one time.
+        -- Effects:
+        -- [ ] Rank 25895 #0 -- effect: APPLY_AURA, aura: MOD_THREAT, points: -31, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+
+        radius = 100,
+
+        handler = function ()
+        end,
+    },
+
+-- Greater Blessing of Sanctuary - Gives all members of the raid or group that share the same class with the target the Greater Blessing of Sanctuary, reducing damage dealt from all sources by up to 24/80 for 1800 sec. In addition, when the target blocks a melee attack the attacker will take 35/46 Holy damage. Players may only have one Blessing on them per Paladin at any one time.
+    greater_blessing_of_sanctuary = {
+        id = 25899,
+        cast = 0,
+        duration = 1800,
+        gcd = "spell",
+        school = "holy",
+        texture = 135911,
+        range = 40,
+        spend = 270,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 25899, 27169 },
+
+        -- Effects:
+        -- [ ] Rank 25899 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: -25, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+        -- [ ] Rank 25899 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_DAMAGE, points: 34, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+        -- [ ] Rank 27169 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: -81, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+        -- [ ] Rank 27169 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_DAMAGE, points: 45, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+
+        radius = 100,
+
+        handler = function ()
+        end,
+
+        proc_chance = 100,
+        proc_type_mask = { 40, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability
+    },
+
+-- Greater Blessing of Wisdom - Gives all members of the raid or group that share the same class with the target the Greater Blessing of Wisdom, restoring 30/33/41 mana every 5 seconds for 1800 sec. Players may only have one Blessing on them per Paladin at any one time.
     greater_blessing_of_wisdom = {
         id = 25894,
         cast = 0,
-        cooldown = 0,
+        duration = 1800,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.11 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135912,
+        range = 40,
+        spend = 230,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 25894, 25918, 27143 },
 
-        item = 21177,
-        bagItem = true,
+        -- Effects:
+        -- [ ] Rank 25894 #0 -- effect: APPLY_AURA, aura: MOD_POWER_REGEN, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+        -- [ ] Rank 25918 #0 -- effect: APPLY_AURA, aura: MOD_POWER_REGEN, points: 32, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+        -- [ ] Rank 27143 #0 -- effect: APPLY_AURA, aura: MOD_POWER_REGEN, points: 40, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 12, target: TARGET_UNIT_TARGET_AREA_RAID_CLASS, target2: NONE, mechanic: 0
+
+        radius = 100,
 
         handler = function ()
-            removeBuff( "my_greater_blessing" )
-            applyBuff( "greater_blesisng_of_wisdom" )
         end,
-
-        copy = { 25918, 27143, 48937, 48938 },
     },
 
-
-    -- Stuns the target for 3 sec and interrupts non-player spellcasting for 3 sec.
+-- Hammer of Justice - Stuns the target for 3/4/5/6 sec.
     hammer_of_justice = {
         id = 853,
         cast = 0,
-        cooldown = function() return 60 - 10 * talent.improved_hammer_of_justice.rank - 5 * talent.judgements_of_the_just.rank end,
+        duration = 6,
+        cooldown = function () return max( 0, 60 + -5 * ( talent.improved_hammer_of_justice.rank or 0 ) ) end,
+        category_cooldown = 60,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.03 ) ) end,
-        spendType = "mana",
-
-        startsCombat = true,
+        school = "holy",
         texture = 135963,
+        cooldown_category_id = 32,
+        cooldown_category = "Stun",
+        range = 10,
+        spend = 30,
+        -- Talent cooldown scaling (category source): improved_hammer_of_justice (-5s per rank)
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 853, 5588, 5589, 10308 },
 
-        toggle = "interrupts",
+        -- Effects:
+        -- [x] Rank 853 #0 -- effect: APPLY_AURA, aura: MOD_STUN, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 5588 #0 -- effect: APPLY_AURA, aura: MOD_STUN, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 5589 #0 -- effect: APPLY_AURA, aura: MOD_STUN, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10308 #0 -- effect: APPLY_AURA, aura: MOD_STUN, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
 
         handler = function ()
             applyDebuff( "target", "hammer_of_justice" )
         end,
 
-        copy = { 5588, 5589, 10308 },
+        proc_chance = 100,
     },
 
-
-    -- Hammer the current target and up to 2 additional nearby targets, causing 4 times your main hand damage per second as Holy damage.
-    hammer_of_the_righteous = {
-        id = 53595,
-        cast = 0,
-        cooldown = 6,
-        gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.06 ) ) end,
-        spendType = "mana",
-
-        talent = "hammer_of_the_righteous",
-        startsCombat = true,
-        texture = 236253,
-        clash = 0.4,
-
-        handler = function ()
-        end,
-    },
-
-
-    -- Hurls a hammer that strikes an enemy for 441 to 477 Holy damage.  Only usable on enemies that have 20% or less health.
+-- Hammer of Wrath - Hurls a hammer that strikes an enemy for 304/399/504/665 Holy damage. Only usable on enemies that have 20% or less health.
     hammer_of_wrath = {
-        id = 24275,
-        cast = 0,
-        cooldown = function() return glyph.avenging_wrath.enabled and buff.avenging_wrath.up and 3 or 6 end,
+        id = 24239,
+        cast = 0.5,
+        category_cooldown = 6,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( glyph.hammer_of_wrath.enabled and 0 or 0.12 ) ) end,
-        spendType = "mana",
-
-        startsCombat = true,
+        school = "holy",
         texture = 132326,
+        cooldown_category_id = 1131,
+        cooldown_category = "Hammer of Vengeance",
+        range = 30,
+        spend = 340,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 24239, 24274, 24275, 27180 },
 
-        usable = function() return target.health.pct < 20 end,
-
-        handler = function ()
-        end,
-
-        copy = { 24274, 24239, 27180, 48805, 48806 },
-    },
-
-
-    -- Places a Hand on the friendly target, granting immunity to movement impairing effects for 6 sec.  Players may only have one Hand on them per Paladin at any one time.
-    hand_of_freedom = {
-        id = 1044,
-        cast = 0,
-        cooldown = 25,
-        gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( mod_blessed_hands( 0.06 ) ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-        texture = 135968,
-
-        handler = function ()
-            applyBuff( "hand_of_freedom" )
-        end,
-    },
-
-
-    -- A targeted party or raid member is protected from all physical attacks for 6 sec, but during that time they cannot attack or use physical abilities.  Players may only have one Hand on them per Paladin at any one time.  Once protected, the target cannot be targeted by Divine Shield, Divine Protection, or Hand of Protection again for 2 min.  Cannot be targeted on players who have used Avenging Wrath within the last 30 sec.
-    hand_of_protection = {
-        id = 10278,
-        cast = 0,
-        cooldown = function() return 300 - 60 * talent.guardians_favor.rank end,
-        gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.06 ) ) end,
-        spendType = "mana",
-
+        -- Effects:
+        -- [x] Rank 24239 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 503, addl_points: 53, points_per_level: 3.1, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 24274 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 398, addl_points: 43, points_per_level: 2.7, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 24275 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 303, addl_points: 33, points_per_level: 2.4, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27180 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 664, addl_points: 71, points_per_level: 3.5, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         startsCombat = true,
-        texture = 135964,
-
-        toggle = "defensives",
-
-        nodebuff = "forbearance",
 
         handler = function ()
-            applyBuff( "hand_of_protection" )
-            applyDebuff( "forbearance" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "hammer_of_wrath" ) end
         end,
 
-        copy = { 1022, 5599 },
+        proc_chance = 100,
+
+        -- Aura restrictions: target_state=2
     },
 
+-- Hard Khorium Goggles
+    hard_khorium_goggles = {
+        id = 46115,
+        cast = 50,
+        texture = 136243,
+        max_stack = 1,
 
-    -- Taunts the target to attack you.  If the target is tauntable and not currently targeting you, causes 262 Holy damage.
-    hand_of_reckoning = {
-        id = 62124,
-        cast = 0,
-        cooldown = 8,
-        gcd = "off",
+        -- Effects:
+        -- [x] Rank 46115 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        spend = function() return mod_benediction( mod_divine_illumination( 0.03 ) ) end,
-        spendType = "mana",
-
-        startsCombat = true,
-        texture = 135984,
-
-        handler = function ()
-            applyDebuff( "target", "hand_of_reckoning" )
-        end,
+        proc_chance = 100,
     },
 
-
-    -- Places a Hand on the party or raid member, transfering 30% damage taken to the caster.  Lasts 12 sec or until the caster has transfered 100% of their maximum health.  Players may only have one Hand on them per Paladin at any one time.
-    hand_of_sacrifice = {
-        id = 6940,
-        cast = 0,
-        cooldown = 120,
-        gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( mod_blessed_hands( 0.06 ) ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-        texture = 135966,
-
-        toggle = "defensives",
-
-        handler = function ()
-            applyBuff( "hand_of_sacrifice" )
-        end,
-    },
-
-
-    -- Places a Hand on the party or raid member, reducing their total threat by 2% every 1 sec. for 10 sec.  Players may only have one Hand on them per Paladin at any one time.
-    hand_of_salvation = {
-        id = 1038,
-        cast = 0,
-        cooldown = 120,
-        gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( mod_blessed_hands( 0.06 ) ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-        texture = 135967,
-
-        toggle = "defensives",
-
-        handler = function ()
-            applyBuff( "hand_of_salvation" )
-        end,
-    },
-
-
-    -- Heals a friendly target for 53 to 64.
+-- Holy Light - Heals a friendly target for 39-2196.
     holy_light = {
         id = 635,
-        cast = function() return 2.5 - ( 0.5 * buff.lights_grace.stack ) end,
-        cooldown = 0,
+        cast = 2.5,
         gcd = "spell",
-
-        spend = function() return mod_divine_illumination( 0.29 ) end,
-        spendType = "mana",
-
-        startsCombat = true,
+        school = "holy",
         texture = 135920,
+        range = 40,
+        spend = 35,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 635, 639, 647, 1026, 3472, 10328, 10329, 25292, 27135, 27136 },
 
-        handler = function ()
-            removeBuff( "divine_favor" )
-            removeBuff( "infusion_of_light" )
-            if talent.lights_grace.rank == 3 then applyBuff( "lights_grace" ) end
-        end,
-
-        copy = { 639, 647, 1026, 1042, 3472, 10328, 10329, 25292, 27135, 27136, 48781, 48782 },
+        -- Effects:
+        -- [ ] Rank 635 #0 -- effect: HEAL, aura: NONE, points: 38, addl_points: 9, points_per_level: 0.8, sp_bonus: 0.205, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 639 #0 -- effect: HEAL, aura: NONE, points: 75, addl_points: 15, points_per_level: 1.1, sp_bonus: 0.339, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 647 #0 -- effect: HEAL, aura: NONE, points: 158, addl_points: 29, points_per_level: 1.7, sp_bonus: 0.554, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1026 #0 -- effect: HEAL, aura: NONE, points: 309, addl_points: 47, points_per_level: 2.4, sp_bonus: 0.714, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 3472 #0 -- effect: HEAL, aura: NONE, points: 697, addl_points: 83, points_per_level: 3.8, sp_bonus: 0.714, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 10328 #0 -- effect: HEAL, aura: NONE, points: 944, addl_points: 109, points_per_level: 4.6, sp_bonus: 0.714, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 10329 #0 -- effect: HEAL, aura: NONE, points: 1245, addl_points: 143, points_per_level: 5.2, sp_bonus: 0.714, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25292 #0 -- effect: HEAL, aura: NONE, points: 1589, addl_points: 181, points_per_level: 5.8, sp_bonus: 0.714, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 27135 #0 -- effect: HEAL, aura: NONE, points: 1740, addl_points: 199, points_per_level: 6.4, sp_bonus: 0.714, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 27136 #0 -- effect: HEAL, aura: NONE, points: 2195, addl_points: 251, points_per_level: 7, sp_bonus: 0.714, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
     },
 
-
-    -- Increases chance to block by 30% for 10 sec and deals 79 Holy damage for each attack blocked while active.  Each block expends a charge.  8 charges.
+-- Holy Shield - Increases chance to block by 30% for 10 sec and deals 59/155 Holy damage for each attack blocked while active. Damage caused by Holy Shield causes 35% additional threat. Each block expends a charge. $n charges.
     holy_shield = {
         id = 20925,
         cast = 0,
-        cooldown = 8,
+        duration = 10,
+        category_cooldown = 10,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.1 ) ) end,
-        spendType = "mana",
-
-        talent = "holy_shield",
-        startsCombat = false,
+        school = "holy",
         texture = 135880,
+        cooldown_category_id = 931,
+        cooldown_category = "Holy Shield",
+        spend = 135,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 20925, 27179 },
+
+        -- Effects:
+        -- [x] Rank 20925 #0 -- effect: APPLY_AURA, aura: MOD_BLOCK_PERCENT, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20925 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_DAMAGE, points: 58, addl_points: 1, points_per_level: 0, sp_bonus: 0.05, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20925 #2 -- effect: APPLY_AURA, aura: MOD_RATING, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27179 #0 -- effect: APPLY_AURA, aura: MOD_BLOCK_PERCENT, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27179 #1 -- effect: APPLY_AURA, aura: PROC_TRIGGER_DAMAGE, points: 154, addl_points: 1, points_per_level: 0, sp_bonus: 0.05, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27179 #2 -- effect: APPLY_AURA, aura: MOD_RATING, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
             applyBuff( "holy_shield" )
         end,
 
-        copy = { 20925, 20928, 20927, 27179, 48951, 48952 },
+        proc_chance = 100,
+        proc_charges = 4,
+        proc_type_mask = { 680, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability; Take Ranged Attack; Take Ranged Ability
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Blasts the target with Holy energy, causing 314 to 340 Holy damage to an enemy, or 481 to 519 healing to an ally.
+-- Holy Shock - Blasts the target with Holy energy, causing 277 Holy damage to an enemy, or 351 healing to an ally.
     holy_shock = {
         id = 20473,
         cast = 0,
-        cooldown = function() return glyph.holy_shock.enabled and 5 or 6 end,
+        category_cooldown = 15,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.18 ) ) end,
-        spendType = "mana",
-
-        talent = "holy_shock",
-        startsCombat = true,
+        school = "holy",
         texture = 135972,
+        cooldown_category_id = 892,
+        cooldown_category = "Holy Shock",
+        range = 20,
+        spend = 335,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 20473, 20929, 20930, 25902, 25903, 25911, 25912, 25913, 25914, 27174, 27175, 27176, 33072, 33073, 33074 },
+
+        -- Effects:
+        -- [ ] Rank 20473 #0 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ANY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20929 #0 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ANY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20930 #0 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ANY, target2: NONE, mechanic: 0
+        -- [x] Rank 25902 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 495, addl_points: 41, points_per_level: 0, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25903 #0 -- effect: HEAL, aura: NONE, points: 627, addl_points: 53, points_per_level: 0, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 25911 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 378, addl_points: 31, points_per_level: 0, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25912 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 276, addl_points: 23, points_per_level: 0, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25913 #0 -- effect: HEAL, aura: NONE, points: 479, addl_points: 39, points_per_level: 0, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25914 #0 -- effect: HEAL, aura: NONE, points: 350, addl_points: 29, points_per_level: 0, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 27174 #0 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ANY, target2: NONE, mechanic: 0
+        -- [ ] Rank 27175 #0 -- effect: HEAL, aura: NONE, points: 776, addl_points: 65, points_per_level: 0, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [x] Rank 27176 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 613, addl_points: 51, points_per_level: 0, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 33072 #0 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ANY, target2: NONE, mechanic: 0
+        -- [x] Rank 33073 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 720, addl_points: 59, points_per_level: 0, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 33074 #0 -- effect: HEAL, aura: NONE, points: 912, addl_points: 75, points_per_level: 0, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
         handler = function ()
-            removeBuff( "divine_favor" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "holy_shock" ) end
+        end,
+
+        proc_chance = 100,
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Holy Vengeance - 30 Holy damage every $t1 sec.
+    holy_vengeance = {
+        id = 31803,
+        cast = 0,
+        duration = 15,
+        school = "holy",
+        texture = 135969,
+        range = 100,
+        max_stack = 5,
+
+        -- Effects:
+        -- [x] Rank 31803 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0.034, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            if debuff.holy_vengeance.up then
+                applyDebuff( "target", "holy_vengeance", nil, min( debuff.holy_vengeance.max_stack, debuff.holy_vengeance.stack + 1 ) )
+            else
+                applyDebuff( "target", "holy_vengeance", nil, 1 )
+            end
         end,
     },
 
-
-    -- Sends bolts of holy power in all directions, causing 442 to 514 Holy damage and stunning all Undead and Demon targets within 10 yds for 3 sec.
+-- Holy Wrath - Sends bolts of holy power in all directions, causing 362/490/635 Holy damage to all Undead and Demon targets within $a1 yds.
     holy_wrath = {
         id = 2812,
-        cast = 0,
-        cooldown = function() return mod_purifying_power_cd( glyph.holy_wrath.enabled and 15 or 30 ) end,
+        cast = 2,
+        category_cooldown = 60,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.2 ) ) end,
-        spendType = "mana",
-
-        startsCombat = true,
+        school = "holy",
         texture = 135902,
+        cooldown_category_id = 35,
+        cooldown_category = "Direct Damage (AE) - Spell",
+        spend = 550,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 2812, 10318, 27139 },
 
-        handler = function ()
-            if target.is_boss and ( target.is_undead or target.is_demon ) then applyDebuff( "target", "holy_wrath" ) end
-        end,
-
-        copy = { 10318, 27139, 48816, 48817 },
-    },
-
-
-    -- Unleashes the energy of a Seal spell to judge an enemy for 20 sec, preventing them from fleeing and limiting their movement speed.  Refer to individual Seals for additional Judgement effect.  Only one Judgement per Paladin can be active at any one time.
-    judgement_of_justice = {
-        id = 53407,
-        cast = 0,
-        cooldown = function() return 10 - talent.improved_judgements.rank - (set_bonus.tier7ret_2pc == 1 and 1 or 0) end,
-        gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.05 ) ) end,
-        spendType = "mana",
-
+        -- Effects:
+        -- [x] Rank 2812 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 361, addl_points: 67, points_per_level: 1.6, sp_bonus: 0.286, radius_idx: 9, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 10318 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 489, addl_points: 87, points_per_level: 1.9, sp_bonus: 0.286, radius_idx: 9, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 27139 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 634, addl_points: 111, points_per_level: 2.2, sp_bonus: 0.286, radius_idx: 9, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
         startsCombat = true,
-        texture = 236258,
+
+        radius = 20,
 
         handler = function ()
-            if talent.judgements_of_the_pure.enabled then applyBuff( "judgements_of_the_pure" ) end
-            if talent.judgements_of_the_just.enabled then applyDebuff( "target", "judgements_of_the_just" ) end
-            if talent.judgements_of_the_wise.rank == 3 then gain( 0.25 * mana.modmax, "mana" ) end
-            if glyph.seal_of_command.enabled and buff.seal_of_command.up then gain( 0.08 * mana.modmax, "mana" ) end
-            removeDebuff( "target", "judgement" )
-            applyDebuff( "target", "judgement_of_justice" )
-            setCooldown( "judgement_of_light", action.judgement_of_light.cooldown )
-            setCooldown( "judgement_of_wisdom", action.judgement_of_wisdom.cooldown )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "holy_wrath" ) end
         end,
+
+        proc_chance = 100,
     },
 
-
-    -- Unleashes the energy of a Seal spell to judge an enemy for 20 sec, granting attacks made against the judged enemy a chance of healing the attacker for 2% of their maximum health.  Refer to individual Seals for additional Judgement effect.  Only one Judgement per Paladin can be active at any one time.
-    judgement_of_light = {
+-- Judgement - Unleashes the energy of a Seal spell upon an enemy. Refer to individual Seals for Judgement effect.
+    judgement = {
         id = 20271,
         cast = 0,
-        cooldown = function() return 10 - talent.improved_judgements.rank - (set_bonus.tier7ret_2pc == 1 and 1 or 0) end,
-        gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.05 ) ) end,
-        spendType = "mana",
-
-        startsCombat = true,
+        cooldown = function () return max( 0, 10 + -1 * ( talent.improved_judgement.rank or 0 ) ) end,
+        school = "holy",
         texture = 135959,
+        range = 10,
+        spend_pct = 5,
+        -- Talent cooldown scaling: improved_judgement (-1s per rank)
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 20271 #0 -- effect: SCRIPT_EFFECT, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+
+        -- Aura restrictions: caster_state=5
+    },
+
+-- Judgement of Blood - Unleashing this Seal's energy will judge an enemy, instantly causing 295 Holy damage at the cost of health equal to 33% of the damage caused.
+    judgement_of_blood = {
+        id = 31898,
+        cast = 0,
+        school = "holy",
+        texture = 136168,
+        range = 50000,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 31898 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 294, addl_points: 31, points_per_level: 6.1, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
         handler = function ()
-            if talent.judgements_of_the_pure.enabled then applyBuff( "judgements_of_the_pure" ) end
-            if talent.judgements_of_the_just.enabled then applyDebuff( "target", "judgements_of_the_just" ) end
-            if talent.judgements_of_the_wise.rank == 3 then gain( 0.25 * mana.modmax, "mana" ) end
-            if glyph.seal_of_command.enabled and buff.seal_of_command.up then gain( 0.08 * mana.modmax, "mana" ) end
-            removeDebuff( "target", "judgement" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "judgement_of_blood" ) end
+        end,
+    },
+
+-- Judgement of Corruption
+    judgement_of_corruption = {
+        id = 356112,
+        cast = 0,
+        school = "holy",
+        texture = 135969,
+        range = 100,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 356112 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 119, addl_points: 1, points_per_level: 0, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "judgement_of_corruption" ) end
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Judgement of Justice - Cannot flee.
+    judgement_of_justice = {
+        id = 20184,
+        cast = 0,
+        duration = 20,
+        school = "holy",
+        texture = 135971,
+        range = 100,
+        max_stack = 1,
+        copy = { 20184, 31896 },
+
+        -- Effects:
+        -- [x] Rank 20184 #0 -- effect: APPLY_AURA, aura: PREVENTS_FLEEING, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 31896 #0 -- effect: APPLY_AURA, aura: PREVENTS_FLEEING, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 31896 #1 -- effect: APPLY_AURA, aura: USE_NORMAL_MOVEMENT_SPEED, points: 6, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            applyDebuff( "target", "judgement_of_justice" )
+        end,
+    },
+
+-- Judgement of Light - Melee attacks made against you have a chance of causing the attacker to be healed for 25.
+    judgement_of_light = {
+        id = 20185,
+        cast = 0,
+        duration = 20,
+        school = "holy",
+        texture = 135917,
+        range = 100,
+        max_stack = 1,
+        copy = { 20185, 20344, 20345, 20346, 27162 },
+
+        -- Effects:
+        -- [x] Rank 20185 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 5373
+        -- [x] Rank 20344 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 5373
+        -- [x] Rank 20345 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 5373
+        -- [x] Rank 20346 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 5373
+        -- [x] Rank 27162 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 5373
+        startsCombat = true,
+
+        handler = function ()
             applyDebuff( "target", "judgement_of_light" )
-            setCooldown( "judgement_of_justice", action.judgement_of_justice.cooldown )
-            setCooldown( "judgement_of_wisdom", action.judgement_of_wisdom.cooldown )
+        end,
+
+        proc_chance = 50,
+        proc_type_mask = { 40, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability
+    },
+
+-- Judgement of Righteousness
+    judgement_of_righteousness = {
+        id = 20187,
+        cast = 0,
+        school = "holy",
+        texture = 132325,
+        range = 100,
+        max_stack = 1,
+        copy = { 20187, 20280, 20281, 20282, 20283, 20284, 20285, 20286, 27157 },
+
+        -- Effects:
+        -- [x] Rank 20187 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 14, addl_points: 1, points_per_level: 1.8, sp_bonus: 0.209, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20187 #1 -- effect: DUMMY, aura: NONE, points: 107, addl_points: 1, points_per_level: 18, sp_bonus: 0.058, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
+        -- [x] Rank 20280 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 24, addl_points: 3, points_per_level: 1.9, sp_bonus: 0.455, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20280 #1 -- effect: DUMMY, aura: NONE, points: 215, addl_points: 1, points_per_level: 17, sp_bonus: 0.125, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
+        -- [x] Rank 20281 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 38, addl_points: 5, points_per_level: 2.4, sp_bonus: 0.674, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20281 #1 -- effect: DUMMY, aura: NONE, points: 351, addl_points: 1, points_per_level: 23, sp_bonus: 0.185, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
+        -- [x] Rank 20282 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 56, addl_points: 7, points_per_level: 2.8, sp_bonus: 0.728, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20282 #1 -- effect: DUMMY, aura: NONE, points: 540, addl_points: 1, points_per_level: 31, sp_bonus: 0.2, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
+        -- [x] Rank 20283 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 77, addl_points: 9, points_per_level: 3.1, sp_bonus: 0.728, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20283 #1 -- effect: DUMMY, aura: NONE, points: 784, addl_points: 1, points_per_level: 37, sp_bonus: 0.2, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
+        -- [x] Rank 20284 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 101, addl_points: 11, points_per_level: 3.8, sp_bonus: 0.728, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20284 #1 -- effect: DUMMY, aura: NONE, points: 1081, addl_points: 1, points_per_level: 41, sp_bonus: 0.2, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
+        -- [x] Rank 20285 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 130, addl_points: 13, points_per_level: 4.1, sp_bonus: 0.728, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20285 #1 -- effect: DUMMY, aura: NONE, points: 1406, addl_points: 1, points_per_level: 47, sp_bonus: 0.2, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
+        -- [x] Rank 20286 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 161, addl_points: 17, points_per_level: 4.1, sp_bonus: 0.728, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20286 #1 -- effect: DUMMY, aura: NONE, points: 1785, addl_points: 1, points_per_level: 47, sp_bonus: 0.2, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
+        -- [x] Rank 27157 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 207, addl_points: 21, points_per_level: 4.4, sp_bonus: 0.728, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 27157 #2 -- effect: DUMMY, aura: NONE, points: 2453, addl_points: 1, points_per_level: 53, sp_bonus: 0.2, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "judgement_of_righteousness" ) end
         end,
     },
 
+-- Judgement of the Crusader - Increases Holy damage taken by up to 23-219.
+    judgement_of_the_crusader = {
+        id = 20188,
+        cast = 0,
+        duration = 20,
+        school = "holy",
+        texture = 135924,
+        range = 100,
+        max_stack = 1,
+        copy = { 20188, 20300, 20301, 20302, 20303, 21183, 27159 },
 
-    -- Unleashes the energy of a Seal spell to judge an enemy for 20 sec, giving each attack a chance to restore 2% of the attacker's base mana.  Refer to individual Seals for additional Judgement effect.  Only one Judgement per Paladin can be active at any one time.
+        -- Effects:
+        -- [x] Rank 20188 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 34, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 20188 #1 -- effect: APPLY_AURA, aura: MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 20300 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 57, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 20300 #1 -- effect: APPLY_AURA, aura: MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 20301 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 91, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 20301 #1 -- effect: APPLY_AURA, aura: MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 20302 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 126, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 20302 #1 -- effect: APPLY_AURA, aura: MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 20303 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 160, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 20303 #1 -- effect: APPLY_AURA, aura: MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 21183 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 22, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 21183 #1 -- effect: APPLY_AURA, aura: MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27159 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_TAKEN, points: 218, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 27159 #1 -- effect: APPLY_AURA, aura: MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            applyDebuff( "target", "judgement_of_the_crusader" )
+        end,
+    },
+
+-- Judgement of Vengeance
+    judgement_of_vengeance = {
+        id = 31804,
+        cast = 0,
+        school = "holy",
+        texture = 135969,
+        range = 100,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 31804 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 119, addl_points: 1, points_per_level: 0, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "judgement_of_vengeance" ) end
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Judgement of Wisdom - Attacks and spells used against you have a chance of restoring 33 of the attacker's mana.
     judgement_of_wisdom = {
-        id = 53408,
+        id = 20186,
         cast = 0,
-        cooldown = function() return 10 - talent.improved_judgements.rank - (set_bonus.tier7ret_2pc == 1 and 1 or 0) end,
-        gcd = "spell",
+        duration = 20,
+        school = "holy",
+        texture = 135960,
+        range = 100,
+        max_stack = 1,
+        copy = { 20186, 20354, 20355, 27164 },
 
-        spend = function() return mod_benediction( mod_divine_illumination( 0.05 ) ) end,
-        spendType = "mana",
-
+        -- Effects:
+        -- [x] Rank 20186 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 1826
+        -- [x] Rank 20354 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 1826
+        -- [x] Rank 20355 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 1826
+        -- [x] Rank 27164 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 1826
         startsCombat = true,
-        texture = 236255,
 
         handler = function ()
-            if talent.judgements_of_the_pure.enabled then applyBuff( "judgements_of_the_pure" ) end
-            if talent.judgements_of_the_just.enabled then applyDebuff( "target", "judgements_of_the_just" ) end
-            if talent.judgements_of_the_wise.rank == 3 then gain( 0.25 * mana.modmax, "mana" ) end
-            if glyph.seal_of_command.enabled and buff.seal_of_command.up then gain( 0.08 * mana.modmax, "mana" ) end
-            removeDebuff( "target", "judgement" )
             applyDebuff( "target", "judgement_of_wisdom" )
-            setCooldown( "judgement_of_justice", action.judgement_of_justice.cooldown )
-            setCooldown( "judgement_of_light", action.judgement_of_light.cooldown )
         end,
+
+        proc_chance = 50,
+        proc_type_mask = { 139944, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability; Take Ranged Attack; Take Ranged Ability; Take Harmful Ability; Take Harmful Spell
     },
 
+-- Justicebringer 2000 Specs
+    justicebringer_2000_specs = {
+        id = 41311,
+        cast = 50,
+        texture = 136243,
+        max_stack = 1,
 
-    -- Heals a friendly target for an amount equal to the Paladin's maximum health and restores 1950 of their mana.  If used on self, the Paladin cannot be targeted by Divine Shield, Divine Protection, Hand of Protection, or self-targeted Lay on Hands again for 2 min.  Also cannot be used on self within 30 sec of using Avenging Wrath.
+        -- Effects:
+        -- [x] Rank 41311 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Justicebringer 3000 Specs
+    justicebringer_3000_specs = {
+        id = 46107,
+        cast = 50,
+        texture = 136243,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 46107 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Lay on Hands - Heals a friendly target for an amount equal to the Paladin's maximum health. Drains all of the Paladin's remaining mana when used.
     lay_on_hands = {
-        id = 48788,
+        id = 633,
         cast = 0,
-        cooldown = function() return mod_benediction( ( glyph.lay_on_hands.enabled and 900 or 1200 ) - ( 120 * talent.improved_lay_on_hands.rank ) ) end,
+        cooldown = function () return max( 0, 3600 + -600 * ( talent.improved_lay_on_hands.rank or 0 ) ) end,
+        category_cooldown = 3600,
         gcd = "spell",
-
-        startsCombat = true,
+        school = "holy",
         texture = 135928,
+        cooldown_category_id = 56,
+        cooldown_category = "Instant Heal - Spell",
+        range = 40,
+        -- Talent cooldown scaling (category source): improved_lay_on_hands (-600s per rank)
+        max_stack = 1,
+        copy = { 633, 2800, 10310, 27154 },
 
-        toggle = "defensives",
+        -- Effects:
+        -- [ ] Rank 633 #0 -- effect: HEAL_MAX_HEALTH, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 2800 #0 -- effect: HEAL_MAX_HEALTH, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 2800 #1 -- effect: ENERGIZE, aura: NONE, points: 249, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 10310 #0 -- effect: HEAL_MAX_HEALTH, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 10310 #1 -- effect: ENERGIZE, aura: NONE, points: 549, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 27154 #0 -- effect: HEAL_MAX_HEALTH, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 27154 #1 -- effect: ENERGIZE, aura: NONE, points: 899, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Light's Grace - Gives your Holy Light spell a $h% chance to reduce the cast time of your next Holy Light spell by $/1000;31834S1 sec. This effect lasts $31834d.
+    lights_grace = {
+        id = 31833,
+        cast = 0,
+        duration = 15,
+        texture = 135931,
+        max_stack = 1,
+        copy = { 31833, 31834, 31835, 31836 },
+
+        -- Effects:
+        -- [x] Rank 31833 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 31834
+        -- [x] Rank 31834 #0 -- effect: APPLY_AURA, aura: ADD_FLAT_MODIFIER, points: -501, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31835 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 31834
+        -- [x] Rank 31836 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 31834
 
         handler = function ()
-            gain( 1950, "mana" )
-            if glyph.divinity.enabled then
-                gain( 3900, "mana" )
-            end
-            if talent.improved_lay_on_hands.enabled then applyBuff( "lay_on_hands" ) end
-            applyDebuff( "player", "forbearance" )
+            applyBuff( "lights_grace" )
         end,
+
+        proc_chance = 33,
+        proc_type_mask = { 16384, 0 },
+        -- Proc type flags: mask0: Deal Helpful Spell
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
+-- Mayhem Projection Goggles
+    mayhem_projection_goggles = {
+        id = 46114,
+        cast = 50,
+        texture = 136243,
+        max_stack = 1,
 
-    -- Purifies the friendly target, removing 1 disease effect and 1 poison effect.
+        -- Effects:
+        -- [x] Rank 46114 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Purify - Purifies the friendly target, removing 1 disease effect and 1 poison effect.
     purify = {
         id = 1152,
         cast = 0,
-        cooldown = 0,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( mod_purifying_power_cost( 0.06 ) ) ) * ( glyph.cleansing.enabled and 0.8 or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135949,
+        range = 40,
+        spend_pct = 6,
+        spendType = "Mana",
+        max_stack = 1,
 
-        buff = function() return buff.dispellable_disease.up and "dispellable_disease" or "dispellable_poison" end,
-
-        handler = function ()
-            removeBuff( "dispellable_disease" )
-            removeBuff( "dispellable_poison" )
-        end,
+        -- Effects:
+        -- [ ] Rank 1152 #0 -- effect: DISPEL, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1152 #1 -- effect: DISPEL, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
     },
 
-
-    -- Brings a dead player back to life with 65 health and 120 mana.  Cannot be cast when in combat.
+-- Redemption - Brings a dead player back to life with 65/150/250/400/600 health and $q1 mana. Cannot be cast when in combat.
     redemption = {
         id = 7328,
         cast = 10,
-        cooldown = 0,
         gcd = "spell",
-
-        spend = function() return mod_divine_illumination( 0.64 ) end,
-        spendType = "mana",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135955,
+        range = 30,
+        spend_pct = 64,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 7328, 10322, 10324, 20772, 20773 },
 
-        handler = function ()
-        end,
-
-        copy = { 10322, 10324, 20772, 20773, 48949, 48950 },
+        -- Effects:
+        -- [ ] Rank 7328 #0 -- effect: 329, aura: NONE, points: 64, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
+        -- [ ] Rank 10322 #0 -- effect: 329, aura: NONE, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
+        -- [ ] Rank 10324 #0 -- effect: 329, aura: NONE, points: 249, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
+        -- [ ] Rank 20772 #0 -- effect: 329, aura: NONE, points: 399, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
+        -- [ ] Rank 20773 #0 -- effect: 329, aura: NONE, points: 599, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: NONE, target2: NONE, mechanic: 0
     },
 
-
-    -- Puts the enemy target in a state of meditation, incapacitating them for up to 1 min, and removing the effect of Righteous Vengeance.  Any damage caused will awaken the target.  Usable against Demons, Dragonkin, Giants, Humanoids and Undead.
+-- Repentance - Puts the enemy target in a state of meditation, incapacitating them for up to 6 sec. Any damage caused will awaken the target. Only works against Humanoids.
     repentance = {
         id = 20066,
         cast = 0,
+        duration = 6,
         cooldown = 60,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.09 ) ) end,
-        spendType = "mana",
-
-        talent = "repentance",
-        startsCombat = false,
+        school = "holy",
         texture = 135942,
+        range = 20,
+        spend = 60,
+        spendType = "Mana",
+        max_stack = 1,
 
-        toggle = "defensives",
-
-        usable = function() return not target.is_boss, "not usable against bosses" end,
+        -- Effects:
+        -- [x] Rank 20066 #0 -- effect: APPLY_AURA, aura: MOD_STUN, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
 
         handler = function ()
             applyDebuff( "target", "repentance" )
-            removeDebuff( "target", "righteous_vengeance" )
         end,
+
+        proc_chance = 100,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Causes 112 Holy damage to any enemy that strikes a party or raid member within 40 yards.  Players may only have one Aura on them per Paladin at any one time.
+-- Retribution Aura - Causes 5-26 Holy damage to any creature that strikes a party member within $a1 yards. Players may only have one Aura on them per Paladin at any one time.
     retribution_aura = {
-        id = 54043,
+        id = 7294,
         cast = 0,
-        cooldown = 0,
         gcd = "spell",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135873,
+        max_stack = 1,
+        copy = { 7294, 10298, 10299, 10300, 10301, 27150 },
 
-        nobuff = "retribution_aura",
+        -- Effects:
+        -- [ ] Rank 7294 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: DAMAGE_SHIELD, points: 4, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 10298 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: DAMAGE_SHIELD, points: 7, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 10299 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: DAMAGE_SHIELD, points: 11, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 10300 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: DAMAGE_SHIELD, points: 15, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 10301 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: DAMAGE_SHIELD, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 27150 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: DAMAGE_SHIELD, points: 25, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        handler = function ()
-            removeBuff( "aura" )
-            applyBuff( "retribution_aura" )
-        end,
+        radius = 30,
     },
 
-
-    -- Come to the defense of a friendly target, commanding up to 3 enemies attacking the target to attack the Paladin instead.
+-- Righteous Defense - Come to the defense of a friendly target, commanding up to 3 enemies attacking the target to attack the Paladin instead.
     righteous_defense = {
         id = 31789,
         cast = 0,
-        cooldown = 8,
-        gcd = "off",
-
-        startsCombat = true,
+        cooldown = 15,
+        gcd = "spell",
+        school = "holy",
         texture = 135068,
+        range = 40,
+        spend_pct = 4,
+        spendType = "Mana",
+        max_stack = 1,
 
-        handler = function ()
-        end,
+        -- Effects:
+        -- [ ] Rank 31789 #0 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 8, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+        -- [ ] Rank 31789 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 31980
+
+        radius = 5,
+
+        proc_chance = 100,
     },
 
-
-    -- Increases the threat generated by your Holy spells by 80%.  Lasts until cancelled.
+-- Righteous Fury - Increases the threat generated by your Holy spells by 1/60%. Lasts 1800 sec.
     righteous_fury = {
         id = 25780,
         cast = 0,
-        cooldown = 0,
+        duration = 1800,
         gcd = "spell",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135962,
+        range = 50000,
+        spend_pct = 24,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 25780, 25781 },
 
-        nobuff = "righteous_fury",
+        -- Effects:
+        -- [x] Rank 25780 #0 -- effect: APPLY_AURA, aura: MOD_THREAT, points: 59, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 25780 #1 -- effect: APPLY_AURA, aura: MOD_DAMAGE_PERCENT_TAKEN, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 25781 #0 -- effect: THREAT, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
         handler = function ()
             applyBuff( "righteous_fury" )
         end,
+
+        proc_chance = 100,
     },
 
-
-    -- Each time the target takes damage they gain a Sacred Shield, absorbing 500 damage and increasing the paladin's chance to critically hit with Flash of Light by 50% for up to 6 sec.  They cannot gain this effect more than once every 6 sec.  Lasts 30 sec.  This spell cannot be on more than one target at any one time.
-    sacred_shield = {
-        id = 53601,
+-- Sanctity Aura - Increases Holy damage done by party members within $a1 yards by 10%. Players may only have one Aura on them per Paladin at any one time.
+    sanctity_aura = {
+        id = 20218,
         cast = 0,
-        cooldown = 0,
         gcd = "spell",
+        school = "holy",
+        texture = 135934,
+        max_stack = 1,
 
-        spend = function() return mod_benediction( mod_divine_illumination( 0.12 ) ) end,
-        spendType = "mana",
+        -- Effects:
+        -- [ ] Rank 20218 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_DAMAGE_PERCENT_DONE, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 20218 #1 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_DAMAGE_PERCENT_DONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        startsCombat = false,
-        texture = 236249,
-        nobuff = "sacred_shield",
+        radius = 30,
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Seal of Blood - All melee attacks deal additional Holy damage equal to 35% of normal weapon damage, but the Paladin loses health equal to 10% of the total damage inflicted. Unleashing this Seal's energy will judge an enemy, instantly causing 295 Holy damage at the cost of health equal to 33% of the damage caused.
+    seal_of_blood = {
+        id = 31892,
+        cast = 0,
+        duration = 30,
+        gcd = "spell",
+        school = "holy",
+        texture = 135961,
+        range = 50000,
+        spend = 210,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 31892, 31893 },
+
+        -- Effects:
+        -- [x] Rank 31892 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31892 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 31897, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31892 #2 -- effect: APPLY_AURA, aura: DUMMY, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 31893 #0 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 34, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
         handler = function ()
-            applyBuff( "sacred_shield" )
+            applyBuff( "seal_of_blood" )
         end,
+
+        proc_chance = 100,
+        proc_type_mask = { 4, 0 },
+        -- Proc type flags: mask0: Deal Melee Swing
     },
 
-
-    -- All melee attacks deal 27 to 27 additional Holy damage.  When used with attacks or abilities that strike a single target, this additional Holy damage will strike up to 2 additional targets.  Lasts 30 min.    Unleashing this Seal's energy will judge an enemy, instantly causing 56 to 56 Holy damage.
+-- Seal of Command - Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec. Unleashing this Seal's energy will judge an enemy, instantly causing $/2;20467s1 Holy damage, 93 if the target is stunned or incapacitated.
     seal_of_command = {
         id = 20375,
         cast = 0,
-        cooldown = 0,
+        duration = 30,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.14 ) ) end,
-        spendType = "mana",
-
-        talent = "seal_of_command",
-        startsCombat = false,
+        school = "holy",
         texture = 132347,
+        spend = 65,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 20375, 27170 },
+
+        -- Effects:
+        -- [x] Rank 20375 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 20424
+        -- [x] Rank 20375 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20424, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27170 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 20424
+        -- [x] Rank 27170 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 27171, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
-            removeBuff( "seal" )
             applyBuff( "seal_of_command" )
         end,
+
+        proc_chance = 100,
+        proc_category_recovery = 1,
+        proc_type_mask = { 4, 0 },
+        -- Proc type flags: mask0: Deal Melee Swing
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Fills the Paladin with the spirit of justice for 30 min, giving each melee attack a chance to stun for 2 sec.  Only one Seal can be active on the Paladin at any one time.    Unleashing this Seal's energy will deal 85 Holy damage to an enemy.
-    seal_of_justice = {
-        id = 20164,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.14 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-        texture = 135971,
-
-        handler = function ()
-            removeBuff( "seal" )
-            applyBuff( "seal_of_justice" )
-        end,
-    },
-
-
-    -- Fills the Paladin with divine light for 30 min, giving each melee attack a chance to heal the Paladin for 78.  Only one Seal can be active on the Paladin at any one time.    Unleashing this Seal's energy will deal 85 Holy damage to an enemy.
-    seal_of_light = {
-        id = 20165,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.14 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-        texture = 135917,
-
-        handler = function ()
-            removeBuff( "seal" )
-            applyBuff( "seal_of_light" )
-        end,
-    },
-
-
-    -- Fills the Paladin with holy spirit for 30 min, granting each melee attack 23 additional Holy damage.  Only one Seal can be active on the Paladin at any one time.    Unleashing this Seal's energy will cause 105 Holy damage to an enemy.
-    seal_of_righteousness = {
-        id = 21084,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.14 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-        texture = 132325,
-
-        handler = function ()
-            removeBuff( "seal" )
-            applyBuff( "seal_of_righteousness" )
-        end,
-    },
-
-
-    -- Fills the Paladin with holy power, causing attacks to apply Holy Vengeance, which deals [(0.013 * Spell power + 0.025 * Attack power) * 5] additional Holy damage over 15 sec.  Holy Vengeance can stack up to 5 times.  Each of the Paladin's attacks also deals up to 33% weapon damage as additional Holy damage, based on the number of stacks.  Only one Seal can be active on the Paladin at any one time.  Lasts 30 min.  Unleashing this Seal's energy will deal (1 + 0.22 * Spell power + 0.14 * Attack power) Holy damage to an enemy, increased by 10% for each application of Holy Vengeance on the target.
-    seal_of_vengeance = {
-        id = 31801,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.14 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
-        texture = 135969,
-
-        handler = function ()
-            removeBuff( "seal" )
-            applyBuff( "seal_of_vengeance" )
-        end,
-    },
-
+-- Seal of Corruption - Fills the Paladin with holy power, granting each melee attack a chance to apply Blood Corruption, which deals $31803o1 additional Holy damage over $31803d. Blood Corruption can stack up to $31803u times. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec. Unleashing this Seal's energy will judge an enemy, instantly causing 120 Holy damage for each application of Blood Corruption on the target.
     seal_of_corruption = {
         id = 348704,
         cast = 0,
-        cooldown = 0,
+        duration = 30,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.14 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135969,
+        spend = 250,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 348704 #0 -- effect: APPLY_AURA, aura: DUMMY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 348704 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 356112, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
-            removeBuff( "seal" )
             applyBuff( "seal_of_corruption" )
+        end,
+
+        proc_chance = 100,
+        proc_type_mask = { 4, 0 },
+        -- Proc type flags: mask0: Deal Melee Swing
+    },
+
+-- Seal of Justice - Fills the Paladin with the spirit of justice for 30 sec, giving each melee attack a chance to stun for $20170d. Only one Seal can be active on the Paladin at any one time. Unleashing this Seal's energy will judge an enemy for $20184d, preventing them from fleeing. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time.
+    seal_of_justice = {
+        id = 20164,
+        cast = 0,
+        duration = 30,
+        gcd = "spell",
+        school = "holy",
+        texture = 135971,
+        spend_pct = 10,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 20164, 31895 },
+
+        -- Effects:
+        -- [x] Rank 20164 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 20170
+        -- [x] Rank 20164 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20183, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31895 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 20170
+        -- [x] Rank 31895 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 31895, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "seal_of_justice" )
+        end,
+
+        proc_chance = 100,
+        proc_type_mask = { 20, 0 },
+        -- Proc type flags: mask0: Deal Melee Swing; Deal Melee Ability
+    },
+
+-- Seal of Light - Fills the Paladin with divine light for 30 sec, giving each melee attack a chance to heal the Paladin for 39. Only one Seal can be active on the Paladin at any one time. Unleashing this Seal's energy will judge an enemy for $20185d, granting melee attacks made against the judged enemy a chance of healing the attacker for 25. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time.
+    seal_of_light = {
+        id = 20165,
+        cast = 0,
+        duration = 30,
+        gcd = "spell",
+        school = "holy",
+        texture = 135917,
+        spend = 110,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 20165, 20347, 20348, 20349, 27160 },
+
+        -- Effects:
+        -- [x] Rank 20165 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 20167
+        -- [x] Rank 20165 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20184, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20347 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 20333
+        -- [x] Rank 20347 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20343, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20348 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 20334
+        -- [x] Rank 20348 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20344, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20349 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 20340
+        -- [x] Rank 20349 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20345, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27160 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 27161
+        -- [x] Rank 27160 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 27161, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "seal_of_light" )
+        end,
+
+        proc_chance = 100,
+        proc_type_mask = { 20, 0 },
+        -- Proc type flags: mask0: Deal Melee Swing; Deal Melee Ability
+    },
+
+-- Seal of Righteousness - Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional ${$cond($eq($HND,1),0.85*($m1*1.2*1.03*$MWS/100)+0.03*($MW+$mw)/2-1,1.2*($m1*1.2*1.03*$MWS/100)+0.03*($MW+$mw)/2+1)} Holy damage. Only one Seal can be active on the Paladin at any one time.
+    seal_of_righteousness = {
+        id = 20154,
+        cast = 0,
+        duration = 30,
+        gcd = "spell",
+        school = "holy",
+        texture = 132325,
+        spend = 20,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 20154, 20287, 20288, 20289, 20290, 20291, 20292, 20293, 21084, 27155 },
+
+        -- Effects:
+        -- [x] Rank 20154 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 107, addl_points: 1, points_per_level: 18, sp_bonus: 0.029, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20287 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 215, addl_points: 1, points_per_level: 17, sp_bonus: 0.063, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20287 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20279, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20288 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 351, addl_points: 1, points_per_level: 23, sp_bonus: 0.093, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20288 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20280, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20289 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 540, addl_points: 1, points_per_level: 31, sp_bonus: 0.1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20289 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20281, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20290 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 784, addl_points: 1, points_per_level: 37, sp_bonus: 0.1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20290 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20282, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20291 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 1081, addl_points: 1, points_per_level: 41, sp_bonus: 0.1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20291 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20283, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20292 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 1406, addl_points: 1, points_per_level: 47, sp_bonus: 0.1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20292 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20284, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20293 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 1785, addl_points: 1, points_per_level: 47, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20293 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20285, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 21084 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 107, addl_points: 1, points_per_level: 18, sp_bonus: 0.029, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 21084 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20186, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27155 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 2111, addl_points: 1, points_per_level: 53, sp_bonus: 0.1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27155 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 27156, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "seal_of_righteousness" )
+        end,
+
+        proc_chance = 100,
+        proc_type_mask = { 4, 0 },
+        -- Proc type flags: mask0: Deal Melee Swing
+    },
+
+-- Seal of the Crusader - Fills the Paladin with the spirit of a crusader for 30 sec, granting 36-474 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time. Unleashing this Seal's energy will judge an enemy for $20188d, increasing Holy damage taken by up to 35. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time.
+    seal_of_the_crusader = {
+        id = 20162,
+        cast = 0,
+        duration = 30,
+        gcd = "spell",
+        school = "holy",
+        texture = 135924,
+        spend = 40,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 20162, 20305, 20306, 20307, 20308, 21082, 27158 },
+
+        -- Effects:
+        -- [x] Rank 20162 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 58, addl_points: 1, points_per_level: 1.1, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20162 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20187, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20162 #2 -- effect: APPLY_AURA, aura: MOD_ATTACKSPEED, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20305 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 107, addl_points: 1, points_per_level: 1.7, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20305 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20299, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20305 #2 -- effect: APPLY_AURA, aura: MOD_ATTACKSPEED, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20306 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 166, addl_points: 1, points_per_level: 2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20306 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20300, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20306 #2 -- effect: APPLY_AURA, aura: MOD_ATTACKSPEED, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20307 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 253, addl_points: 1, points_per_level: 2.2, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20307 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20301, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20307 #2 -- effect: APPLY_AURA, aura: MOD_ATTACKSPEED, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20308 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 351, addl_points: 1, points_per_level: 2.4, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20308 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20302, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20308 #2 -- effect: APPLY_AURA, aura: MOD_ATTACKSPEED, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 21082 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 35, addl_points: 1, points_per_level: 0.7, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 21082 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 21182, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 21082 #2 -- effect: APPLY_AURA, aura: MOD_ATTACKSPEED, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27158 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 473, addl_points: 1, points_per_level: 2.6, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27158 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 27158, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27158 #2 -- effect: APPLY_AURA, aura: MOD_ATTACKSPEED, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "seal_of_the_crusader" )
         end,
     },
 
+-- Seal of the Martyr - All melee attacks deal additional Holy damage equal to 35% of normal weapon damage, but the Paladin loses health equal to 10% of the total damage inflicted. Unleashing this Seal's energy will judge an enemy, instantly causing 295 Holy damage at the cost of health equal to 33% of the damage caused.
+    seal_of_the_martyr = {
+        id = 348700,
+        cast = 0,
+        duration = 30,
+        gcd = "spell",
+        school = "holy",
+        texture = 135961,
+        range = 50000,
+        spend = 210,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 348700, 348701 },
 
-    -- Fills the Paladin with divine wisdom for 30 min, giving each melee attack a chance to restore 4% of the paladin's maximum mana.  Only one Seal can be active on the Paladin at any one time.    Unleashing this Seal's energy will deal 85 Holy damage to an enemy.
+        -- Effects:
+        -- [x] Rank 348700 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 348700 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 348702, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 348700 #2 -- effect: APPLY_AURA, aura: DUMMY, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 348701 #0 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 34, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            applyBuff( "seal_of_the_martyr" )
+        end,
+
+        proc_chance = 100,
+        proc_type_mask = { 4, 0 },
+        -- Proc type flags: mask0: Deal Melee Swing
+    },
+
+-- Seal of Vengeance - Fills the Paladin with holy power, granting each melee attack a chance to cause $31803o1 Holy damage over $31803d. This effect can stack up to $31803u times. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec. Unleashing this Seal's energy will judge an enemy, instantly causing 120 Holy damage per application of Holy Vengeance.
+    seal_of_vengeance = {
+        id = 31801,
+        cast = 0,
+        duration = 30,
+        gcd = "spell",
+        school = "holy",
+        texture = 135969,
+        spend = 250,
+        spendType = "Mana",
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 31801 #0 -- effect: APPLY_AURA, aura: DUMMY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 31801 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 31803, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "seal_of_vengeance" )
+        end,
+
+        proc_chance = 100,
+        proc_type_mask = { 4, 0 },
+        -- Proc type flags: mask0: Deal Melee Swing
+    },
+
+-- Seal of Wisdom - Fills the Paladin with divine wisdom for 30 sec, giving each melee attack a chance to restore 50 of the Paladin's mana. Only one Seal can be active on the Paladin at any one time. Unleashing this Seal's energy will judge an enemy for $20186d, granting attacks and spells used against the judged enemy a chance to restore 33 mana to the attacker. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time.
     seal_of_wisdom = {
         id = 20166,
         cast = 0,
-        cooldown = 0,
+        duration = 30,
         gcd = "spell",
-
-        spend = function() return mod_benediction( mod_divine_illumination( 0.14 ) * ( glyph.wise.enabled and 0.5 or 1 ) ) end,
-        spendType = "mana",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135960,
+        spend = 135,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 20166, 20356, 20357, 27166 },
+
+        -- Effects:
+        -- [x] Rank 20166 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 20168
+        -- [x] Rank 20166 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20185, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20356 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 20350
+        -- [x] Rank 20356 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20353, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20357 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 20351
+        -- [x] Rank 20357 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 20354, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 27166 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 27167
+        -- [x] Rank 27166 #1 -- effect: APPLY_AURA, aura: DUMMY, points: 27163, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
-            removeBuff( "seal" )
             applyBuff( "seal_of_wisdom" )
         end,
+
+        proc_chance = 100,
+        proc_type_mask = { 20, 0 },
+        -- Proc type flags: mask0: Deal Melee Swing; Deal Melee Ability
     },
 
-
-    -- Shows the location of all nearby undead on the minimap until cancelled.   Only one form of tracking can be active at a time.
+-- Sense Undead - Shows the location of all nearby undead on the minimap until cancelled. Only one form of tracking can be active at a time.
     sense_undead = {
         id = 5502,
         cast = 0,
-        cooldown = 0,
         gcd = "spell",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135974,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 5502 #0 -- effect: APPLY_AURA, aura: TRACK_CREATURES, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
-            if buff.sense_undead.up then removeBuff( "sense_undead" )
-            else applyBuff( "sense_undead" ) end
+            applyBuff( "sense_undead" )
         end,
     },
 
-
-    -- Gives 130 additional Shadow resistance to all party and raid members within 40 yards.  Players may only have one Aura on them per Paladin at any one time.
+-- Shadow Resistance Aura - Gives 30/45/60/70 additional Shadow resistance to all party members within $a1 yards. Players may only have one Aura on them per Paladin at any one time.
     shadow_resistance_aura = {
-        id = 48943,
+        id = 19876,
         cast = 0,
-        cooldown = 0,
         gcd = "spell",
-
-        startsCombat = false,
+        school = "holy",
         texture = 136192,
+        max_stack = 1,
+        copy = { 19876, 19895, 19896, 27151 },
 
-        nobuff = "shadow_resistance_aura",
+        -- Effects:
+        -- [ ] Rank 19876 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 19895 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 19896 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 59, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 27151 #0 -- effect: APPLY_AREA_AURA_PARTY, aura: MOD_RESISTANCE_EXCLUSIVE, points: 69, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 10, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        handler = function ()
-            removeBuff( "aura" )
-            applyBuff( "shadow_resistance_aura" )
-        end,
+        radius = 30,
     },
 
-
-    -- Slam the target with your shield, causing Holy damage based on your block value plus an additional 390.
-    shield_of_righteousness = {
-        id = 53600,
-        cast = 0,
-        cooldown = 6,
+-- Summon Charger - Summons a Charger, which serves as a mount. Speed is increased by 100%.
+    summon_charger = {
+        id = 23214,
+        cast = 3,
         gcd = "spell",
+        school = "holy",
+        texture = 132226,
+        spend = 150,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 23214, 34767 },
 
-        spend = function() return mod_benediction( mod_divine_illumination( 0.06 ) ) * ( glyph.shield_of_righteousness.enabled and 0.2 or 1 ) end,
-        spendType = "mana",
-
-        startsCombat = true,
-        texture = 236265,
-        clash = 0.4,
-
-        equipped = "shield",
+        -- Effects:
+        -- [x] Rank 23214 #0 -- effect: APPLY_AURA, aura: MOUNTED, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 23214 #1 -- effect: APPLY_AURA, aura: MOD_INCREASE_MOUNTED_SPEED, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 23214 #2 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 34767 #0 -- effect: APPLY_AURA, aura: MOUNTED, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 34767 #1 -- effect: APPLY_AURA, aura: MOD_INCREASE_MOUNTED_SPEED, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 34767 #2 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
+            applyBuff( "summon_charger" )
         end,
 
-        copy = { 61411 },
+        proc_chance = 100,
     },
 
+-- Summon Warhorse - Summons a warhorse, which serves as a mount. Speed is increased by 60%.
+    summon_warhorse = {
+        id = 13819,
+        cast = 3,
+        gcd = "spell",
+        school = "holy",
+        texture = 136103,
+        spend = 100,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 13819, 34769 },
 
-    -- The targeted undead or demon enemy will be compelled to flee for up to 20 sec.  Damage caused may interrupt the effect.  Only one target can be turned at a time.
+        -- Effects:
+        -- [x] Rank 13819 #0 -- effect: APPLY_AURA, aura: MOUNTED, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 13819 #1 -- effect: APPLY_AURA, aura: MOD_INCREASE_MOUNTED_SPEED, points: 59, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 13819 #2 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 34769 #0 -- effect: APPLY_AURA, aura: MOUNTED, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 34769 #1 -- effect: APPLY_AURA, aura: MOD_INCREASE_MOUNTED_SPEED, points: 59, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 34769 #2 -- effect: SCRIPT_EFFECT, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "summon_warhorse" )
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Tankatronic Goggles
+    tankatronic_goggles = {
+        id = 41312,
+        cast = 50,
+        texture = 136243,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 41312 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Turn Evil - The targeted undead or demon enemy will be compelled to flee for up to 20 sec. Damage caused may interrupt the effect. Only one target can be turned at a time.
     turn_evil = {
         id = 10326,
-        cast = function() return glyph.turn_evil.enabled and 0 or 1.5 end,
-        cooldown = function() return glyph.turn_evil.enabled and 8 or 0 end,
+        cast = 1.5,
+        duration = 20,
+        category_cooldown = 30,
         gcd = "spell",
-
-        spend = function() return mod_divine_illumination( 0.09 ) end,
-        spendType = "mana",
-
-        startsCombat = false,
+        school = "holy",
         texture = 135983,
+        cooldown_category_id = 33,
+        cooldown_category = "Mez",
+        range = 20,
+        spend = 75,
+        spendType = "Mana",
+        max_stack = 1,
 
-        usable = function() return target.is_undead or target.is_demon, "target must be undead or demon" end,
+        -- Effects:
+        -- [x] Rank 10326 #0 -- effect: APPLY_AURA, aura: MOD_FEAR, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 10326 #1 -- effect: APPLY_AURA, aura: MOD_INCREASE_SPEED, points: 24, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
 
         handler = function ()
             applyDebuff( "target", "turn_evil" )
         end,
+
+        proc_chance = 100,
     },
+
+-- Turn Undead - The targeted undead enemy will be compelled to flee for up to 10/15 sec. Damage caused may interrupt the effect. Only one target can be turned at a time.
+    turn_undead = {
+        id = 2878,
+        cast = 1.5,
+        duration = 15,
+        category_cooldown = 30,
+        gcd = "spell",
+        school = "holy",
+        texture = 135983,
+        cooldown_category_id = 33,
+        cooldown_category = "Mez",
+        range = 20,
+        spend = 35,
+        spendType = "Mana",
+        max_stack = 1,
+        copy = { 2878, 5627 },
+
+        -- Effects:
+        -- [x] Rank 2878 #0 -- effect: APPLY_AURA, aura: MOD_FEAR, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 2878 #1 -- effect: APPLY_AURA, aura: MOD_INCREASE_SPEED, points: 24, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 5627 #0 -- effect: APPLY_AURA, aura: MOD_FEAR, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 5627 #1 -- effect: APPLY_AURA, aura: MOD_INCREASE_SPEED, points: 24, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            applyDebuff( "target", "turn_undead" )
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Vindication - All attributes reduced by -15/-10/-5/0%.
+    vindication = {
+        id = 67,
+        cast = 0,
+        duration = 15,
+        school = "holy",
+        texture = 135985,
+        range = 100,
+        max_stack = 1,
+        copy = { 67, 9452, 26016, 26017, 26018, 26021 },
+
+        -- Effects:
+        -- [x] Rank 67 #0 -- effect: APPLY_AURA, aura: MOD_TOTAL_STAT_PERCENTAGE, points: -6, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 9452 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 67
+        -- [x] Rank 26016 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 26017
+        -- [x] Rank 26017 #0 -- effect: APPLY_AURA, aura: MOD_TOTAL_STAT_PERCENTAGE, points: -11, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 26018 #0 -- effect: APPLY_AURA, aura: MOD_TOTAL_STAT_PERCENTAGE, points: -16, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 26021 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 26018
+
+        handler = function ()
+            applyDebuff( "target", "vindication" )
+            applyBuff( "vindication" )
+        end,
+
+        proc_chance = 100,
+        proc_type_mask = { 20, 0 },
+        -- Proc type flags: mask0: Deal Melee Swing; Deal Melee Ability
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
 } )
 
-spec:RegisterStateTable("assigned_aura", setmetatable( {}, {
-    __index = function( t, k )
-        return settings.assigned_aura == k
-    end
-}))
-
-spec:RegisterStateTable("assigned_blessing", setmetatable( {}, {
-    __index = function( t, k )
-        return settings.assigned_blessing == k
-    end
-}))
-
-spec:RegisterStateExpr("ttd", function()
-    if is_training_dummy then
-        return Hekili.Version:match( "^Dev" ) and settings.dummy_ttd or 300
-    end
-    
-    return target.time_to_die
-end)
-
-spec:RegisterStateExpr("next_primary_at", function()
-    return min(cooldown.crusader_strike.remains, cooldown.divine_storm.remains, cooldown.judgement_of_light.remains)
-end)
-
-spec:RegisterStateExpr("should_hammer", function()
-    local hammercd = cooldown.hammer_of_the_righteous.remains
-    local shieldcd = cooldown.shield_of_righteousness.remains
-
-    return (hammercd <settings.max_wait_for_six) 
-    and (shieldcd < (settings.min_six_delay-settings.max_wait_for_six))
-end)
-
-spec:RegisterStateExpr("should_shield", function()
-    local hammercd = cooldown.hammer_of_the_righteous.remains
-    local shieldcd = cooldown.shield_of_righteousness.remains
-
-    return (shieldcd <settings.max_wait_for_six) 
-    and (hammercd < (settings.min_six_delay-settings.max_wait_for_six))
-end)
-
-spec:RegisterSetting("paladin_description", nil, {
-    type = "description",
-    name = "Adjust the settings below according to your playstyle preference. It is always recommended that you use a simulator "..
-        "to determine the optimal values for these settings for your specific character."
-})
-
-spec:RegisterSetting("paladin_description_footer", nil, {
-    type = "description",
-    name = "\n\n"
-})
-
-spec:RegisterSetting("general_header", nil, {
-    type = "header",
-    name = "General"
-})
-
-spec:RegisterSetting("maintain_aura", true, {
-    type = "toggle",
-    name = "Maintain Aura",
-    desc = "When enabled, selected aura will be recommended if it is down",
-    width = "full",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 2 ].settings.maintain_aura = val
-    end
-})
-
-local auras = {}
-spec:RegisterSetting( "assigned_aura", "retribution_aura", {
-    type = "select",
-    name = "Assigned Aura",
-    desc = "Select the Aura that should be recommended by the addon.  It is referenced as |cff00ccff[Assigned Aura]|r in your priority.",
-    width = "full",
-    values = function()
-        table.wipe( auras )
-
-        auras.devotion_aura = class.abilityList.devotion_aura
-        auras.retribution_aura = class.abilityList.retribution_aura
-        auras.concentration_aura = class.abilityList.concentration_aura
-        auras.shadow_resistance_aura = class.abilityList.shadow_resistance_aura
-        auras.frost_resistance_aura = class.abilityList.frost_resistance_aura
-        auras.fire_resistance_aura = class.abilityList.fire_resistance_aura
-        auras.crusader_aura = class.abilityList.crusader_aura
-
-        return auras
-    end,
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 2 ].settings.assigned_aura = val
-        class.abilities.assigned_aura = class.abilities[ val ]
-    end,
-} )
-
-spec:RegisterSetting("maintain_blessing", true, {
-    type = "toggle",
-    name = "Maintain Aura",
-    desc = "When enabled, selected blessing will be recommended if it is down. Disable this setting if your raid group uses another "..
-        "blessing management tool such as PallyPower.",
-    width = "full",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 2 ].settings.maintain_blessing = val
-    end
-})
-
-local blessings = {}
-spec:RegisterSetting( "assigned_blessing", "blessing_of_kings", {
-    type = "select",
-    name = "Assigned Blessing",
-    desc = "Select the Blessing that should be recommended by the addon.  It is referenced as |cff00ccff[Assigned Blessing]|r in your priority.",
-    width = "full",
-    values = function()
-        table.wipe( blessings )
-
-        blessings.blessing_of_sanctuary = class.abilityList.blessing_of_sanctuary
-        blessings.blessing_of_might = class.abilityList.blessing_of_might
-        blessings.blessing_of_kings = class.abilityList.blessing_of_kings
-        blessings.blessing_of_wisdom = class.abilityList.blessing_of_wisdom
-
-        return blessings
-    end,
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 2 ].settings.assigned_blessing = val
-        class.abilities.assigned_blessing = class.abilities[ val ]
-    end,
-} )
-
-spec:RegisterSetting("holy_wrath_threshold", 2, {
-    type = "range",
-    name = "Holy Wrath Threshold",
-    desc = "Select the minimum number of enemies before holy wrath will be prioritized higher",
-    width = "full",
-    min = 0,
-    softMax = 10,
-    step = 1,
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 2 ].settings.holy_wrath_threshold = val
-    end
-})
-spec:RegisterSetting("primary_slack", 0.5, {
-    type = "range",
-    name = "Primary Slack (s)",
-    desc = "Amount of extra time in s to give main abilities to come off CD before using Exo or Cons",
-    width = "full",
-    min = 0,
-    softMax = 2,
-    step = 0.01,
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 2 ].settings.primary_slack = val
-    end
-})
-
-spec:RegisterSetting("hor_macros", false, {
-    type = "toggle",
-    name = "Using HoR Macros",
-    desc = "Enable when using Hand of Reckoning Macros (dont display HoR when using Glyph)",
-    width = "single",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 2 ].settings.hor_macros = val
-    end
-})
-
-spec:RegisterSetting("highroll", false, {
-    type = "toggle",
-    name = "T10-Highroll Playstyle",
-    desc = "Enable to prioritize DS, for higher potential damage, but less damage on average",
-    width = "single",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 2 ].settings.highroll = val
-    end
-})
-
-spec:RegisterSetting("fol_on_aow", false, {
-    type = "toggle",
-    name = "Flash of Light on AoW",
-    desc = "Enable to recommend Flash of Light on spare Art of War during Exo CDs",
-    width = "single",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 2 ].settings.fol_on_aow = val
-    end
-})
-
-spec:RegisterSetting("general_footer", nil, {
-    type = "description",
-    name = "\n\n\n"
-})
-
-spec:RegisterSetting("mana_regen_header", nil, {
-    type = "header",
-    name = "Mana Upkeep"
-})
-
-spec:RegisterSetting("mana_regen_description", nil, {
-    type = "description",
-    name = "Mana Upkeep settings will change mana regeneration related recommendations\n\n"
-})
-
-spec:RegisterSetting("judgement_of_wisdom_threshold", 70, {
-    type = "range",
-    name = "Judgement of Wisdom Threshold",
-    desc = "Select the minimum mana percent at which judgement of wisdom will be recommended",
-    width = "full",
-    min = 0,
-    max = 100,
-    step = 1,
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 2 ].settings.judgement_of_wisdom_threshold = val
-    end
-})
-
-spec:RegisterSetting("divine_plea_threshold", 75, {
-    type = "range",
-    name = "Divine Plea Threshold",
-    desc = "Select the minimum mana percent at which divine plea will be recommended",
-    width = "full",
-    min = 0,
-    max = 100,
-    step = 1,
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 2 ].settings.divine_plea_threshold = val
-    end
-})
-
-spec:RegisterSetting("mana_footer", nil, {
-    type = "description",
-    name = "\n\n\n"
-})
-
-spec:RegisterSetting("protection_header", nil, {
-    type = "header",
-    name = "Prot Settings"
-})
-
-spec:RegisterSetting("max_wait_for_six", 0.3, {
-    type = "range",
-    name = "Max Wait for Six",
-    desc = "Max allowed delay to wait for 6s-Casts (SotR, HotR) CD in seconds.\n\n"..
-        "Recommendation:\n - 0.3 seconds\n\n"..
-        "Default: 0.3",
-    width = "full",
-    min = 0,
-    softMax = 1,
-    step = 0.01,
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 2 ].settings.max_wait_for_six = val
-    end
-})
-spec:RegisterSetting("min_six_delay", 4, {
-    type = "range",
-    name = "Min Six Delay",
-    desc = "Min allowed delay to wait between 6s-Casts (SotR, HotR) CD in seconds.\n\n"..
-        "Recommendation:\n - 4 seconds\n\n"..
-        "Default: 4",
-    width = "full",
-    min = 0,
-    softMax = 6,
-    step = 0.1,
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 2 ].settings.min_six_delay = val
-    end
-})
-
-spec:RegisterSetting("squeeze_hw_in_bl", true, {
-    type = "toggle",
-    name = "Use HolyWrath during BL",
-    desc = "Enable to squeeze HW in open partial global after Consecration during bloodlust against Undead/Demon",
-    width = "single",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 2 ].settings.squeeze_hw_in_bl = val
-    end
-})
-
-if (Hekili.Version:match( "^Dev" )) then
-    spec:RegisterSetting("pala_debug_header", nil, {
-        type = "header",
-        name = "Debug"
-    })
-
-    spec:RegisterSetting("pala_debug_description", nil, {
-        type = "description",
-        name = "Settings used for testing\n\n"
-    })
-
-    spec:RegisterSetting("dummy_ttd", 300, {
-        type = "range",
-        name = "Training Dummy Time To Die",
-        desc = "Select the time to die to report when targeting a training dummy",
-        width = "full",
-        min = 0,
-        softMax = 300,
-        step = 1,
-        set = function( _, val )
-            Hekili.DB.profile.specs[ 2 ].settings.dummy_ttd = val
-        end
-    })
-
-
-    spec:RegisterSetting("pala_debug_footer", nil, {
-        type = "description",
-        name = "\n\n"
-    })
+-- Resources
+if spec.RegisterResource then
+    spec:RegisterResource( "mana" )
 end
 
+spec:RegisterRanges( "holy_shock", "avengers_shield", "exorcism", "hammer_of_wrath", "blood_corruption", "eye_for_an_eye" )
 
 spec:RegisterOptions( {
     enabled = true,
 
-    aoe = 2,
+    aoe = 3,
+    cycle = false,
 
-    gcd = 21084,
+    nameplates = false,
+    nameplateRange = 40,
+    rangeFilter = false,
 
-    nameplates = true,
-    nameplateRange = 8,
-
-    damage = false,
+    damage = true,
+    damageDots = true,
     damageExpiration = 6,
 
-    potion = "speed",
+    potion = "tempered_potion",
 
-    package = "Retribution (LightClub)",
-    usePackSelector = true
+    package = "Retribution\ \(LightClub\)",
 } )
 
+--[[
+spec:RegisterSetting( "scaffold_strict_range", false, {
+    name = "Scaffold: Strict Range Checks",
+    desc = "If checked, this generated profile can use stricter range checks where supported.",
+    type = "toggle",
+    width = "full",
+} )
+]]--
 
---spec:RegisterPack( "Retribution (WoWSims)", 20230222.1, [[Hekili:1IvtVrokt4Fl5sRjAh5(JKjZ(UA65WE6DYHrRwVNTnTnTnBBmwaozAPi)BFl8NGBWjDNokkjwuq98qrrrvvW6G)jWpbjXb)CZQn3TAZMnERVF16vRd8LhlXb(LO4dOu4Jcef(7FJLCYUkjHvOKDmNHsu6qWQ4XG8mPSu8hlxMsKzv78Iz0LpZEwqOc4)Y8dl3LZ2TKIesmFjm8YsuokHuSKpQ4LCMeP(WlLf4VRIKl)rrWoRefqUehddcqtssWTZdlInOAD0F1ctDuVURJ2Z41r)F8bsojWpNiKIgJbEpQkxcF(ZgJdUaTlhNe8Nb(XCcWAckW)M6ibwkjfPcVmgpKII5mrD0I6O08JLzECC8bwbi3RB9nY(uDucEx1(9EsoIOehMurPh9QkRJE5L6iqVO0uoRo62aFuCRvodvKeY2hoOZa)kbggzFyACIIMs1(3fxBWtGr5EjSNlA4HsZpHdXfykbd0EBD06r8uZvH3t4IumQaovb9F37r)F3Q(bFdkS1uA)EL27LJuaRSnpZrYmDuHz(f9zwYA)VXmEqFgkdfquQyYK(68Bhtkahp6NgukMR4Fl9aL976iMb3A4GpjojefhJZXCKfs()CIpysqEGkIXfY6OVP5O9VvjPykmCd4ercJgkZ4yrglpzKawMMcX1R0zPXKYjPzYjeCTBNFGqH7yfvcpjbZxVkCtz8uFOeYtKcCOqY4TO72)e85Pmy2PoDDAeatR9OPDcXScboU12AC(OlOb57moDMC6nztFVtwcxDLiEkw6reHjyQkaI6g74GvfjyeCp)w77JTgHmYp2saBhGJsB40xUaxLoZFzogzdbnXnq8GtiM)M8jNYFv3whZReOeWAlG4WhWtT1g3Am00Kj6(UY5EO0g6ndhI4T3oq8MqVGOc8VKHLCcfXpgIKn70bZz)4IC4XWrsJ)fJhtenB9nRMZbFgp3lg9Po6BCFJ9JCF7(I9zC64Y5FJ7NDgi5Eg8AsriI98LCgBSfnc0ODjPxbXm4Ae8iNxVfaENNcpK3EX4HXDX(CKiBm0Q6h)s49BgDh61tTOdTHDOccj8BiQIJAJUieK0c1tmWiEAPo1mWiporYSzkCbqdoHQOpTEHta3ISztK4sGVpeZeKngUp)IRfOj4Nyw2UMd3NQY1c09eogYauaPPQsjBc2wL2Nl0vJcqkUYz4GvXZMR1fqcrgcUb6MfoK3NL2ztdy2a(9jN0tL(r96)qDx)GALJm5urZM33vIe02C5SrcAxSOUub)izHaS8YkiUQDMmkE(mnVsSPljyRuzib5My0pbPURMsxnMa18H3pkApy)bTKXLQs520MFN6bTM6g9QFe0ELekfmW3VcsjdYowOc5Z2tYX9iREqT7nGFB7YPXM)mz)2BQkxy)QWI5d5x)Onionc8zbYPl3bm6HBppe0xPDLBew9SuUXkTRCBXnplmSPahqzl845HLnnyhm7rbpl0SRc7WDsOo3i1p1fVHyPVoynH0E3G1OLxhSHOwVBah00RdAB8P3nITQP(XbabyoPVsFwRTsBx3G5f1Ll394svaWn9D4sNlN0Zjf6MDwArx9tD1IUDTT131tPxD1F3y1MT7rxsBhM0hzOJsMMsJ2kma)j9rYyr27uK(uS0lhLU1l8)BVT(d5uR5go)QaUALIRaZw7Emn(6vI24102pNtm5lUzU6GDBonenuFOcPpnPaZxEzAXL3oLfBNTlmwmeQcaDB0T2PL5mNM0PRbx6gtZUM4sv6J3xn6B1IyVe5fV9wbm7H)mNXxie67VRk3N3zYE3kmcBzwNF3TLpM2sCXnM4HMuBd(Vd]] )
+spec:RegisterPack( "Retribution (WoWSims)", 20230222.1, [[Hekili:1IvtVrokt4Fl5sRjAh5(JKjZ(UA65WE6DYHrRwVNTnTnTnBBmwaozAPi)BFl8NGBWjDNokkjwuq98qrrrvvW6G)jWpbjXb)CZQn3TAZMnERVF16vRd8LhlXb(LO4dOu4Jcef(7FJLCYUkjHvOKDmNHsu6qWQ4XG8mPSu8hlxMsKzv78Iz0LpZEwqOc4)Y8dl3LZ2TKIesmFjm8YsuokHuSKpQ4LCMeP(WlLf4VRIKl)rrWoRefqUehddcqtssWTZdlInOAD0F1ctDuVURJ2Z41r)F8bsojWpNiKIgJbEpQkxcF(ZgJdUaTlhNe8Nb(XCcWAckW)M6ibwkjfPcVmgpKII5mrD0I6O08JLzECC8bwbi3RB9nY(uDucEx1(9EsoIOehMurPh9QkRJE5L6iqVO0uoRo62aFuCRvodvKeY2hoOZa)kbggzFyACIIMs1(3fxBWtGr5EjSNlA4HsZpHdXfykbd0EBD06r8uZvH3t4IumQaovb9F37r)F3Q(bFdkS1uA)EL27LJuaRSnpZrYmDuHz(f9zwYA)VXmEqFgkdfquQyYK(68Bhtkahp6NgukMR4Fl9aL976iMb3A4GpjojefhJZXCKfs()CIpysqEGkIXfY6OVP5O9VvjPykmCd4ercJgkZ4yrglpzKawMMcX1R0zPXKYjPzYjeCTBNFGqH7yfvcpjbZxVkCtz8uFOeYtKcCOqY4TO72)e85Pmy2PoDDAeatR9OPDcXScboU12AC(OlOb57moDMC6nztFVtwcxDLiEkw6reHjyQkaI6g74GvfjyeCp)w77JTgHmYp2saBhGJsB40xUaxLoZFzogzdbnXnq8GtiM)M8jNYFv3whZReOeWAlG4WhWtT1g3Am00Kj6(UY5EO0g6ndhI4T3oq8MqVGOc8VKHLCcfXpgIKn70bZz)4IC4XWrsJ)fJhtenB9nRMZbFgp3lg9Po6BCFJ9JCF7(I9zC64Y5FJ7NDgi5Eg8AsriI98LCgBSfnc0ODjPxbXm4Ae8iNxVfaENNcpK3EX4HXDX(CKiBm0Q6h)s49BgDh61tTOdTHDOccj8BiQIJAJUieK0c1tmWiEAPo1mWiporYSzkCbqdoHQOpTEHta3ISztK4sGVpeZeKngUp)IRfOj4Nyw2UMd3NQY1c09eogYauaPPQsjBc2wL2Nl0vJcqkUYz4GvXZMR1fqcrgcUb6MfoK3NL2ztdy2a(9jN0tL(r96)qDx)GALJm5urZM33vIe02C5SrcAxSOUub)izHaS8YkiUQDMmkE(mnVsSPljyRuzib5My0pbPURMsxnMa18H3pkApy)bTKXLQs520MFN6bTM6g9QFe0ELekfmW3VcsjdYowOc5Z2tYX9iREqT7nGFB7YPXM)mz)2BQkxy)QWI5d5x)Onionc8zbYPl3bm6HBppe0xPDLBew9SuUXkTRCBXnplmSPahqzl845HLnnyhm7rbpl0SRc7WDsOo3i1p1fVHyPVoynH0E3G1OLxhSHOwVBah00RdAB8P3nITQP(XbabyoPVsFwRTsBx3G5f1Ll394svaWn9D4sNlN0Zjf6MDwArx9tD1IUDTT131tPxD1F3y1MT7rxsBhM0hzOJsMMsJ2kma)j9rYyr27uK(uS0lhLU1l8)BVT(d5uR5go)QaUALIRaZw7Emn(6vI24102pNtm5lUzU6GDBonenuFOcPpnPaZxEzAXL3oLfBNTlmwmeQcaDB0T2PL5mNM0PRbx6gtZUM4sv6J3xn6B1IyVe5fV9wbm7H)mNXxie67VRk3N3zYE3kmcBzwNF3TLpM2sCXnM4HMuBd(Vd]] )
 
 spec:RegisterPack( "Retribution (LightClub)", 20231114.1, [[Hekili:vVrApoUT1FldcGHD6gn(yoYgmZeGMuGUlk2gu3pBjAjAB1rhguuE3byG(T3hj1bPmjLKp2MMSjWljFN8Dt7vZw9VxTmarXR(Y8PZxmB2S7CMnB6JZwSAj9T94vl3J8FfTf(qckg())lmLeUoNgMMu4n(FeUDh93IYxpHDW3IsrbmeMLMt8HdVJs3N9l3EBqyMFkjWz72BJyq4dq4hHYYc9xTCDEye9tjRwRJrEGXiz7X(WYa(cdcWItIZ8BXm)bkcfecFGKsrIL2Ksk8(74xdJcl8wJYWbfES1Rz7F63fCgae2pnogNeWbnB1YOWmAgxyct2gHHp9fUYcNGwhHdw9xxT0NesXKqetg2SXjdJICcs)AYQLiFgwayHLCt34EaNSfJsaDcLjiMqZyqLw4Dab)fythAym2LM6geIl8(XcVPoFSW7Nk8MpTWBsH3lfEc64Gy4hyt3Vsq0Do(PPrm(GFQrCCEdi)v8Ocd5KVVW793l8csPo7sJEtARmkC3ZPZDaQAKkvYXePfgfPyucYzpgmhsOfEpv4LHPua2mN)tEWwmOXPm(5RHzbPXU0DeCgWfbnetZXyu8ogf1EgUfMm3aN(EJ8hWoURttYZCIcxtqXmmW4cqXtYP7Y4kqUQdmMIdd4xm(P5LsZ9nmHpjpdfGjUzGr5R8B6h6bzPHyYSPe4VpFVFH3ZfEZ40SwpTdKhsAuudLccpeMGb6aCeJmpkRlAZgQkIFw(Ok4r9CF8eUqlr3(ims3fP02mkmBQn3akISftDcZCdWXmxwMjAZI5jbyuqL9n)6HUd7IicReeHBwdBLG)g1DpjmgrEZfr5gZ1mC16zrC7C44Qc3lCxN(zWw4DBB3e83sj(Hz8ROzMJDu5AYa7a21hI(G9j8Wq)VrkwOifY8dxsmh(6pn3dlCU38nH5yvd1U77RqnZr18IhSUoc8S7SfRrqJnPqS)exu6xpf3MJfOklxjp7keuLcYPs17qWXOWKmoQEOrk2aLbSRjSn7FHK7Bq5ruDPCRTkrrrUI)IlltTiFTROgLWKqADI2kiYZWUGgjoRvKUfYhAFAPbJ8j4Awg4PB24U1pGXvn3cqrseOafCaWo(4iCPNsFZ)CJCK(uIBmYNKkY6Sn6T97a9M)RPjW(oLWxLspalUajGALLmoipo(T605aErB3ssvnzqjbmDDnopsUSM0QDAWY762lxFtdjhMBn)4JgjvzWqCcooelmAKu6K8eJx((Gv4bCDUUEH96KU1LEH)g2pNc207GQg7hHlbrx2Z(aEzzMChG98QrxJS6cqAk(1fLtqIIIjH7fB)L0d441ycRCX5lAzYvEZvB5XUWOW)XreFlwX5Btyw1WkohrlRLXEceaYYWclkCEkfhPmqT3ZAjNNc5RSnBrzLLRcfCPiAa(qQgXvD5UcEmuIUjKGb))mWWJvJFlARDxRXeofwacWrTWdA32A0ItGjY2HG8tM5cd7BnSIn2aoDgZfxLvQw1P6dSOZVYGSHtoElR1NFHyIyrxu6yI4Ym12kH)cXfzGMNMdvDONtA2UZsSVeCtz3NAzLMot7Qaz(ycKZrU4HPs2D6MyGLAwVqTJrBYF9DAqh))2ej41Gp3rQHFBtMWuH4gB6FADzBwA8FhkogYgXixLCAo5WjkNDkFpixWCNtEXCq7l6iquMRH9rGyo0PvoYmTTeg8SKrn32N3ye0pyrMZKsXwAA3xRORQwhsmQXDfMs4SP4I3E8rMDZS0x7ynT2(0Vk1UAlDEtC6jw6UVHjvg0WP4AAqB8DG1BRFnxY3qhtY1HZ5O(AosfA5Ge0KpmDp31UbWkpl2NIYXCDK5(ZbgFXuXm8L0BsoLCew2xO8YAYP2nRuI(DqEwq3U3xyXnFQmruB3Ll7L9rFwvdWEsfusqN1cu)h7p9XKH)6hm9BJ9QIo45Au9NWxjzy2XQtS9IwxIL8Ew7lno9qvr19iZu5wYJ7zU5Csp0)K9p2ZSxk1p0oXBFRFyWI9zg(6o7dQ3CzjNP528(yUzPuLRs9awdWmO8v6mgVexxZC(zBdW3C0b7f0uNgTLNGupMYjBLDc(EMP9rZViJ5itxREye1MP9q6AIXsXqdSuoZ2VMBuAO2Vx4RQwffb6MdysgBRQVPgZDGSeGrjRmNSvl)u8(ucL9qfpuLJUWJ)1PWP4ZSHBNUjKvFYpu)D24xk8K)QC85Fq7xrdi3Fp(cLWHwD43fFgwKrTQXQx8zbBXm0lx6V88TThY9hc388n57hD8mJy7oY(eY1tIJhL9GiYXGBGmYZTEyuqgs9ixz(0dc5kqQh56ga9GOHoeyGu6MZ8WOLomONy6hN8GOMEuONCRBpZyZuQ6OJ6XqP7My8zdF2eJJLUjw94FpBcwJPUjQiM5ztrbAmyS0U9dg1oA2XpT4HPg8qBsTWGuoFWtDuNvzKYFx8c81ONftP1lU)bwNJpZ6qw(u1VYU8IIxvxEfdVA(hKEn6NNPaq7xUw9O8RJMrPv)o6Jm8g6JgBQ783F)g(7Mprr2vRSQ(6q5TWhz4DWFAUmQA9eWcTOOxBgAvR98LzDcAzN7hd7ZZgP)1S7eLmt0iCLPWNy3WqIAcSfuqIuma2DpGJkQiawQX9pWhaXZgv1JwmD6K3F)4XF0bjuKMsICud(pb92xkb)gx72GuH2wYpRCmfQEz8riCmmQD1Zazm8p6MBXpo15Jt(P5tN8IajMMtbOcgFm7)ma4KrJVX48iE)DtZI4L7MOHX1u43rbhg3VYeVDHoci3ybdZgMQGKFDdSY9UY9Lf9rp6glDqpQLVYCD4v1XTdUwZ2TgfWLI1L16V0xT(v)ADULRvTjtgBpBIEe20pb37PvRn1XdQBRzYrx0NM6dA)wh7u1jAT3)rnApACxTy)0VAT96jVOVX6tvoE8une6hf6c5rQvN1llLUk74cyLCgktrEI)MiVsdZuMOP7kYuZv0aMMKfNDa9gSF5UXVDUZ96OqROF2IQpfkCQPaSY3Y86Y1DI9wgQnNQ3PQg1lrYywMtGIN51qF542jTSLSsxXnVCxxsPL9p7CjnySprVB94JsbRn8WJMIxpurYUeDLzSHha9YXpNAS47QJfVSShKk5s0tYqJexdLUQ2nvZEFkz)cuyEnVDnciQh5TIhwFinT3M1XplQJA2L)tI6P71G9Eh6ZwOlt8Ah0Z82NGdRgKjh(PpUygcr1YX7I6vP1MBqX)VMC3cDCxpcQFv5jN71XvdpG61KjfblpIjv)50u6UjWxZV(N(AgQYMcBejpdgig)D(8YdRwY)f3(ptu(D6UAjcIFKswTCzoiZqyGm(JkT6)o]] )
 
@@ -2327,3 +2768,4 @@ spec:RegisterPackSelector( "holy", "Holy Paladin (wowtbc.gg)", "|T135920:0|t Hol
     function( tab1, tab2, tab3 )
         return tab1 > max( tab2, tab3 )
     end )
+

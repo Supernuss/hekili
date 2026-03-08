@@ -1,2409 +1,1876 @@
-if UnitClassBase( 'player' ) ~= 'WARRIOR' then return end
+-- Warrior.lua
+-- Auto-generated class spell blocks
+-- Build: 2.5.5.66150
+-- Class: Warrior (#1)
+
+if UnitClassBase( "player" ) ~= "WARRIOR" then return end
 
 local addon, ns = ...
 local Hekili = _G[ addon ]
 local class, state = Hekili.Class, Hekili.State
-local FindUnitDebuffByID = ns.FindUnitDebuffByID
-
-local IsCurrentSpell = _G.IsCurrentSpell
-
 local spec = Hekili:NewSpecialization( 1 )
 
 
-local function rage_amount( isOffhand )
-    local d
-    if isOffhand then d = select( 3, UnitDamage( "player" ) ) * 0.7
-    else d = UnitDamage( "player" ) * 0.7 end
-
-    local c = ( state.level > 70 and 1.4139 or 1 ) * ( 0.0091107836 * ( state.level ^ 2 ) + 3.225598133 * state.level + 4.2652911 )
-    local f = isOffhand and 1.75 or 3.5
-    local s = isOffhand and ( select( 2, UnitAttackSpeed( "player" ) ) or 2.5 ) or UnitAttackSpeed( "player" )
-
-    return min( ( 15 * d ) / ( 4 * c ) + ( f * s * 0.5 ), 15 * d / c ) * ( state.talent.endless_rage.enabled and 1.25 or 1 ) * ( state.buff.defensive_stance.up and 0.95 or 1 )
-end
-
-spec:RegisterResource( Enum.PowerType.Rage, {
-    anger_management = {
-        talent = "anger_management",
-
-        last = function ()
-            local app = state.buff.anger_management.applied
-            local t = state.query_time
-
-            return app + floor( t - app )
-        end,
-
-        interval = 3,
-        value = 1
-    },
-
-    bloodrage = {
-        aura = "bloodrage",
-
-        last = function ()
-            local app = state.buff.bloodrage.applied
-            local t = state.query_time
-
-            return app + floor( t - app )
-        end,
-
-        interval = 1,
-        value = 1
-    },
-
-    second_wind = {
-        aura = "second_wind",
-
-        last = function ()
-            local app = state.buff.second_wind.applied
-            local t = state.query_time
-
-            return app + floor( t - app )
-        end,
-
-        interval = 2,
-        value = function() return talent.second_wind.rank * 2 end,
-    },
-
-    mainhand = {
-        swing = "mainhand",
-
-        last = function ()
-            local swing = state.combat == 0 and state.now or state.swings.mainhand
-            local t = state.query_time
-
-            return swing + ( floor( ( t - swing ) / state.swings.mainhand_speed ) * state.swings.mainhand_speed )
-        end,
-
-        interval = "mainhand_speed",
-
-        stop = function () return state.swings.mainhand == 0 end,
-        value = function( now )
-            return state.buff.heroic_strike.expires < now and state.buff.cleave.expires < now and rage_amount() or 0
-        end,
-    },
-
-    offhand = {
-        swing = "offhand",
-
-        last = function ()
-            local swing = state.combat == 0 and state.now or state.swings.offhand
-            local t = state.query_time
-
-            return swing + ( floor( ( t - swing ) / state.swings.offhand_speed ) * state.swings.offhand_speed )
-        end,
-
-        interval = "offhand_speed",
-
-        stop = function () return state.swings.offhand == 0 end,
-        value = function( now )
-            return rage_amount( true ) or 0
-        end,
-    },
-} )
+-- Effect implementation status (class-wide):
+-- Profile: mvp
+-- [x] TALENT_SPEC_SELECT (points 0/1 => primary/secondary)
+-- [x] CREATE_ITEM (basic item creation counter)
+-- [x] SCHOOL_DAMAGE (basic damage event tracking)
+-- [x] SUMMON_PET (basic active pet tracking)
+-- [x] SUMMON (basic summon event tracking)
+-- [x] APPLY_AURA (basic aura tracking for caster/enemy/ally)
 
 -- Talents
 spec:RegisterTalents( {
-    anger_management                = {   137, 1, 12296 },
-    anticipation                    = {   138, 5, 12297, 12750, 12751, 12752, 12753 },
-    armored_to_the_teeth            = {  2250, 3, 61216, 61221, 61222 },
-    bladestorm                      = {  1863, 1, 46924 },
-    blood_craze                     = {   661, 3, 16487, 16489, 16492 },
-    blood_frenzy                    = {  1664, 2, 29836, 29859 },
-    bloodsurge                      = {  1866, 3, 46913, 46914, 46915 },
-    bloodthirst                     = {   167, 1, 23881 },
-    booming_voice                   = {   158, 2, 12321, 12835 },
-    commanding_presence             = {   154, 5, 12318, 12857, 12858, 12860, 12861 },
-    concussion_blow                 = {   152, 1, 12809 },
-    critical_block                  = {  1893, 3, 47294, 47295, 47296 },
-    cruelty                         = {   157, 5, 12320, 12852, 12853, 12855, 12856 },
-    damage_shield                   = {  2246, 2, 58872, 58874 },
-    death_wish                      = {   165, 1, 12292 },
-    deep_wounds                     = {   121, 3, 12834, 12849, 12867 },
-    deflection                      = {   130, 5, 16462, 16463, 16464, 16465, 16466 },
-    devastate                       = {  1666, 1, 20243 },
-    dual_wield_specialization       = {  1581, 5, 23584, 23585, 23586, 23587, 23588 },
-    endless_rage                    = {  1661, 1, 29623 },
-    enrage                          = {   155, 5, 12317, 13045, 13046, 13047, 13048 },
-    flurry                          = {   156, 5, 12319, 12971, 12972, 12973, 12974 },
-    focused_rage                    = {  1660, 3, 29787, 29790, 29792 },
-    furious_attacks                 = {  1865, 2, 46910, 46911 },
-    gag_order                       = {   149, 2, 12311, 12958 },
-    heroic_fury                     = {  1868, 1, 60970 },
-    impale                          = {   662, 2, 16493, 16494 },
-    improved_berserker_rage         = {  1541, 2, 20500, 20501 },
-    improved_berserker_stance       = {  1658, 5, 29759, 29760, 29761, 29762, 29763 },
-    improved_bloodrage              = {   142, 2, 12301, 12818 },
-    improved_charge                 = {   126, 2, 12285, 12697 },
-    improved_cleave                 = {   166, 3, 12329, 12950, 20496 },
-    improved_defensive_stance       = {  1652, 2, 29593, 29594 },
-    improved_demoralizing_shout     = {   161, 5, 12324, 12876, 12877, 12878, 12879 },
-    improved_disarm                 = {   151, 2, 12313, 12804 },
-    improved_disciplines            = {   150, 2, 12312, 12803 },
-    improved_execute                = {  1542, 2, 20502, 20503 },
-    improved_hamstring              = {   129, 3, 12289, 12668, 23695 },
-    improved_heroic_strike          = {   124, 3, 12282, 12663, 12664 },
-    improved_intercept              = {  1543, 2, 29888, 29889 },
-    improved_mortal_strike          = {  1824, 3, 35446, 35448, 35449 },
-    improved_overpower              = {   131, 2, 12290, 12963 },
-    improved_rend                   = {   127, 2, 12286, 12658 },
-    improved_revenge                = {   147, 2, 12797, 12799 },
-    improved_slam                   = {  2233, 2, 12862, 12330 },
-    improved_spell_reflection       = {  2247, 2, 59088, 59089 },
-    improved_thunder_clap           = {   141, 3, 12287, 12665, 12666 },
-    improved_whirlwind              = {  1655, 2, 29721, 29776 },
-    incite                          = {   144, 3, 50685, 50686, 50687 },
-    intensify_rage                  = {  1864, 3, 46908, 46909, 56924 },
-    iron_will                       = {   641, 3, 12300, 12959, 12960 },
-    juggernaut                      = {  2283, 1, 64976 },
-    last_stand                      = {   153, 1, 12975 },
-    mace_specialization             = {   125, 5, 12284, 12701, 12702, 12703, 12704 },
-    mortal_strike                   = {   135, 1, 12294 },
-    onehanded_weapon_specialization = {   702, 5, 16538, 16539, 16540, 16541, 16542 },
-    piercing_howl                   = {   160, 1, 12323 },
-    poleaxe_specialization          = {   132, 5, 12700, 12781, 12783, 12784, 12785 },
-    precision                       = {  1657, 3, 29590, 29591, 29592 },
-    puncture                        = {   146, 3, 12308, 12810, 12811 },
-    rampage                         = {  1659, 1, 29801 },
-    safeguard                       = {  1870, 2, 46945, 46949 },
-    second_wind                     = {  1663, 2, 29834, 29838 },
-    shield_mastery                  = {  1654, 2, 29598, 29599 },
-    shield_specialization           = {  1601, 5, 12298, 12724, 12725, 12726, 12727 },
-    shockwave                       = {  1872, 1, 46968 },
-    strength_of_arms                = {  1862, 2, 46865, 46866 },
-    sudden_death                    = {  1662, 3, 29723, 29725, 29724 },
-    sweeping_strikes                = {   133, 1, 12328 },
-    sword_and_board                 = {  1871, 3, 46951, 46952, 46953 },
-    sword_specialization            = {   123, 5, 12281, 12812, 12813, 12814, 12815 },
-    tactical_mastery                = {   128, 3, 12295, 12676, 12677 },
-    taste_for_blood                 = {  2232, 3, 56636, 56637, 56638 },
-    titans_grip                     = {  1867, 1, 46917 },
-    toughness                       = {   140, 5, 12299, 12761, 12762, 12763, 12764 },
-    trauma                          = {  1859, 2, 46854, 46855 },
-    twohanded_weapon_specialization = {   136, 3, 12163, 12711, 12712 },
-    unbridled_wrath                 = {   159, 5, 12322, 12999, 13000, 13001, 13002 },
-    unending_fury                   = {  2234, 5, 56927, 56929, 56930, 56931, 56932 },
-    unrelenting_assault             = {  1860, 2, 46859, 46860 },
-    vigilance                       = {   148, 1, 50720 },
-    vitality                        = {  1653, 3, 29140, 29143, 29144 },
-    warbringer                      = {  2236, 1, 57499 },
-    weapon_mastery                  = {   134, 2, 20504, 20505 },
-    wrecking_crew                   = {  2231, 5, 46867, 56611, 56612, 56613, 56614 },
+    anger_management = { 137, 1, 12296 },
+    anticipation = { 138, 5, 12297, 12750, 12751, 12752, 12753 },
+    blood_craze = { 661, 3, 16487, 16489, 16492 },
+    blood_frenzy = { 1664, 2, 29836, 29859 },
+    bloodthirst = { 167, 1, 23881 },
+    booming_voice = { 158, 5, 12321, 12835, 12836, 12837, 12838 },
+    commanding_presence = { 154, 5, 12318, 12857, 12858, 12860, 12861 },
+    concussion_blow = { 152, 1, 12809 },
+    cruelty = { 157, 5, 12320, 12852, 12853, 12855, 12856 },
+    death_wish = { 133, 1, 12292 },
+    deep_wounds = { 121, 3, 12834, 12849, 12867 },
+    defiance = { 144, 3, 12303, 12788, 12789 },
+    deflection = { 130, 5, 16462, 16463, 16464, 16465, 16466 },
+    devastate = { 1666, 1, 20243 },
+    dual_wield_specialization = { 1581, 5, 23584, 23585, 23586, 23587, 23588 },
+    endless_rage = { 1661, 1, 29623 },
+    enrage = { 155, 5, 12317, 13045, 13046, 13047, 13048 },
+    flurry = { 156, 5, 12319, 12971, 12972, 12973, 12974 },
+    focused_rage = { 1660, 3, 29787, 29790, 29792 },
+    impale = { 662, 2, 16493, 16494 },
+    improved_berserker_rage = { 1541, 2, 20500, 20501 },
+    improved_berserker_stance = { 1658, 5, 29759, 29760, 29761, 29762, 29763 },
+    improved_bloodrage = { 142, 2, 12301, 12818 },
+    improved_charge = { 126, 2, 12285, 12697 },
+    improved_cleave = { 166, 3, 12329, 12950, 20496 },
+    improved_defensive_stance = { 1652, 3, 29593, 29594, 29595 },
+    improved_demoralizing_shout = { 161, 5, 12324, 12876, 12877, 12878, 12879 },
+    improved_disarm = { 151, 3, 12313, 12804, 12807 },
+    improved_disciplines = { 1662, 3, 29723, 29724, 29725 },
+    improved_execute = { 1542, 2, 20502, 20503 },
+    improved_hamstring = { 129, 3, 12289, 12668, 23695 },
+    improved_heroic_strike = { 124, 3, 12282, 12663, 12664 },
+    improved_intercept = { 134, 2, 29888, 29889 },
+    improved_mortal_strike = { 1824, 5, 35446, 35448, 35449, 35450, 35451 },
+    improved_overpower = { 131, 2, 12290, 12963 },
+    improved_rend = { 127, 3, 12286, 12658, 12659 },
+    improved_revenge = { 147, 3, 12797, 12799, 12800 },
+    improved_shield_bash = { 149, 2, 12311, 12958 },
+    improved_shield_block = { 145, 1, 12945 },
+    improved_shield_wall = { 150, 2, 12312, 12803 },
+    improved_slam = { 168, 2, 12862, 12330 },
+    improved_sunder_armor = { 146, 3, 12308, 12810, 12811 },
+    improved_taunt = { 143, 2, 12302, 12765 },
+    improved_thunder_clap = { 128, 3, 12287, 12665, 12666 },
+    improved_whirlwind = { 1655, 2, 29721, 29776 },
+    iron_will = { 641, 5, 12300, 12959, 12960, 12961, 12962 },
+    last_stand = { 153, 1, 12975 },
+    mace_specialization = { 125, 5, 12284, 12701, 12702, 12703, 12704 },
+    mortal_strike = { 135, 1, 12294 },
+    one_handed_weapon_specialization = { 702, 5, 16538, 16539, 16540, 16541, 16542 },
+    piercing_howl = { 160, 1, 12323 },
+    poleaxe_specialization = { 132, 5, 12700, 12781, 12783, 12784, 12785 },
+    precision = { 1657, 3, 29590, 29591, 29592 },
+    rampage = { 1659, 1, 29801 },
+    second_wind = { 1663, 2, 29834, 29838 },
+    shield_mastery = { 1654, 3, 29598, 29599, 29600 },
+    shield_slam = { 148, 1, 23922 },
+    shield_specialization = { 1601, 5, 12298, 12724, 12725, 12726, 12727 },
+    sweeping_strikes = { 165, 1, 12328 },
+    sword_specialization = { 123, 5, 12281, 12812, 12813, 12814, 12815 },
+    tactical_mastery = { 141, 3, 12295, 12676, 12677 },
+    toughness = { 140, 5, 12299, 12761, 12762, 12763, 12764 },
+    two_handed_weapon_specialization = { 136, 5, 12163, 12711, 12712, 12713, 12714 },
+    unbridled_wrath = { 159, 5, 12322, 12999, 13000, 13001, 13002 },
+    vitality = { 1653, 5, 29140, 29143, 29144, 29145, 29146 },
+    weapon_mastery = { 1543, 2, 20504, 20505 },
 } )
 
-
--- Auras
+-- Auras (Hekili-style scaffold)
 spec:RegisterAuras( {
-    my_battle_shout = {
-        duration = function() return 120 * ( 1 + talent.booming_voice.rank * 0.25 ) end,
-        max_stack = 1,
-        generate = function( t )
-            for i, id in ipairs( class.auras.battle_shout.copy ) do
-                local name, _, count, _, duration, expires, caster = FindUnitBuffByID( "player", id, "PLAYER" )
 
-                if name then
-                    t.name = name
-                    t.count = 1
-                    t.expires = expires
-                    t.applied = expires - duration
-                    t.caster = caster
-                    return
-                end
-            end
-
-            t.count = 0
-            t.expires = 0
-            t.applied = 0
-            t.caster = "nobody"
-        end,
-    },
-    anger_management = {
-        id = 12296,
-        duration = 3600,
-        tick_time = 3,
+    battle_shout = {
+        id = 2048,
+        duration = 120,
         max_stack = 1,
+        copy = { 2048, 5242, 6192, 6673, 11549, 11550, 11551, 25289 },
+        -- Aura effects: MOD_ATTACK_POWER
+        -- Aura targets: TARGET_UNIT_CASTER_AREA_PARTY
     },
-    battle_stance = { -- TODO: Check Aura (https://wowhead.com/wotlk/spell=2457)
+
+    battle_stance = {
         id = 2457,
-        duration = 3600,
         max_stack = 1,
+        -- Aura effects: MOD_SHAPESHIFT
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Immune to Fear, Sap and Incapacitate effects.  Generating extra rage when taking damage.
+
     berserker_rage = {
         id = 18499,
         duration = 10,
         max_stack = 1,
+        -- Aura effects: MECHANIC_IMMUNITY
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    berserker_stance = { -- TODO: Check Aura (https://wowhead.com/wotlk/spell=2458)
+
+    berserker_stance = {
         id = 2458,
-        duration = 3600,
         max_stack = 1,
+        -- Aura effects: MOD_SHAPESHIFT
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- You cannot be stopped and perform a Whirlwind every $t1 sec.  No other abilities can be used.
-    bladestorm = {
-        id = 46924,
-        duration = 6,
-        tick_time = 1,
+
+    blood_fury = {
+        id = 20572,
+        duration = 15,
         max_stack = 1,
+        -- Aura effects: MOD_ATTACK_POWER, MOD_RANGED_ATTACK_POWER
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Regenerates $o1% of your total Health over $d.
-    blood_craze = {
-        id = 16491,
-        duration = 6,
-        tick_time = 1,
+
+    bloodthirst = {
+        id = 23880,
+        duration = 8,
         max_stack = 1,
-        copy = { 16491, 16490, 16488 },
+        copy = { 23880, 23881, 23885, 23886, 23887, 23888, 23889, 23890, 23891, 23892, 23893, 23894, 25251, 25252, 25253, 30335, 30339, 30340 },
+        -- Aura effects: PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Increases physical damage taken by $s1%.
-    blood_frenzy = {
-        id = 30070,
-        duration = 3600,
-        max_stack = 1,
-        copy = { 30069, 30070 },
-    },
-    -- Generating $/10;s1 Rage per second.
-    bloodrage = {
-        id = 29131,
-        duration = 10,
-        tick_time = 1,
-        max_stack = 1,
-    },
-    -- Taunted.
+
     challenging_shout = {
         id = 1161,
         duration = 6,
         max_stack = 1,
+        -- Aura effects: MOD_TAUNT
+        -- Aura targets: TARGET_SRC_CASTER, TARGET_UNIT_SRC_AREA_ENEMY
     },
-    -- Stunned.
-    charge_stun = {
-        id = 7922,
-        duration = 1.5,
-        max_stack = 1,
-    },
-    cleave = {
-        duration = function () return swings.mainhand_speed end,
-        max_stack = 1,
-    },
-    my_commanding_shout = {
-        duration = function() return 120 * ( 1 + talent.booming_voice.rank * 0.25 ) end,
-        max_stack = 1,
-        generate = function( t )
-            for i, id in ipairs( class.auras.commanding_shout.copy ) do
-                local name, _, count, _, duration, expires, caster = FindUnitBuffByID( "player", id, "PLAYER" )
 
-                if name then
-                    t.name = name
-                    t.count = 1
-                    t.expires = expires
-                    t.applied = expires - duration
-                    t.caster = caster
-                    return
-                end
-            end
-
-            t.count = 0
-            t.expires = 0
-            t.applied = 0
-            t.caster = "nobody"
-        end,
+    commanding_shout = {
+        id = 469,
+        duration = 120,
+        max_stack = 1,
+        -- Aura effects: MOD_MAX_HEALTH
+        -- Aura targets: TARGET_UNIT_CASTER_AREA_PARTY
     },
-    -- Stunned.
+
     concussion_blow = {
         id = 12809,
         duration = 5,
         max_stack = 1,
+        -- Aura effects: MOD_STUN
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Dazed.
-    dazed = {
-        id = 29703,
-        duration = 6,
-        max_stack = 1,
-    },
-    -- Increases physical damage by $s1%.  Increases all damage taken by $s3%.
+
     death_wish = {
         id = 12292,
         duration = 30,
         max_stack = 1,
+        -- Aura effects: MECHANIC_IMMUNITY, MOD_DAMAGE_PERCENT_DONE, MOD_DAMAGE_PERCENT_TAKEN
+        -- Aura targets: TARGET_UNIT_CASTER
     },
+
     defensive_stance = {
         id = 71,
-        duration = 3600,
         max_stack = 1,
+        -- Aura effects: MOD_SHAPESHIFT
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    deep_wound = {
-        id = 43104,
-        duration = 12,
+
+    demoralizing_shout = {
+        id = 1160,
+        duration = 30,
         max_stack = 1,
+        copy = { 1160, 6190, 11554, 11555, 11556, 25202, 25203 },
+        -- Aura effects: MOD_ATTACK_POWER
+        -- Aura targets: TARGET_SRC_CASTER, TARGET_UNIT_SRC_AREA_ENEMY
     },
-    -- Disarmed!
+
     disarm = {
         id = 676,
-        duration = function() return 10 + talent.improved_disarm.rank end,
-        max_stack = 1,
-    },
-    -- Physical damage increased by $s1%.
-    enrage = {
-        id = 57522,
-        duration = 12,
-        max_stack = 1,
-        copy = { 12880, 14201, 14202, 14203, 14204, 57514, 57516, 57518, 57519, 57520, 57521, 57522 },
-    },
-    -- Regenerates $s1% of your total health every $t1 sec.
-    enraged_regeneration = {
-        id = 55694,
-        duration = 10,
-        tick_time = 1,
-        max_stack = 1,
-    },
-    -- Attack speed increased by $s1%.
-    flurry = {
-        id = 12970,
-        duration = 15,
-        max_stack = 1,
-        copy = { 12966, 12967, 12968, 12969, 12970, 16257, 16277, 16278, 16279, 16280 },
-    },
-    -- All healing reduced by $s1%.
-    furious_attacks = {
-        id = 56112,
-        duration = 10,
-        max_stack = 2,
-    },
-    -- Glyph.
-    glyph_of_revenge = {
-        id = 58363,
         duration = 10,
         max_stack = 1,
+        -- Aura effects: MOD_DISARM
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Movement slowed by $s1%.
+
     hamstring = {
         id = 1715,
         duration = 15,
         max_stack = 1,
+        copy = { 1715, 7372, 7373, 25212 },
+        -- Aura effects: MOD_DECREASE_SPEED
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    heroic_strike = {
-        duration = function () return swings.mainhand_speed end,
-        max_stack = 1,
-    },
-    -- Immobilized.
-    improved_hamstring = {
-        id = 23694,
-        duration = 5,
-        max_stack = 1,
-        copy = { 12668, 12289 },
-    },
-    -- Stunned.
-    intercept_stun = {
-        id = 25274,
-        duration = 3,
-        max_stack = 1,
-        copy = { 20253, 20614, 20615, 25273, 25274, 30153, 30195, 30197, 47995, 58747, 67573 },
-    },
-    -- The next melee or ranged attack made against you will be made against the intervening warrior instead.
+
     intervene = {
         id = 3411,
         duration = 10,
         max_stack = 1,
+        -- Aura effects: INTERCEPT_MELEE_RANGED_ATTACKS
+        -- Aura targets: TARGET_UNIT_TARGET_RAID
     },
-    -- Cowering in fear.
+
     intimidating_shout = {
-        id = 20511,
+        id = 5246,
         duration = 8,
         max_stack = 1,
-        copy = { 20511, 5246 },
+        -- Aura effects: MOD_FEAR, MOD_INCREASE_SPEED
+        -- Aura targets: TARGET_SRC_CASTER, TARGET_UNIT_SRC_AREA_ENEMY
     },
-    -- Your next Slam or Mortal Strike has an additional $65156s1% chance to critically hit.
-    juggernaut = {
-        id = 65156,
-        duration = 10,
-        max_stack = 1,
-    },
-    last_stand = {
-        id = 12976,
-        duration = 20,
-        max_stack = 1,
-    },
-    -- Taunted.
+
     mocking_blow = {
         id = 694,
         duration = 6,
         max_stack = 1,
         copy = { 694, 7400, 7402, 20559, 20560, 25266 },
+        -- Aura effects: MOD_TAUNT
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Healing effects reduced by $s1%.
+
     mortal_strike = {
         id = 12294,
         duration = 10,
         max_stack = 1,
-        copy = { 12294, 21551, 21552, 21553, 25248, 27580, 30330, 47485, 47486, 65926, 71552 },
+        copy = { 12294, 21551, 21552, 21553, 25248, 30330 },
+        -- Aura effects: MOD_HEALING_PCT
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Allows the use of Overpower.
-    overpower_ready = {
-        id = 68051,
-        duration = 6,
-        max_stack = 1,
-    },
-    -- Dazed.
+
     piercing_howl = {
         id = 12323,
         duration = 6,
         max_stack = 1,
+        -- Aura effects: MOD_DECREASE_SPEED
+        -- Aura targets: TARGET_SRC_CASTER, TARGET_UNIT_SRC_AREA_ENEMY
     },
-    -- Special ability attacks have an additional $s1% chance to critically hit but all damage taken is increased by $s2%.
+
+    rampage = {
+        id = 29801,
+        duration = 30,
+        max_stack = 5,
+        copy = { 29801, 30029, 30030, 30031, 30032, 30033 },
+        -- Aura effects: MOD_ATTACK_POWER, PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER
+    },
+
     recklessness = {
         id = 1719,
-        duration = function() return 15 end,
+        duration = 15,
         max_stack = 1,
+        -- Aura effects: MECHANIC_IMMUNITY, MOD_DAMAGE_PERCENT_TAKEN, MOD_WEAPON_CRIT_PERCENT
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Bleeding for $s1 plus a percentage of weapon damage every $t1 seconds.  If used while the victim is above $s2% health, Rend does $s3% more damage.
+
     rend = {
-        id = 47465,
-        duration = function() return glyph.rending.enabled and 21 or 27 end,
+        id = 772,
+        duration = 21,
         tick_time = 3,
         max_stack = 1,
-        copy = { 772, 6546, 6547, 6548, 11572, 11573, 11574, 25208, 46845, 47465 },
+        copy = { 772, 6546, 6547, 6548, 11572, 11573, 11574, 25208 },
+        -- Aura effects: PERIODIC_DAMAGE
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Counterattacking all melee attacks.
+
     retaliation = {
         id = 20230,
-        duration = function() return 15 end,
+        duration = 15,
         max_stack = 1,
+        -- Aura effects: DUMMY
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    revenge_stun = {
-        id = 12798,
-        duration = 3,
-        max_stack = 1,
-    },
-    revenge_usable = {
-        duration = 5,
-        max_stack = 1,
-    },
-    -- All damage taken reduced by $s1%.
-    safeguard = {
-        id = 46947,
-        duration = 6,
-        max_stack = 1,
-        copy = { 46946, 46947 },
-    },
+
     second_wind = {
-        id = 29842,
-        duration = 3600,
+        id = 29834,
+        duration = 10,
+        tick_time = 2,
         max_stack = 1,
+        copy = { 29834, 29838, 29841, 29842 },
+        -- Aura effects: DUMMY, OBS_MOD_HEALTH, PERIODIC_ENERGIZE
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    shield_bash_silenced = {
-        id = 18498,
-        duration = 3,
-        max_stack = 1,
-    },
-    -- Block chance and block value increased by $s1%.
+
     shield_block = {
         id = 2565,
-        duration = function() return talent.improved_shield_block.enabled and 6 or 5 end,
-        max_stack = 1,
-    },
-    -- All damage taken reduced by $s1%.
-    shield_wall = {
-        id = 871,
-        duration = function() return 10 + ( talent.improved_shield_wall.rank == 2 and 5 or talent.improved_shield_wall.rank == 1 and 2 or 0 ) end,
-        max_stack = 1,
-    },
-    -- Stunned.
-    shockwave = {
-        id = 46968,
-        duration = 4,
-        max_stack = 1,
-    },
-    -- Silenced.
-    silenced_gag_order = {
-        id = 18498,
-        duration = 3,
-        max_stack = 1,
-    },
-    -- Your next Slam is instant.
-    slam = {
-        id = 46916,
         duration = 5,
         max_stack = 1,
-        copy = "bloodsurge"
+        -- Aura effects: MOD_BLOCK_PERCENT
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Reflects the next spell cast on you.
+
+    shield_wall = {
+        id = 871,
+        duration = 10,
+        max_stack = 1,
+        -- Aura effects: MOD_DAMAGE_PERCENT_TAKEN
+        -- Aura targets: TARGET_UNIT_CASTER
+    },
+
     spell_reflection = {
         id = 23920,
         duration = 5,
         max_stack = 1,
+        -- Aura effects: REFLECT_SPELLS
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- You may use Execute regardless of target's health.
-    sudden_death = {
-        id = 52437,
-        duration = 10,
-        max_stack = 1,
-    },
-    -- Your next $n melee attacks strike an additional nearby opponent.
-    sweeping_strikes = {
-        id = 12328,
+
+    sunder_armor = {
+        id = 7386,
         duration = 30,
         max_stack = 5,
+        copy = { 7386, 7405, 8380, 11596, 11597, 25225 },
+        -- Aura effects: MOD_RESISTANCE
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Shield Slam rage cost reduced by $s1%.
-    sword_and_board = {
-        id = 50227,
-        duration = 5,
+
+    sweeping_strikes = {
+        id = 12328,
+        duration = 10,
         max_stack = 1,
+        copy = { 12328, 12723, 26654 },
+        -- Aura effects: DUMMY
+        -- Aura targets: TARGET_UNIT_CASTER
     },
-    -- Allows the use of Overpower.
-    taste_for_blood = {
-        id = 60503,
-        duration = 9,
-        max_stack = 1,
-    },
-    taste_for_blood_prediction = {
-        duration = 6,
-        max_stack = 1,
-    },
-    -- Taunted.
+
     taunt = {
         id = 355,
         duration = 3,
         max_stack = 1,
+        -- Aura effects: MOD_TAUNT
+        -- Aura targets: TARGET_UNIT_TARGET_ENEMY
     },
-    -- Attack speed reduced by $s2%.
+
     thunder_clap = {
-        id = 47502,
+        id = 6343,
         duration = 30,
         max_stack = 1,
-        shared = "target",
-        copy = { 6343, 8198, 8204, 8205, 11580, 11581, 13532, 25264, 47501, 47502 },
-    },
-    -- Bleed effects cause an additional $s1% damage.
-    trauma = {
-        id = 46857,
-        duration = 60,
-        max_stack = 1,
-        copy = { 46856, 46857 },
-    },
-    victory_rush = {
-        duration = 25,
-        max_stack = 1,
-    },
-    -- Damage taken reduced by $s1% and $s3% of all threat transferred to warrior.
-    vigilance = {
-        id = 50720,
-        duration = 1800,
-        max_stack = 1,
-        no_ticks = true,
-        friendly = true,
-        dot = "buff",
+        copy = { 6343, 8198, 8204, 8205, 11580, 11581, 25264 },
+        -- Aura effects: MOD_MELEE_HASTE
+        -- Aura targets: TARGET_SRC_CASTER, TARGET_UNIT_SRC_AREA_ENEMY
     },
 
-    -- Aliases / polybuffs.
-    stance = {
-        alias = { "battle_stance", "defensive_stance", "berserker_stance" },
-        aliasMode = "first",
-        aliasType = "buff",
-    },
-    shout = {
-        alias = { "my_battle_shout", "my_commanding_shout" },
-        aliasMode = "first",
-        aliasType = "buff"
-    }
 } )
 
-
--- Glyphs
-spec:RegisterGlyphs( {
-    [12297] = "anticipation",
-    [12320] = "cruelty",
-    [58365] = "barbaric_insults",
-    [58095] = "battle",
-    [63324] = "bladestorm",
-    [58375] = "blocking",
-    [58096] = "bloodrage",
-    [58369] = "bloodthirst",
-    [58097] = "charge",
-    [58366] = "cleaving",
-    [68164] = "command",
-    [58388] = "devastate",
-    [58104] = "enduring_victory",
-    [63327] = "enraged_regeneration",
-    [58367] = "execution",
-    [58372] = "hamstring",
-    [58357] = "heroic_strike",
-    [58377] = "intervene",
-    [58376] = "last_stand",
-    [58099] = "mocking_blow",
-    [58368] = "mortal_strike",
-    [58386] = "overpower",
-    [58355] = "rapid_charge",
-    [58385] = "rending",
-    [58356] = "resonating_power",
-    [58364] = "revenge",
-    [63329] = "shield_wall",
-    [63325] = "shockwave",
-    [63328] = "spell_reflection",
-    [58387] = "sunder_armor",
-    [58384] = "sweeping_strikes",
-    [58353] = "taunt",
-    [58098] = "thunder_clap",
-    [58382] = "victory_rush",
-    [63326] = "vigilance",
-    [58370] = "whirlwind",
-} )
-
-
--- Gear Sets
-spec:RegisterGear( "tier7", 40525, 40528, 40529, 40527, 40530, 43739, 43744, 43746, 43741, 43748, 39606, 39605, 39607, 39609, 39608 )
--- Prot
-spec:RegisterGear( "tier10prot", 50846, 50847, 50848, 50849, 50850, 51215, 51216, 51217, 51218, 51219, 51220, 51221, 51222, 51223, 51224)
-
-local enemy_revenge_trigger = 0
-local enemy_dodged = 0
-
-local misses = {
-    DODGE = true,
-    PARRY = true,
-    BLOCK = true
-}
-
--- Combat log handlers
-local attack_events = {
-    SPELL_CAST_SUCCESS = true
-}
-
-local application_events = {
-    SPELL_AURA_APPLIED      = true,
-    SPELL_AURA_APPLIED_DOSE = true,
-    SPELL_AURA_REFRESH      = true,
-}
-
-local removal_events = {
-    SPELL_AURA_REMOVED      = true,
-    SPELL_AURA_BROKEN       = true,
-    SPELL_AURA_BROKEN_SPELL = true,
-}
-
-local death_events = {
-    UNIT_DIED               = true,
-    UNIT_DESTROYED          = true,
-    UNIT_DISSIPATES         = true,
-    PARTY_KILL              = true,
-    SPELL_INSTAKILL         = true,
-}
-
-local tick_events = {
-    SPELL_PERIODIC_DAMAGE   = true
-}
-
-local rend_tracker = {
-    buffer = 0.5,
-    tfb = {
-        lastApplied = 0,
-        lastRemoved = 0,
-        next = 0
-    },
-    target = {}
-}
-
-spec:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED", function()
-    local _, subtype, _,  sourceGUID, sourceName, _, _, destGUID, destName, destFlags, _, actionType, _, _, _, _, _, critical = CombatLogGetCurrentEventInfo()
-
-    if sourceGUID == state.GUID and subtype:match( "_MISSED$" ) and ( actionType == "DODGE" or state.glyph.overpower.enabled and actionType == "PARRY" ) then
-        enemy_dodged = GetTime()
-    elseif destGUID == state.GUID and subtype:match( "_MISSED$" ) and misses[ actionType ] then
-        enemy_revenge_trigger = GetTime()
-    end
-
-    if sourceGUID == state.GUID then
-        local is_rend = state.class.auras[actionType] and state.class.auras[actionType].id == 47465
-        if attack_events[subtype] then
-        end
-
-        if application_events[subtype] then
-
-            if is_rend then
-                ApplyRend(destGUID, GetTime())
-            end
-            if actionType == 60503 then
-                ApplyTFB(GetTime())
-            end
-        end
-
-        if tick_events[subtype] then
-        end
-
-        if removal_events[subtype] then
-            if is_rend then
-                RemoveRend(destGUID)
-            end
-        end
-
-        if death_events[subtype] then
-            if is_rend then
-                RemoveRend(destGUID)
-            end
-        end
-    end
-end )
-
-function ApplyRend(destGUID, time)
-    if not rend_tracker.target[destGUID] then
-        rend_tracker.target[destGUID] = {
-            ticks = {}
-        }
-    else
-        RemoveRend(destGUID)
-    end
-    for i=time+3,time+state.debuff.rend.duration,state.debuff.rend.tick_time do
-        rend_tracker.target[destGUID].ticks[tostring(i)] = i
-    end
-    AssessNextTFB()
-end
-function RemoveRend(destGUID, time)
-    if not rend_tracker.target[destGUID] then
-        return
-    end
-    if not time then
-        table.wipe(rend_tracker.target[destGUID].ticks)
-    else
-        time = time - 3
-        for i,v in pairs(rend_tracker.target[destGUID].ticks) do
-            if v <= time then
-                rend_tracker.target[destGUID].ticks[i] = nil
-            end
-        end
-    end
-end
-function ApplyTFB(time)
-    rend_tracker.tfb.lastApplied = time
-    AssessNextTFB()
-end
-function AssessNextTFB()
-    rend_tracker.tfb.next = GetNextTFB(GetTime(), rend_tracker.tfb.lastApplied)
-end
-function GetNextTFB(time, lastApplied)
-    if not time then
-        return
-    end
-
-    local next_possible_tfb = ((lastApplied or 0) == 0 and time) or (lastApplied + 6)
-    local next_prediction = 0
-    for i,v in pairs(rend_tracker.target) do
-        for i2,v2 in pairs(rend_tracker.target[i].ticks) do
-            local tick_after_next_possible = tonumber(v2) + rend_tracker.buffer >= tonumber(next_possible_tfb)
-            local lowest_match = next_prediction == 0 or tonumber(v2) <= tonumber(next_prediction)
-            if tick_after_next_possible and lowest_match then
-                next_prediction = v2
-            end
-        end
-    end
-
-    return next_prediction
-end
-
-local avg_rage_amount = rage_amount()+rage_amount(true)
-spec:RegisterStateExpr("rage_gain", function()
-    return avg_rage_amount+(buff.bloodrage.up and 1 or 0)
-end)
-
-spec:RegisterStateExpr("rend_tracker", function()
-    return rend_tracker
-end)
-
-spec:RegisterStateExpr("next_tfb", function()
-    return rend_tracker.tfb.next
-end)
-
-
-spec:RegisterStateFunction( "swap_stance", function( stance )
-    removeBuff( "battle_stance" )
-    removeBuff( "defensive_stance" )
-    removeBuff( "berserker_stance" )
-
-    local swap = rage.current - ( ( IsSpellKnown( 12678 ) and 10 or 0 ) + 5 * talent.tactical_mastery.rank )
-    if swap > 0 then
-        spend( swap, "rage" )
-    end
-
-    if stance then applyBuff( stance )
-    else applyBuff( "stance" ) end
-end )
-
-
-local finish_heroic_strike = setfenv( function()
-    spend( 15, "rage" )
-end, state )
-
-spec:RegisterStateFunction( "start_heroic_strike", function()
-    applyBuff( "heroic_strike", swings.time_to_next_mainhand )
-    state:QueueAuraExpiration( "heroic_strike", finish_heroic_strike, buff.heroic_strike.expires )
-end )
-
-
-local finish_cleave = setfenv( function()
-    spend( 20, "rage" )
-end, state )
-
-spec:RegisterStateFunction( "start_cleave", function()
-    applyBuff( "cleave", swings.time_to_next_mainhand )
-    state:QueueAuraExpiration( "cleave", finish_cleave, buff.cleave.expires )
-end )
-
-
-local apply_tfb = setfenv( function()
-    applyBuff("taste_for_blood")
-end, state )
-
-spec:RegisterStateFunction( "start_tfb_prediction", function(time_to_tfb)
-    applyBuff("taste_for_blood_prediction", time_to_tfb)
-    state:QueueAuraExpiration( "taste_for_blood_prediction", apply_tfb, buff.taste_for_blood_prediction.expires )
-end )
-
-
-local shout_spell_assigned = false
-local main_gcd_spell_assigned = false
-spec:RegisterHook( "reset_precast", function()
-    if not main_gcd_spell_assigned then
-        class.abilityList.main_gcd_spell = "|cff00ccff[Main GCD]|r"
-        class.abilities.main_gcd_spell = class.abilities[ settings.main_gcd_spell or "slam" ]
-        main_gcd_spell_assigned = true
-    end
-    if not shout_spell_assigned then
-        class.abilityList.shout_spell = "|cff00ccff[Assigned Shout]|r"
-        class.abilities.shout_spell = class.abilities[ settings.shout_spell or "commanding_shout" ]
-        shout_spell_assigned = true
-    end
-
-    local form = GetShapeshiftForm()
-    if form == 1 then applyBuff( "battle_stance" )
-    elseif form == 2 then applyBuff( "defensive_stance" )
-    elseif form == 3 then applyBuff( "berserker_stance" )
-    else removeBuff( "stance" ) end
-
-    if IsCurrentSpell( class.abilities.heroic_strike.id ) then
-        start_heroic_strike()
-        Hekili:Debug( "Starting Heroic Strike, next swing in %.2f...", buff.heroic_strike.remains )
-    end
-
-    if IsCurrentSpell( class.abilities.cleave.id ) then
-        start_cleave()
-        Hekili:Debug( "Starting Cleave, next swing in %.2f...", buff.cleave.remains )
-    end
-
-    if now == query_time then
-        if IsUsableSpell( class.abilities.overpower.id ) then
-            if enemy_dodged > 0 and now - enemy_dodged < 6 then
-                applyBuff( "overpower_ready", enemy_dodged + 5 - now )
-            else
-                applyBuff( "overpower_ready" )
-            end
-        end
-        if IsUsableSpell( class.abilities.revenge.id ) then
-            if enemy_revenge_trigger > 0 and now - enemy_revenge_trigger < 5 then
-                applyBuff( "revenge_usable", enemy_revenge_trigger + 5 - now )
-            else
-                applyBuff( "revenge_usable" )
-            end
-        end
-        if IsUsableSpell( class.abilities.victory_rush.id ) then
-            applyBuff( "victory_rush" )
-        end
-
-        if settings.predict_tfb and talent.taste_for_blood.rank == 3 and rend_tracker.tfb.next > 0 then
-            local time_to_tfb = max(rend_tracker.tfb.next - now, 0)
-            if (time_to_tfb > 0) then
-                start_tfb_prediction(time_to_tfb)
-            end
-        end
-    end
-end )
-
-
--- Abilities
+-- Abilities (Hekili-style scaffold)
 spec:RegisterAbilities( {
-    -- The warrior shouts, increasing attack power of all raid and party members within 30 yards by 550.  Lasts 2 min.
-    battle_shout = {
-        id = 47436,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
 
-        spend = function() return 10 - talent.focused_rage.rank end,
-        spendType = "rage",
+-- Activate Primary Spec - Switch to your Primary Talent Specialization.
+    activate_primary_spec = {
+        id = 63645,
+        cast = 5,
+        texture = 236544,
+        range = 50000,
+        max_stack = 1,
 
-        startsCombat = false,
-        texture = 132333,
-
-        usable = function()
-            if talent.commanding_presence.rank < 5 then return not (buff.blessing_of_might.up or buff.greater_blessing_of_might.up) , "BoM might be skilled, can't overbuff" end
-            return (buff.blessing_of_might.remains + buff.greater_blessing_of_might.remains) <= buff.battle_shout.duration, "BoM duration currently greater battle_shout duration"
-        end,
-
-
-        handler = function( rank )
-            if buff.my_commanding_shout.up then
-                removeBuff( "commanding_shout" )
-                removeBuff( "my_commanding_shout" )
-                removeBuff( "shout" )
-            end
-            applyBuff( "battle_shout" )
-            applyBuff( "my_battle_shout" )
-            applyBuff( "shout" )
-        end,
-
-        copy = { 6673, 2048, 25289, 11551, 11550, 11549, 6192, 5242 }
+        -- Effects:
+        -- [x] Rank 63645 #0 -- effect: TALENT_SPEC_SELECT, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
     },
 
+-- Activate Secondary Spec - Switch to your Secondary Talent Specialization.
+    activate_secondary_spec = {
+        id = 63644,
+        cast = 5,
+        texture = 236544,
+        range = 50000,
+        max_stack = 1,
 
-    -- A balanced combat stance that increases the armor penetration of all of your attacks by 10%.
+        -- Effects:
+        -- [x] Rank 63644 #0 -- effect: TALENT_SPEC_SELECT, aura: NONE, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Battle Shout - The warrior shouts, increasing the melee attack power of all party members within $a1 yards by 15-305. Lasts 120 sec.
+    battle_shout = {
+        id = 2048,
+        cast = 0,
+        duration = 120,
+        gcd = "spell",
+        school = "physical",
+        texture = 132333,
+        spend = 10,
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 2048, 5242, 6192, 6673, 11549, 11550, 11551, 25289 },
+
+        -- Effects:
+        -- [ ] Rank 2048 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 304, addl_points: 1, points_per_level: 1, sp_bonus: 1, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+        -- [ ] Rank 5242 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 34, addl_points: 1, points_per_level: 0.5, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+        -- [ ] Rank 6192 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 54, addl_points: 1, points_per_level: 0.5, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+        -- [ ] Rank 6673 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 14, addl_points: 1, points_per_level: 0.5, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11549 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 84, addl_points: 1, points_per_level: 1, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11550 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 129, addl_points: 1, points_per_level: 1, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11551 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 184, addl_points: 1, points_per_level: 1, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25289 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 231, addl_points: 1, points_per_level: 1, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+
+        radius = 20,
+
+        handler = function ()
+        end,
+    },
+
+-- Battle Stance - A balanced combat stance.
     battle_stance = {
         id = 2457,
         cast = 0,
-        cooldown = 1,
-        gcd = "off",
-
-        spend = 0,
-        spendType = "rage",
-
-        startsCombat = false,
+        category_cooldown = 1,
+        school = "physical",
         texture = 132349,
+        cooldown_category_id = 47,
+        cooldown_category = "Combat States",
+        spendType = "Rage",
+        max_stack = 1,
 
-        nobuff = "battle_stance",
+        -- Effects:
+        -- [x] Rank 2457 #0 -- effect: APPLY_AURA, aura: MOD_SHAPESHIFT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        timeToReady = function () return max(cooldown.berserker_stance.remains, cooldown.battle_stance.remains, cooldown.defensive_stance.remains) end,
+        handler = function ()
+            removeBuff( "berserker_stance" )
+            removeBuff( "defensive_stance" )
+            applyBuff( "battle_stance" )
+        end,
 
-        handler = function()
-            swap_stance( "battle_stance" )
-        end
+        proc_chance = 100,
     },
 
-
-    -- The warrior enters a berserker rage, removing and granting immunity to Fear, Sap and Incapacitate effects and generating extra rage when taking damage.  Lasts 10 sec.
+-- Berserker Rage - The warrior enters a berserker rage, becoming immune to Fear, Sap and Incapacitate effects and generating extra rage when taking damage. Lasts 10 sec.
     berserker_rage = {
         id = 18499,
         cast = 0,
-        cooldown = function() return 30 * ( 1 - 0.11 * talent.intensify_rage.rank ) end,
+        duration = 10,
+        cooldown = 30,
         gcd = "spell",
-
-        spend = 0,
-        spendType = "rage",
-
-        startsCombat = false,
+        school = "physical",
         texture = 136009,
+        spendType = "Rage",
+        max_stack = 1,
 
-        buff = "berserker_stance",
+        -- Effects:
+        -- [x] Rank 18499 #0 -- effect: APPLY_AURA, aura: MECHANIC_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 18499 #1 -- effect: APPLY_AURA, aura: MECHANIC_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 18499 #2 -- effect: APPLY_AURA, aura: MECHANIC_IMMUNITY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        handler = function()
+        handler = function ()
             applyBuff( "berserker_rage" )
-            if talent.improved_berserker_rage.enabled then
-                gain( 10 * talent.improved_berserker_rage.rank, "rage" )
-            end
-        end
+        end,
+
+        proc_chance = 100,
+        proc_type_mask = { 139944, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability; Take Ranged Attack; Take Ranged Ability; Take Harmful Ability; Take Harmful Spell
     },
 
-
-    -- An aggressive stance.  Critical hit chance is increased by 3% and all damage taken is increased by 5%.
+-- Berserker Stance - An aggressive stance. Critical hit chance is increased by 3% and all damage taken is increased by 10%.
     berserker_stance = {
         id = 2458,
         cast = 0,
-        cooldown = 1,
-        gcd = "off",
-
-        spend = 0,
-        spendType = "rage",
-
-        startsCombat = false,
+        category_cooldown = 1,
+        school = "physical",
         texture = 132275,
+        cooldown_category_id = 47,
+        cooldown_category = "Combat States",
+        spendType = "Rage",
+        max_stack = 1,
 
-        nobuff = "berserker_stance",
-
-        timeToReady = function () return max(cooldown.berserker_stance.remains, cooldown.battle_stance.remains, cooldown.defensive_stance.remains) end,
-
-        handler = function()
-            swap_stance( "berserker_stance" )
-        end
-    },
-
-
-    -- Instantly Whirlwind up to 4 nearby targets and for the next 6 sec you will perform a whirlwind attack every 1 sec.  While under the effects of Bladestorm, you can move but cannot perform any other abilities but you do not feel pity or remorse or fear and you cannot be stopped unless killed.
-    bladestorm = {
-        id = 46924,
-        cast = 0,
-        cooldown = function() return glyph.bladestorm.enabled and 75 or 90 end,
-        gcd = "spell",
-
-        spend = 25,
-        spendType = "rage",
-
-        talent = "bladestorm",
-        startsCombat = true,
-        texture = 236303,
-
-        toggle = "cooldowns",
+        -- Effects:
+        -- [x] Rank 2458 #0 -- effect: APPLY_AURA, aura: MOD_SHAPESHIFT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
-            applyBuff( "bladestorm" )
-            setCooldown( "global_cooldown", 6 )
+            removeBuff( "battle_stance" )
+            removeBuff( "defensive_stance" )
+            applyBuff( "berserker_stance" )
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Berserking - Increases your attack speed by $26635m1% to $26635M1%. At full health the speed increase is $26635m1% with a greater effect up to $26635M1% if you are badly hurt when you activate Berserking. Lasts $26635d.
+    berserking = {
+        id = 26296,
+        cast = 0,
+        cooldown = 180,
+        school = "physical",
+        texture = 135727,
+        spend = 5,
+        spendType = "Rage",
+        max_stack = 1,
+
+        -- Effects:
+        -- [ ] Rank 26296 #0 -- effect: DUMMY, aura: NONE, points: 24, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+    },
+
+-- Blood Fury - Increases attack power by 6, but reduces healing effects on you by 50%. Lasts 15 sec.
+    blood_fury = {
+        id = 20572,
+        cast = 0,
+        duration = 15,
+        cooldown = 120,
+        school = "physical",
+        texture = 135726,
+        max_stack = 1,
+
+        -- Effects:
+        -- [x] Rank 20572 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 5, addl_points: 1, points_per_level: 4, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 20572 #1 -- effect: APPLY_AURA, aura: MOD_RANGED_ATTACK_POWER, points: 5, addl_points: 1, points_per_level: 4, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "blood_fury" )
         end,
     },
 
-
-    -- Generates 20 rage at the cost of health, and then generates an additional 10 rage over 10 sec.
+-- Bloodrage - Generates $/10;s1 rage at the cost of health, and then generates an additional $/10;29131o1 rage over $29131d.
     bloodrage = {
         id = 2687,
         cast = 0,
-        cooldown = function() return 60 * ( 1 - 0.11 * talent.intensify_rage.rank ) end,
-        gcd = "off",
-
-        spend = function() return glyph.bloodrage.enabled and 0 or 1299 end,
-        spendType = "health",
-
-        startsCombat = false,
+        cooldown = 60,
+        school = "physical",
         texture = 132277,
+        spend_pct = 16,
+        spendType = "-2",
+        max_stack = 1,
 
-        toggle = "cooldowns",
-
-        handler = function()
-            gain( 20 * ( 1 + 0.25 * talent.improved_bloodrage.rank ), "rage" )
-            applyBuff( "bloodrage" )
-        end
+        -- Effects:
+        -- [ ] Rank 2687 #0 -- effect: ENERGIZE, aura: NONE, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 2687 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 29131
     },
 
-
-    -- Instantly attack the target causing 1092 damage.  In addition, the next 3 successful melee attacks will restore 1% of max health.  This effect lasts 8 sec.  Damage is based on your attack power.
+-- Bloodthirst - Instantly attack the target causing ${$AP*$m1/100} damage. In addition, the next $23885n successful melee attacks will restore 10 health. This effect lasts $23885d. Damage is based on your attack power.
     bloodthirst = {
-        id = 23881,
+        id = 23880,
         cast = 0,
-        cooldown = 4,
+        duration = 8,
+        category_cooldown = 6,
         gcd = "spell",
-
-        spend = 20,
-        spendType = "rage",
-
-        talent = "bloodthirst",
-        startsCombat = true,
+        school = "physical",
         texture = 136012,
+        cooldown_category_id = 971,
+        cooldown_category = "Mortal Strike",
+        range = 5,
+        spend = 30,
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 23880, 23881, 23885, 23886, 23887, 23888, 23889, 23890, 23891, 23892, 23893, 23894, 25251, 25252, 25253, 30335, 30339, 30340 },
 
-        handler = function( rank )
-            applyBuff( "bloodthirst", nil, 5 )
-            -- TODO: if glyph.bloodthirst.enabled then [double health gain] end
+        -- Effects:
+        -- [ ] Rank 23880 #0 -- effect: HEAL, aura: NONE, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 23881 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 23885 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 23880
+        -- [x] Rank 23886 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 23889
+        -- [x] Rank 23887 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 23890
+        -- [x] Rank 23888 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 23891
+        -- [ ] Rank 23889 #0 -- effect: HEAL, aura: NONE, points: 12, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 23890 #0 -- effect: HEAL, aura: NONE, points: 16, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 23891 #0 -- effect: HEAL, aura: NONE, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 23892 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 23893 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 23894 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25251 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25252 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 25253
+        -- [ ] Rank 25253 #0 -- effect: HEAL, aura: NONE, points: 24, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 30335 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 30339 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 30340
+        -- [ ] Rank 30340 #0 -- effect: HEAL, aura: NONE, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            applyBuff( "bloodthirst" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "bloodthirst" ) end
         end,
+
+        proc_chance = 100,
+        proc_charges = 5,
+        proc_type_mask = { 20, 0 },
+        -- Proc type flags: mask0: Deal Melee Swing; Deal Melee Ability
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Forces all enemies within 10 yards to focus attacks on you for 6 sec.
+-- Challenging Shout - Forces all enemies within $a1 yards to focus attacks on you for 6 sec.
     challenging_shout = {
         id = 1161,
         cast = 0,
-        cooldown = 180,
+        duration = 6,
+        cooldown = 600,
         gcd = "spell",
-
-        spend = function() return 5 - talent.focused_rage.rank end,
-        spendType = "rage",
-
-        startsCombat = true,
+        school = "physical",
         texture = 132091,
+        spend = 5,
+        spendType = "Rage",
+        max_stack = 1,
 
-        toggle = "defensives",
+        -- Effects:
+        -- [ ] Rank 1161 #0 -- effect: APPLY_AURA, aura: MOD_TAUNT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        startsCombat = true,
 
-        handler = function()
-            applyDebuff( "target", "challenging_shout" )
-        end
+        radius = 10,
+
+        handler = function ()
+        end,
+
+        proc_chance = 100,
     },
 
-
-    -- Charge an enemy, generate 15 rage, and stun it for 1.50 sec.  Cannot be used in combat.
+-- Charge - Charge an enemy, generate $/10;s2 rage, and stun it for $7922d. Cannot be used in combat.
     charge = {
-        id = 11578,
+        id = 100,
         cast = 0,
-        cooldown = function() return 15 * ( glyph.rapid_charge.enabled and 0.93 or 1 ) end,
-        gcd = "off",
-
-        spend = function() return -15 - 5 * talent.improved_charge.rank + ( talent.juggernaut.enabled and 5 or 0 ) end,
-        spendType = "rage",
-
-        startsCombat = true,
+        category_cooldown = 15,
+        school = "physical",
         texture = 132337,
+        cooldown_category_id = 44,
+        cooldown_category = "Speed",
+        min_range = 8,
+        range = 25,
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 100, 6178, 11578 },
 
-        buff = function ()
-            if talent.warbringer.enabled then return end
-            return "battle_stance"
-        end,
-        usable = function()
-            if talent.juggernaut.enabled then return target.minR > 7, "target must be outside your deadzone" end
-            return (talent.warbringer.enabled or not combat) and target.minR > 7, "cannot be in combat; target must be outside your deadzone"
-        end,
-
-        handler = function( rank )
-            setDistance( 7 )
-            if not target.is_boss then applyDebuff( "target", "charge_stun" ) end
-            applyBuff( "juggernaut" )
-        end,
-    },
-
-    -- On next attack...
-    cleave = {
-        id = 47520,
-        cast = 0,
-        cooldown = 0,
-        gcd = "off",
-
-        spend = function() return 20 - talent.focused_rage.rank end,
-        spendType = "rage",
-
+        -- Effects:
+        -- [ ] Rank 100 #0 -- effect: CHARGE, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 100 #1 -- effect: DUMMY, aura: NONE, points: 89, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 36, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 100 #2 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 7922
+        -- [ ] Rank 6178 #0 -- effect: CHARGE, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 6178 #1 -- effect: DUMMY, aura: NONE, points: 119, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 36, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 6178 #2 -- effect: TRIGGER_SPELL, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 7922
+        -- [ ] Rank 11578 #0 -- effect: CHARGE, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11578 #1 -- effect: DUMMY, aura: NONE, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 36, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [ ] Rank 11578 #2 -- effect: TRIGGER_SPELL, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 7922
         startsCombat = true,
-        texture = 132338,
-
-        nobuff = "cleave",
-
-        usable = function()
-            return (not buff.heroic_strike.up) and (not buff.cleave.up)
-        end,
-
-        handler = function( rank )
-            gain( 20 - talent.focused_rage.rank, "rage" )
-            start_cleave()
-        end,
-
-        copy = { 845, 7369, 11608, 11609, 20569, 25231 }
     },
 
-
-    -- Increases maximum health of all party and raid members within 30 yards by 2255.  Lasts 2 min.
-    commanding_shout = {
-        id = 47440,
+-- Cleave - A sweeping attack that does your weapon damage plus 5-70 to the target and his nearest ally.
+    cleave = {
+        id = 845,
         cast = 0,
-        cooldown = 0,
-        gcd = "spell",
+        school = "physical",
+        texture = 132338,
+        range = 5,
+        spend = 20,
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 845, 7369, 11608, 11609, 20569, 25231 },
 
-        spend = function() return 10 - talent.focused_rage.rank end,
-        spendType = "rage",
+        -- Effects:
+        -- [ ] Rank 845 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 4, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 7369 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11608 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 17, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11609 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 31, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20569 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 49, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25231 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 69, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
-        startsCombat = false,
-        texture = 132351,
-
-        handler = function()
-            if buff.my_commanding_shout.up then
-                removeBuff( "battle_shout" )
-                removeBuff( "my_battle_shout" )
-                removeBuff( "shout" )
-            end
-            applyBuff( "commanding_shout" )
-            applyBuff( "my_commanding_shout" )
-            applyBuff( "shout" )
-        end
+        proc_chance = 100,
     },
 
+-- Commanding Shout - Increases maximum health of all party members within $a1 yards by 1080. Lasts 120 sec.
+    commanding_shout = {
+        id = 469,
+        cast = 0,
+        duration = 120,
+        gcd = "spell",
+        school = "physical",
+        texture = 132351,
+        spend = 10,
+        spendType = "Rage",
+        max_stack = 1,
 
-    -- Stuns the opponent for 5 sec and deals 830 damage (based on attack power).
+        -- Effects:
+        -- [ ] Rank 469 #0 -- effect: APPLY_AURA, aura: MOD_MAX_HEALTH, points: 1079, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+
+        radius = 20,
+
+        handler = function ()
+        end,
+    },
+
+-- Concussion Blow - Stuns the opponent for 5 sec.
     concussion_blow = {
         id = 12809,
         cast = 0,
-        cooldown = 30,
-        gcd = "spell",
-
-        spend = function() return 15 - talent.focused_rage.rank end,
-        spendType = "rage",
-
-        talent = "concussion_blow",
-        startsCombat = true,
+        duration = 5,
+        cooldown = 45,
+        school = "physical",
         texture = 132325,
+        range = 5,
+        spend = 15,
+        spendType = "Rage",
+        max_stack = 1,
 
-        handler = function()
+        -- Effects:
+        -- [x] Rank 12809 #0 -- effect: APPLY_AURA, aura: MOD_STUN, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
             applyDebuff( "target", "concussion_blow" )
-        end
+        end,
+
+        proc_chance = 100,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- When activated you become enraged, increasing your physical damage by 20% but increasing all damage taken by 5%.  Lasts 30 sec.
+-- Death Wish - When activated, increases your physical damage by 20% and makes you immune to Fear effects, but increases all damage taken by 5%. Lasts 30 sec.
     death_wish = {
         id = 12292,
         cast = 0,
-        cooldown = function() return 180 * ( 1 - 0.11 * talent.intensify_rage.rank ) end,
+        duration = 30,
+        cooldown = 180,
         gcd = "spell",
-
-        spend = 10,
-        spendType = "rage",
-
-        talent = "death_wish",
-        startsCombat = true,
+        school = "physical",
         texture = 136146,
+        spend = 10,
+        spendType = "Rage",
+        max_stack = 1,
 
-        toggle = "cooldowns",
+        -- Effects:
+        -- [x] Rank 12292 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_PERCENT_DONE, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 12292 #1 -- effect: APPLY_AURA, aura: MECHANIC_IMMUNITY, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 12292 #2 -- effect: APPLY_AURA, aura: MOD_DAMAGE_PERCENT_TAKEN, points: 4, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
             applyBuff( "death_wish" )
-            applyBuff( "enrage" )
         end,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- A defensive combat stance.  Decreases damage taken by 10% and damage caused by 5%.  Increases threat generated.
+-- Defensive Stance - A defensive combat stance. Decreases damage taken by 10% and damage caused by 10%. Increases threat generated.
     defensive_stance = {
         id = 71,
         cast = 0,
-        cooldown = 1,
-        gcd = "off",
-
-        spend = 0,
-        spendType = "rage",
-
-        startsCombat = false,
+        category_cooldown = 1,
+        school = "physical",
         texture = 132341,
+        cooldown_category_id = 47,
+        cooldown_category = "Combat States",
+        spendType = "Rage",
+        max_stack = 1,
 
-        nobuff = "defensive_stance",
+        -- Effects:
+        -- [x] Rank 71 #0 -- effect: APPLY_AURA, aura: MOD_SHAPESHIFT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        timeToReady = function () return max(cooldown.berserker_stance.remains, cooldown.battle_stance.remains, cooldown.defensive_stance.remains) end,
-
-        handler = function()
-            swap_stance( "defensive_stance" )
-        end
-    },
-
-
-    -- Reduces the melee attack power of all enemies within 10 yards by 411 for 30 sec.
-    demoralizing_shout = {
-        id = 47437,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        spend = 10,
-        spendType = "rage",
-
-        startsCombat = true,
-        texture = 132366,
-
-        handler = function( rank )
-            applyDebuff( "target", "demoralizing_shout" )
-            active_dot.demoralizing_shout = active_enemies
+        handler = function ()
+            removeBuff( "battle_stance" )
+            removeBuff( "berserker_stance" )
+            applyBuff( "defensive_stance" )
         end,
+
+        proc_chance = 100,
     },
 
+-- Demoralizing Shout - Reduces the melee attack power of all enemies within $a1 yards by 35-300 for 30 sec.
+    demoralizing_shout = {
+        id = 1160,
+        cast = 0,
+        duration = 30,
+        gcd = "spell",
+        school = "physical",
+        texture = 132366,
+        spend = 10,
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 1160, 6190, 11554, 11555, 11556, 25202, 25203 },
 
-    -- Sunder the target's armor causing the Sunder Armor effect.  In addition, causes 120% of weapon damage plus 58 for each application of Sunder Armor on the target.  The Sunder Armor effect can stack up to 5 times.
+        -- Effects:
+        -- [ ] Rank 1160 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: -36, addl_points: 1, points_per_level: -1, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 6190 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: -56, addl_points: 1, points_per_level: -1, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 11554 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: -71, addl_points: 1, points_per_level: -1, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 11555 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: -106, addl_points: 1, points_per_level: -1, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 11556 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: -141, addl_points: 1, points_per_level: -1, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 25202 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: -221, addl_points: 1, points_per_level: -1, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 25203 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: -301, addl_points: 1, points_per_level: -1, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+
+        radius = 10,
+
+        handler = function ()
+        end,
+
+        proc_chance = 100,
+    },
+
+-- Devastate - Sunder the target's armor causing the Sunder Armor effect. In addition, causes 50% of weapon damage plus 15/25/35 for each application of Sunder Armor on the target. The Sunder Armor effect can stack up to $u times.
     devastate = {
         id = 20243,
         cast = 0,
-        cooldown = 0,
         gcd = "spell",
-
-        spend = function() return 15 - talent.focused_rage.rank - talent.puncture.rank end,
-        spendType = "rage",
-
-        talent = "devastate",
-        startsCombat = true,
+        school = "physical",
         texture = 135291,
+        range = 5,
+        spend = 15,
+        spendType = "Rage",
+        max_stack = 5,
+        copy = { 20243, 30016, 30022 },
 
-        handler = function( rank )
-            applyDebuff( "target", "sunder_armor", nil, min( 5, debuff.sunder_armor.stack + ( glyph.devastate.enabled and 2 or 1 ) ) )
-        end,
+        -- Effects:
+        -- [ ] Rank 20243 #0 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 49, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20243 #1 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 14, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 30016 #0 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 49, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 30016 #1 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 24, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 30022 #0 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 49, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 30022 #1 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 34, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        proc_chance = 100,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Disarm the enemy's main hand and ranged weapons for 10 sec.
+-- Disarm - Disarm the enemy's weapon for 10 sec.
     disarm = {
         id = 676,
         cast = 0,
-        cooldown = function() return 60 - 10 * talent.improved_disarm.rank end,
+        duration = 10,
+        category_cooldown = 60,
         gcd = "spell",
-
-        spend = 15,
-        spendType = "rage",
-
-        startsCombat = true,
+        school = "physical",
         texture = 132343,
+        cooldown_category_id = 109,
+        cooldown_category = "Melee (Disarm)",
+        range = 5,
+        spend = 20,
+        spendType = "Rage",
+        max_stack = 1,
 
-        toggle = "cooldowns",
-
-        buff = "defensive_stance",
+        -- Effects:
+        -- [x] Rank 676 #0 -- effect: APPLY_AURA, aura: MOD_DISARM, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
         handler = function ()
             applyDebuff( "target", "disarm" )
         end,
+
+        proc_chance = 100,
     },
 
-
-    -- You regenerate 30% of your total health over 10 sec.  This ability requires an Enrage effect, consumes all Enrage effects and prevents any from affecting you for the full duration.
-    enraged_regeneration = {
-        id = 55694,
+-- Execute - Attempt to finish off a wounded foe, causing 1-925 damage and converting each extra point of rage into $*10;F1 additional damage. Only usable on enemies that have less than 20% health.
+    execute = {
+        id = 5308,
         cast = 0,
-        cooldown = 180,
         gcd = "spell",
+        school = "physical",
+        texture = 135358,
+        range = 100,
+        spend = function () return max( 0, 15 + -3 * ( talent.improved_execute.rank or 0 ) ) end,
+        -- Talent spend flat scaling: improved_execute (-3 rage per rank)
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 5308, 20647, 20658, 20660, 20661, 20662, 25234, 25236 },
 
-        spend = 15,
-        spendType = "rage",
+        -- Effects:
+        -- [ ] Rank 5308 #0 -- effect: DUMMY, aura: NONE, points: 124, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 20647 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20658 #0 -- effect: DUMMY, aura: NONE, points: 199, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20660 #0 -- effect: DUMMY, aura: NONE, points: 324, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20661 #0 -- effect: DUMMY, aura: NONE, points: 449, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20662 #0 -- effect: DUMMY, aura: NONE, points: 599, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25234 #0 -- effect: DUMMY, aura: NONE, points: 749, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25236 #0 -- effect: DUMMY, aura: NONE, points: 924, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
 
-        startsCombat = false,
-        texture = 132345,
-
-        toggle = "cooldowns",
-        buff = "enrage",
+        usable = function () return target.health.pct <= 20 end,
 
         handler = function ()
-            removeBuff( "enrage" )
-            applyBuff( "enraged_regeneration" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "execute" ) end
         end,
+
+        -- Aura restrictions: target_state=2
     },
 
+-- Furious Gizmatic Goggles
+    furious_gizmatic_goggles = {
+        id = 40274,
+        cast = 50,
+        texture = 136243,
+        max_stack = 1,
 
-    -- Attempt to finish off a wounded foe, causing 1892 damage and converting each extra point of rage into 38 additional damage (up to a maximum cost of 30 rage).  Only usable on enemies that have less than 20% health.
-    execute = {
-        id = 47471,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
+        -- Effects:
+        -- [x] Rank 40274 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        spend = function()
-            return ( talent.improved_execute.rank == 2 and 10 or talent.improved_execute.rank == 1 and 13 or 15 ) - talent.focused_rage.rank
-        end,
-        spendType = "rage",
-
-        startsCombat = true,
-        texture = 135358,
-
-        usable = function() return buff.sudden_death.up or target.health.pct < 20, "requires sudden_death or target health under 20 percent" end,
-
-        handler = function( rank )
-            removeBuff( "sudden_death" )
-            spend( min( 30 - action.execute.spend, rage.current ), "rage" )
-            if rage.current < ( 3.33 * talent.sudden_death.rank ) then
-                gain( 3.33 * talent.sudden_death.rank - rage.current, "rage" )
-            end
-        end,
+        proc_chance = 100,
     },
 
-
-    -- Maims the enemy, reducing movement speed by 50% for 15 sec.
+-- Hamstring - Maims the enemy, causing 5/18/45/63 damage and slowing the enemy's movement by 40/45/50% for 15 sec.
     hamstring = {
         id = 1715,
         cast = 0,
-        cooldown = 0,
+        duration = 15,
         gcd = "spell",
-
-        spend = function() return 10 - talent.focused_rage.rank end,
-        spendType = "rage",
-
-        startsCombat = true,
+        school = "physical",
         texture = 132316,
+        range = 5,
+        spend = 10,
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 1715, 7372, 7373, 25212 },
 
-        nobuff = "defensive_stance",
+        -- Effects:
+        -- [x] Rank 1715 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 4, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 1715 #1 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -41, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 7372 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 17, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 7372 #1 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -46, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 7373 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 7373 #1 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        -- [x] Rank 25212 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 62, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25212 #1 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: ensnared
+        startsCombat = true,
 
-        handler = function( rank )
+        handler = function ()
             applyDebuff( "target", "hamstring" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "hamstring" ) end
         end,
     },
 
+-- Hard Khorium Goggles
+    hard_khorium_goggles = {
+        id = 46115,
+        cast = 50,
+        texture = 136243,
+        max_stack = 1,
 
-    -- Removes any Immobilization effects and refreshes the cooldown of your Intercept ability.
-    heroic_fury = {
-        id = 60970,
-        cast = 0,
-        cooldown = 45,
-        gcd = "spell",
+        -- Effects:
+        -- [x] Rank 46115 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        spend = 0,
-        spendType = "rage",
-
-        talent = "heroic_fury",
-        startsCombat = false,
-        texture = 236171,
-
-        handler = function ()
-            setCooldown( "intercept", 0 )
-        end,
+        proc_chance = 100,
     },
 
-
-    -- On next attack...
+-- Heroic Strike - A strong attack that increases melee damage by 11-208 and causes a high amount of threat.
     heroic_strike = {
-        id = 47450,
+        id = 78,
         cast = 0,
-        cooldown = 0,
-        gcd = "off",
-
-        spend = function()
-            if buff.glyph_of_revenge.up then return 0 end
-            return 15 - talent.focused_rage.rank - talent.improved_heroic_strike.rank
-        end,
-
-        spendType = "rage",
-
-        startsCombat = true,
+        school = "physical",
         texture = 132282,
+        range = 5,
+        spend = function () return max( 0, 15 + -1 * ( talent.improved_heroic_strike.rank or 0 ) ) end,
+        -- Talent spend flat scaling: improved_heroic_strike (-1 rage per rank)
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 78, 284, 285, 1608, 11564, 11565, 11566, 11567, 25286, 29707, 30324 },
 
-        nobuff = "heroic_strike",
-
-        usable = function()
-            return (not buff.heroic_strike.up) and (not buff.cleave.up)
-        end,
-
-        handler = function( rank )
-            gain( 15 - talent.focused_rage.rank - talent.improved_heroic_strike.rank, "rage" )
-            start_heroic_strike()
-        end,
-
-        copy = { 78, 284, 285, 1608, 11564, 11565, 11566, 11567, 25286, 29707, 30324 }
-    },
-
-
-    -- Throws your weapon at the enemy causing 1104 damage (based on attack power).  This ability causes high threat.
-    heroic_throw = {
-        id = 57755,
-        cast = 0,
-        cooldown = 60,
-        gcd = "spell",
-
-        spend = 0,
-        spendType = "rage",
-
+        -- Effects:
+        -- [ ] Rank 78 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 10, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 284 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 20, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 285 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 31, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1608 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 43, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11564 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 57, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11565 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 79, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11566 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 110, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11567 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 137, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25286 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 156, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 29707 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 175, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 30324 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 207, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         startsCombat = true,
-        texture = 132453,
 
-        toggle = "cooldowns",
-
-        handler = function ()
-            if talent.gag_order.rank == 2 then
-                applyDebuff( "target", "silenced_gag_order" )
-                interrupt()
-            end
-        end,
+        proc_chance = 100,
     },
 
-
-    -- Charge an enemy, causing 262 damage (based on attack power) and stunning it for 3 sec.
+-- Intercept - Charge an enemy, causing 25 damage and stunning it for $20253d.
     intercept = {
         id = 20252,
         cast = 0,
-        cooldown = function() return 30 - 5 * talent.improved_intercept.rank end,
-        gcd = "off",
-
-        spend = function() return 10 - talent.focused_rage.rank end,
-        spendType = "rage",
-
-        startsCombat = true,
+        cooldown = function () return max( 0, 30 + -5 * ( talent.improved_intercept.rank or 0 ) ) end,
+        category_cooldown = 30,
+        school = "physical",
         texture = 132307,
+        cooldown_category_id = 1158,
+        cooldown_category = "Intercept",
+        min_range = 8,
+        range = 25,
+        spend = 10,
+        -- Talent cooldown scaling (category source): improved_intercept (-5s per rank)
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 20252, 20616, 20617, 25272, 25275 },
 
-        buff = function ()
-            if talent.warbringer.enabled then return end
-            return "berserker_stance"
-        end,
-
-        handler = function( rank )
-            setDistance( 7 )
-            applyDebuff( "target", "intercept_stun" )
-        end,
+        -- Effects:
+        -- [ ] Rank 20252 #0 -- effect: CHARGE, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20252 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 20253
+        -- [ ] Rank 20616 #0 -- effect: CHARGE, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20616 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 20614
+        -- [ ] Rank 20617 #0 -- effect: CHARGE, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 20617 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 20615
+        -- [ ] Rank 25272 #0 -- effect: CHARGE, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25272 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 25273
+        -- [ ] Rank 25275 #0 -- effect: CHARGE, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25275 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 25274
+        startsCombat = true,
     },
 
-
-    -- Run at high speed towards a party member, intercepting the next melee or ranged attack made against them as well as reducing their total threat by 10%.
+-- Intervene - Run at high speed towards a party member, intercepting the next melee or ranged attack made against them.
     intervene = {
         id = 3411,
         cast = 0,
+        duration = 10,
         cooldown = 30,
-        gcd = "off",
-
-        spend = 10,
-        spendType = "rage",
-
-        startsCombat = false,
+        school = "physical",
         texture = 132365,
+        min_range = 8,
+        range = 25,
+        spend = 10,
+        spendType = "Rage",
+        max_stack = 1,
 
-        buff = function ()
-            if talent.warbringer.enabled then return end
-            return "defensive_stance"
+        -- Effects:
+        -- [ ] Rank 3411 #0 -- effect: CHARGE, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+        -- [ ] Rank 3411 #1 -- effect: APPLY_AURA, aura: INTERCEPT_MELEE_RANGED_ATTACKS, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 13, target: TARGET_UNIT_TARGET_RAID, target2: NONE, mechanic: 0
+
+        radius = 10,
+
+        handler = function ()
         end,
 
-        handler = function()
-            applyBuff( "intervene" )
-        end
+        proc_chance = 100,
+        proc_charges = 1,
+        proc_type_mask = { 680, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability; Take Ranged Attack; Take Ranged Ability
     },
 
-
-    -- The warrior shouts, causing up to 5 enemies within 8 yards to cower in fear.  The targeted enemy will be unable to move while cowering.  Lasts 8 sec.
+-- Intimidating Shout - The warrior shouts, causing enemies within $a2 yards to cower in fear. Up to $i total nearby enemies will flee in fear. Lasts 8 sec.
     intimidating_shout = {
         id = 5246,
         cast = 0,
-        cooldown = 120,
+        duration = 8,
+        cooldown = 180,
         gcd = "spell",
-
-        spend = function() return 25 - talent.focused_rage.rank end,
-        spendType = "rage",
-
-        startsCombat = true,
+        school = "physical",
         texture = 132154,
+        range = 10,
+        spend = 25,
+        spendType = "Rage",
+        max_stack = 1,
 
-        toggle = "cooldowns",
+        -- Effects:
+        -- [ ] Rank 5246 #0 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 20511
+        -- [ ] Rank 5246 #1 -- effect: APPLY_AURA, aura: MOD_FEAR, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 5246 #2 -- effect: APPLY_AURA, aura: MOD_INCREASE_SPEED, points: 24, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        startsCombat = true,
 
-        handler = function()
-            applyDebuff( "target", "intimidating_shout" )
-        end
+        radius = 8,
+
+        handler = function ()
+        end,
+
+        proc_chance = 100,
     },
 
-
-    -- When activated, this ability temporarily grants you 30% of your maximum health for 20 sec.  After the effect expires, the health is lost.
+-- Last Stand - When activated, this ability temporarily grants you 30% of your maximum health for $12976d. After the effect expires, the health is lost.
     last_stand = {
         id = 12975,
         cast = 0,
-        cooldown = function() return glyph.last_stand.enabled and 120 or 180 end,
-        gcd = "off",
-
-        talent = "last_stand",
-        startsCombat = false,
+        cooldown = 480,
+        school = "physical",
         texture = 135871,
+        max_stack = 1,
 
-        toggle = "defensives",
+        -- Effects:
+        -- [ ] Rank 12975 #0 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        handler = function()
-            applyBuff( "last_stand" )
-            health.max = health.max * 1.2
-            gain( health.current * 0.2, "health" )
-        end
+        -- Related talents:
+        -- talent_0 [0]
     },
 
+-- Mayhem Projection Goggles
+    mayhem_projection_goggles = {
+        id = 46114,
+        cast = 50,
+        texture = 136243,
+        max_stack = 1,
 
-    -- A mocking attack that causes a moderate amount of threat and forces the target to focus attacks on you for 6 sec.  If the target is tauntable, also deals weapon damage.
+        -- Effects:
+        -- [x] Rank 46114 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Mocking Blow - A mocking attack that causes 22-114 damage, a moderate amount of threat and forces the target to focus attacks on you for 6 sec.
     mocking_blow = {
         id = 694,
         cast = 0,
-        cooldown = 60,
+        duration = 6,
+        category_cooldown = 120,
         gcd = "spell",
-
-        spend = function() return 10 - talent.focused_rage.rank end,
-        spendType = "rage",
-
-        startsCombat = true,
+        school = "physical",
         texture = 132350,
+        cooldown_category_id = 40,
+        cooldown_category = "Melee (Generic)",
+        range = 5,
+        spend = 10,
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 694, 7400, 7402, 20559, 20560, 25266 },
 
-        toggle = "cooldowns",
+        -- Effects:
+        -- [x] Rank 694 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 21, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 694 #1 -- effect: APPLY_AURA, aura: MOD_TAUNT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 7400 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 30, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 7400 #1 -- effect: APPLY_AURA, aura: MOD_TAUNT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 7402 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 45, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 7402 #1 -- effect: APPLY_AURA, aura: MOD_TAUNT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 20559 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 70, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 20559 #1 -- effect: APPLY_AURA, aura: MOD_TAUNT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 20560 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 92, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 20560 #1 -- effect: APPLY_AURA, aura: MOD_TAUNT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25266 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 113, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25266 #1 -- effect: APPLY_AURA, aura: MOD_TAUNT, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
-        buff = "battle_stance",
-
-        handler = function( rank )
+        handler = function ()
             applyDebuff( "target", "mocking_blow" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "mocking_blow" ) end
         end,
+
+        proc_chance = 100,
     },
 
-
-    -- A vicious strike that deals weapon damage plus 85 and wounds the target, reducing the effectiveness of any healing by 50% for 10 sec.
+-- Mortal Strike - A vicious strike that deals weapon damage plus 85-210 and wounds the target, reducing the effectiveness of any healing by 50% for 10 sec.
     mortal_strike = {
         id = 12294,
         cast = 0,
-        cooldown = function() return 6 - 0.3 * talent.improved_mortal_strike.rank end,
+        duration = 10,
+        category_cooldown = 6,
         gcd = "spell",
-
-        spend = function() return 30 - talent.focused_rage.rank end,
-        spendType = "rage",
-
-        talent = "mortal_strike",
-        startsCombat = true,
+        school = "physical",
         texture = 132355,
+        cooldown_category_id = 971,
+        cooldown_category = "Mortal Strike",
+        range = 5,
+        spend = 30,
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 12294, 21551, 21552, 21553, 25248, 30330 },
 
-        handler = function( rank )
-            removeBuff( "juggernaut" )
+        -- Effects:
+        -- [x] Rank 12294 #0 -- effect: APPLY_AURA, aura: MOD_HEALING_PCT, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 12294 #1 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 84, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 21551 #0 -- effect: APPLY_AURA, aura: MOD_HEALING_PCT, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 21551 #1 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 109, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 21552 #0 -- effect: APPLY_AURA, aura: MOD_HEALING_PCT, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 21552 #1 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 134, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 21553 #0 -- effect: APPLY_AURA, aura: MOD_HEALING_PCT, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 21553 #1 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 159, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25248 #0 -- effect: APPLY_AURA, aura: MOD_HEALING_PCT, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25248 #1 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 184, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 30330 #0 -- effect: APPLY_AURA, aura: MOD_HEALING_PCT, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 30330 #1 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 209, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
             applyDebuff( "target", "mortal_strike" )
         end,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Instantly overpower the enemy, causing weapon damage.  Only useable after the target dodges.  The Overpower cannot be blocked, dodged or parried.
+-- Overpower - Instantly overpower the enemy, causing weapon damage plus 5/15/25/35. Only useable after the target dodges. The Overpower cannot be blocked, dodged or parried.
     overpower = {
         id = 7384,
         cast = 0,
-        cooldown = 5,
+        category_cooldown = 5,
         gcd = "spell",
-
-        spend = function() return 5 - talent.focused_rage.rank end,
-        spendType = "rage",
-
-        startsCombat = true,
+        school = "physical",
         texture = 132223,
+        cooldown_category_id = 65,
+        cooldown_category = "Melee (Special)",
+        range = 5,
+        spend = 5,
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 7384, 7887, 11584, 11585 },
 
-        buff = "battle_stance",
-
-        usable = function()
-            return buff.taste_for_blood.up or buff.overpower_ready.up, "only usable after dodging or with taste_for_blood"
-        end,
-
-        handler = function( rank )
-            removeBuff( "taste_for_blood" )
-            removeBuff( "overpower_ready" )
-        end,
+        -- Effects:
+        -- [ ] Rank 7384 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 4, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 7887 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 14, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11584 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 24, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11585 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 34, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
     },
 
-
-    -- Causes all enemies within 10 yards to be Dazed, reducing movement speed by 50% for 6 sec.
+-- Piercing Howl - Causes all enemies within $a1 yards to be Dazed, reducing movement speed by 50% for 6 sec.
     piercing_howl = {
         id = 12323,
         cast = 0,
-        cooldown = 0,
+        duration = 6,
         gcd = "spell",
-
-        spend = 10,
-        spendType = "rage",
-
-        talent = "piercing_howl",
-        startsCombat = true,
+        school = "physical",
         texture = 136147,
+        spend = 10,
+        spendType = "Rage",
+        max_stack = 1,
 
-        handler = function()
-            applyDebuff( "target", "piercing_howl" )
-        end
+        -- Effects:
+        -- [ ] Rank 12323 #0 -- effect: APPLY_AURA, aura: MOD_DECREASE_SPEED, points: -51, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 13, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        startsCombat = true,
+
+        radius = 10,
+
+        handler = function ()
+        end,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Pummel the target, interrupting spellcasting and preventing any spell in that school from being cast for 4 sec.
+-- Pummel - Pummel the target for 20/50 damage. It also interrupts spellcasting and prevents any spell in that school from being cast for 4 sec.
     pummel = {
         id = 6552,
         cast = 0,
-        cooldown = 10,
-        gcd = "off",
-
-        spend = 10,
-        spendType = "rage",
-
-        startsCombat = true,
+        duration = 4,
+        category_cooldown = 10,
+        gcd = "spell",
+        school = "physical",
         texture = 132938,
+        cooldown_category_id = 88,
+        cooldown_category = "Silence",
+        range = 5,
+        spend = 10,
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 6552, 6554 },
 
-        buff = "berserker_stance",
-        debuff = "casting",
-        readyTime = state.timeToInterrupt,
+        -- Effects:
+        -- [ ] Rank 6552 #0 -- effect: INTERRUPT_CAST, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: interrupted
+        -- [x] Rank 6552 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 6554 #0 -- effect: INTERRUPT_CAST, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: interrupted
+        -- [x] Rank 6554 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 49, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
-        handler = function( rank )
-            interrupt()
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "pummel" ) end
         end,
     },
 
+-- Rampage - Warrior goes on a rampage, increasing attack power by 30 and causing most successful melee attacks to increase attack power by an additional 30. This effect will stack up to $30029u times. Lasts 30 sec. This ability can only be used after scoring a critical hit.
+    rampage = {
+        id = 29801,
+        cast = 0,
+        duration = 30,
+        gcd = "spell",
+        school = "physical",
+        texture = 132352,
+        spend = 20,
+        spendType = "Rage",
+        max_stack = 5,
+        copy = { 29801, 30029, 30030, 30031, 30032, 30033 },
 
-    -- Your next 3 special ability attacks have an additional 100% to critically hit but all damage taken is increased by 20%.  Lasts 12 sec.
+        -- Effects:
+        -- [x] Rank 29801 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 18350
+        -- [ ] Rank 29801 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 30029
+        -- [x] Rank 30029 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 29, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 30030 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 15, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 18350
+        -- [ ] Rank 30030 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 30031
+        -- [x] Rank 30031 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 30032 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 49, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 30033 #0 -- effect: APPLY_AURA, aura: PROC_TRIGGER_SPELL, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 18350
+        -- [ ] Rank 30033 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 30032
+
+        handler = function ()
+            if buff.rampage.up then
+                applyBuff( "rampage", nil, min( buff.rampage.max_stack, buff.rampage.stack + 1 ) )
+            else
+                applyBuff( "rampage" )
+            end
+        end,
+
+        proc_chance = 100,
+        proc_type_mask = { 20, 0 },
+        -- Proc type flags: mask0: Deal Melee Swing; Deal Melee Ability
+
+        -- Aura restrictions: caster_state=11
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Recklessness - The warrior will cause critical hits with most attacks and will be immune to Fear effects for the next 15 sec, but all damage taken is increased by 20%.
     recklessness = {
         id = 1719,
         cast = 0,
-        cooldown = function() return 300 * ( 1 - 0.11 * talent.intensify_rage.rank ) - 30 * talent.improved_disciplines.rank end,
+        duration = 15,
+        category_cooldown = 1800,
         gcd = "spell",
-
-        spend = 0,
-        spendType = "rage",
-
-        startsCombat = false,
+        school = "physical",
         texture = 132109,
+        cooldown_category_id = 132,
+        cooldown_category = "Discipline",
+        spendType = "Rage",
+        max_stack = 1,
 
-        toggle = "cooldowns",
-
-        buff = "berserker_stance",
+        -- Effects:
+        -- [x] Rank 1719 #0 -- effect: APPLY_AURA, aura: MOD_WEAPON_CRIT_PERCENT, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1719 #1 -- effect: APPLY_AURA, aura: MOD_DAMAGE_PERCENT_TAKEN, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 1719 #2 -- effect: APPLY_AURA, aura: MECHANIC_IMMUNITY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
             applyBuff( "recklessness" )
         end,
     },
 
-
-    -- Wounds the target causing them to bleed for 380 damage plus an additional 780 (based on weapon damage) over 15 sec.  If used while your target is above 75% health, Rend does 35% more damage.
+-- Rend - Wounds the target causing them to bleed for 15-182 damage plus an additional ${0.00743*3*(($MWB+$mwb)/2+$AP/14*$MWS)} (based on weapon damage) over 9/12/15/18/21 sec.
     rend = {
-        id = 47465,
+        id = 772,
         cast = 0,
-        cooldown = 0,
+        duration = 21,
         gcd = "spell",
-
-        spend = function() return 10 - talent.focused_rage.rank end,
-        spendType = "rage",
-
-        startsCombat = true,
+        school = "physical",
         texture = 132155,
+        range = 5,
+        spend = 10,
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 772, 6546, 6547, 6548, 11572, 11573, 11574, 25208 },
 
-        nobuff = "berserker_stance",
+        -- Effects:
+        -- [x] Rank 772 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 4, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 6546 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 6, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 6547 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 8, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 6548 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 10, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 11572 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 13, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 11573 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 17, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 11574 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 20, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25208 #0 -- effect: APPLY_AURA, aura: PERIODIC_DAMAGE, points: 25, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
-        handler = function( rank )
+        handler = function ()
             applyDebuff( "target", "rend" )
         end,
+
+        proc_chance = 100,
     },
 
-
-    -- Instantly counterattack any enemy that strikes you in melee for 12 sec.  Melee attacks made from behind cannot be counterattacked.  A maximum of 20 attacks will cause retaliation.
+-- Retaliation - Instantly counterattack any enemy that strikes you in melee for 15 sec. Melee attacks made from behind cannot be counterattacked. A maximum of $n attacks will cause retaliation.
     retaliation = {
         id = 20230,
         cast = 0,
-        cooldown = function() return 300 - 30 * talent.improved_disciplines.rank end,
+        duration = 15,
+        category_cooldown = 1800,
         gcd = "spell",
-
-        spend = 0,
-        spendType = "rage",
-
-        startsCombat = false,
+        school = "physical",
         texture = 132336,
+        cooldown_category_id = 132,
+        cooldown_category = "Discipline",
+        spendType = "Rage",
+        max_stack = 1,
 
-        toggle = "cooldowns",
-
-        buff = "battle_stance",
-
-        handler = function()
-            applyBuff( "retaliation" )
-        end
-    },
-
-
-    -- Instantly counterattack an enemy for 2313 to 2675 damage.   Revenge is only usable after the warrior blocks, dodges or parries an attack.
-    revenge = {
-        id = 57823,
-        cast = 0,
-        cooldown = 5,
-        gcd = "spell",
-
-        spend = function() return 5 - talent.focused_rage.rank end,
-        spendType = "rage",
-
-        startsCombat = true,
-        texture = 132353,
-
-        buff = function()
-            if buff.revenge_usable.up then return "defensive_stance" end
-            return "revenge_usable"
-        end,
-
-        handler = function( rank )
-            removeBuff( "revenge_usable" )
-            if glyph.revenge.enabled then applyBuff( "glyph_of_revenge" ) end
-        end,
-    },
-
-
-    -- Throws your weapon at the enemy causing 1104 damage (based on attack power), reducing the armor on the target by 20% for 10 sec or removing any invulnerabilities.
-    shattering_throw = {
-        id = 64382,
-        cast = 1.5,
-        cooldown = 300,
-        gcd = "spell",
-
-        spend = function() return 25 - talent.focused_rage.rank end,
-        spendType = "rage",
-
-        startsCombat = true,
-        texture = 311430,
-
-        toggle = "cooldowns",
+        -- Effects:
+        -- [x] Rank 20230 #0 -- effect: APPLY_AURA, aura: DUMMY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
         handler = function ()
-            applyDebuff( "target", "shattering_throw" )
+            applyBuff( "retaliation" )
         end,
+
+        proc_chance = 100,
+        proc_charges = 30,
+        proc_type_mask = { 40, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability
     },
 
+-- Revenge - Instantly counterattack an enemy for 50-414 damage and a high amount of threat. Revenge must follow a block, dodge or parry.
+    revenge = {
+        id = 6572,
+        cast = 0,
+        category_cooldown = 5,
+        gcd = "spell",
+        school = "physical",
+        texture = 132353,
+        cooldown_category_id = 65,
+        cooldown_category = "Melee (Special)",
+        range = 5,
+        spend = 5,
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 6572, 6574, 7379, 11600, 11601, 25269, 25288, 30357 },
 
-    -- Bash the target with your shield dazing them and interrupting spellcasting, which prevents any spell in that school from being cast for 6 sec.
+        -- Effects:
+        -- [x] Rank 6572 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 49, addl_points: 11, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 6574 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 76, addl_points: 17, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 7379 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 106, addl_points: 23, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 11600 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 179, addl_points: 41, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 11601 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 269, addl_points: 61, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25269 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 359, addl_points: 81, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25288 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 341, addl_points: 77, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 30357 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 413, addl_points: 93, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "revenge" ) end
+        end,
+
+        proc_chance = 100,
+
+        -- Aura restrictions: caster_state=1
+    },
+
+-- Second Wind - Whenever you are struck by a Stun or Immobilize effect you will generate $/10;29841o1 rage and $29841o2% of your total health over $29841d.
+    second_wind = {
+        id = 29834,
+        cast = 0,
+        duration = 10,
+        texture = 132175,
+        max_stack = 1,
+        copy = { 29834, 29838, 29841, 29842 },
+
+        -- Effects:
+        -- [x] Rank 29834 #0 -- effect: APPLY_AURA, aura: DUMMY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29838 #0 -- effect: APPLY_AURA, aura: DUMMY, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29841 #0 -- effect: APPLY_AURA, aura: PERIODIC_ENERGIZE, points: 19, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29841 #1 -- effect: APPLY_AURA, aura: OBS_MOD_HEALTH, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29842 #0 -- effect: APPLY_AURA, aura: PERIODIC_ENERGIZE, points: 39, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 29842 #1 -- effect: APPLY_AURA, aura: OBS_MOD_HEALTH, points: 1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            applyBuff( "second_wind" )
+        end,
+
+        proc_chance = 100,
+        proc_type_mask = { 174760, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability; Take Ranged Attack; Take Ranged Ability; Take Helpful Ability; Take Harmful Ability; Take Helpful Spell; Take Harmful Spell
+
+        -- Related talents:
+        -- talent_0 [0]
+    },
+
+-- Shield Bash - Bashes the target with your shield for 6/18/45/63 damage. It also interrupts spellcasting and prevents any spell in that school from being cast for 6 sec.
     shield_bash = {
         id = 72,
         cast = 0,
-        cooldown = 12,
-        gcd = "off",
-
-        spend = function() return 10 - talent.focused_rage.rank end,
-        spendType = "rage",
-
-        startsCombat = true,
+        duration = 6,
+        category_cooldown = 12,
+        gcd = "spell",
+        school = "physical",
         texture = 132357,
+        cooldown_category_id = 88,
+        cooldown_category = "Silence",
+        range = 5,
+        spend = 10,
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 72, 1671, 1672, 29704 },
 
-        toggle = "interrupts",
+        -- Effects:
+        -- [ ] Rank 72 #0 -- effect: INTERRUPT_CAST, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: interrupted
+        -- [x] Rank 72 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 5, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1671 #0 -- effect: INTERRUPT_CAST, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: interrupted
+        -- [x] Rank 1671 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 17, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 1672 #0 -- effect: INTERRUPT_CAST, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: interrupted
+        -- [x] Rank 1672 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 29704 #0 -- effect: INTERRUPT_CAST, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: interrupted
+        -- [x] Rank 29704 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 62, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 29704 #2 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0, trigger_spell_id: 29703
+        startsCombat = true,
 
-        buff = function() return buff.battle_stance.up and "battle_stance" or "defensive_stance" end,
-        equipped = "shield",
-        readyTime = state.timeToInterrupt,
-        debuff = "casting",
-
-        handler = function( rank )
-            interrupt()
-            if talent.gag_order.rank == 2 then
-                applyDebuff( "target", "silenced_gag_order" )
-                interrupt()
-            end
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "shield_bash" ) end
         end,
+
+        proc_chance = 100,
     },
 
-
-    -- Increases your chance to block and block value by 100% for 10 sec.
+-- Shield Block - Increases chance to block by 75% for 5 sec, but will only block $n $lattack:attacks;.
     shield_block = {
         id = 2565,
         cast = 0,
-        cooldown = function() return 60 - 10 * talent.shield_block.rank end,
-        gcd = "off",
-
-        spend = 0,
-        spendType = "rage",
-
-        startsCombat = false,
+        duration = 5,
+        cooldown = 5,
+        school = "physical",
         texture = 132110,
+        spend = 10,
+        spendType = "Rage",
+        max_stack = 1,
 
-        buff = "defensive_stance",
+        -- Effects:
+        -- [x] Rank 2565 #0 -- effect: APPLY_AURA, aura: MOD_BLOCK_PERCENT, points: 74, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        handler = function()
+        handler = function ()
             applyBuff( "shield_block" )
-        end
+        end,
+
+        proc_chance = 100,
+        proc_charges = 1,
+        proc_type_mask = { 680, 0 },
+        -- Proc type flags: mask0: Take Melee Swing; Take Melee Ability; Take Ranged Attack; Take Ranged Ability
     },
 
-
-    -- Slam the target with your shield, causing 990 to 1040 damage, modified by your shield block value, and dispels 1 magic effect on the target.  Also causes a high amount of threat.
+-- Shield Slam - Slam the target with your shield, causing 225-420 damage, modified by your shield block value, and dispels 1 magic effect on the target. Also causes a high amount of threat.
     shield_slam = {
-        id = 47488,
+        id = 23922,
         cast = 0,
-        cooldown = 6,
+        category_cooldown = 6,
         gcd = "spell",
-
-        spend = function()
-            if buff.sword_and_board.up then return 0 end
-            return 20 - talent.focused_rage.rank
-        end,
-        spendType = "rage",
-
-        startsCombat = true,
+        school = "physical",
         texture = 134951,
+        cooldown_category_id = 971,
+        cooldown_category = "Mortal Strike",
+        range = 5,
+        spend = 20,
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 23922, 23923, 23924, 23925, 25258, 30356 },
 
-        equipped = "shield",
+        -- Effects:
+        -- [ ] Rank 23922 #0 -- effect: DISPEL, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 23922 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 224, addl_points: 11, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 23923 #0 -- effect: DISPEL, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 23923 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 263, addl_points: 13, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 23924 #0 -- effect: DISPEL, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 23924 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 302, addl_points: 15, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 23925 #0 -- effect: DISPEL, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 23925 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 341, addl_points: 17, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25258 #0 -- effect: DISPEL, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25258 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 380, addl_points: 19, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 30356 #0 -- effect: DISPEL, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 30356 #1 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 419, addl_points: 21, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
-        handler = function( rank )
-            removeBuff( "sword_and_board" )
-            removeBuff( "target", "dispellable_magic" )
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "shield_slam" ) end
         end,
+
+        proc_chance = 100,
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
-
-    -- Reduces all damage taken by 60% for 12 sec.
+-- Shield Wall - Reduces the damage taken from melee attacks, ranged attacks and spells by 75% for 10 sec.
     shield_wall = {
         id = 871,
         cast = 0,
-        cooldown = function() return ( glyph.shield_wall.enabled and 180 or 300 ) - 30 * talent.improved_disciplines.rank end,
-        gcd = "off",
-
-        spend = 0,
-        spendType = "rage",
-
-        startsCombat = false,
+        duration = 10,
+        category_cooldown = 1800,
+        gcd = "spell",
+        school = "physical",
         texture = 132362,
+        cooldown_category_id = 132,
+        cooldown_category = "Discipline",
+        spendType = "Rage",
+        max_stack = 1,
 
-        toggle = "defensives",
+        -- Effects:
+        -- [x] Rank 871 #0 -- effect: APPLY_AURA, aura: MOD_DAMAGE_PERCENT_TAKEN, points: -76, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        buff = "defensive_stance",
-
-        handler = function()
+        handler = function ()
             applyBuff( "shield_wall" )
-        end
-    },
-
-
-    -- Sends a wave of force in front of the warrior, causing 1638 damage (based on attack power) and stunning all enemy targets within 10 yards in a frontal cone for 4 sec.
-    shockwave = {
-        id = 46968,
-        cast = 0,
-        cooldown = function() return glyph.shockwave.enabled and 17 or 20 end,
-        gcd = "spell",
-
-        spend = 15,
-        spendType = "rage",
-
-        talent = "shockwave",
-        startsCombat = true,
-        texture = 236312,
-
-        handler = function ()
-            applyDebuff( "target", "shockwave" )
-            if not target.is_boss then interrupt() end
         end,
     },
 
+-- Shoot
+    shoot = {
+        id = 3018,
+        cast = 1,
+        texture = 132222,
+        cooldown_category_id = 76,
+        cooldown_category = "Shoot/Throw",
+        range = 30,
+        max_stack = 1,
 
-    -- Slams the opponent, causing weapon damage plus 250.
+        -- Effects:
+        -- [ ] Rank 3018 #0 -- effect: WEAPON_DAMAGE, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+    },
+
+-- Slam - Slams the opponent, causing weapon damage plus 32-140.
     slam = {
-        id = 47475,
-        cast = function()
-            if buff.bloodsurge.up then return 0 end
-            return 1.5 - 0.5 * talent.improved_slam.rank
-        end,
-        cooldown = 0,
+        id = 1464,
+        cast = function () return max( 0, 1.5 + -0.5 * ( talent.improved_slam.rank or 0 ) ) end,
         gcd = "spell",
-
-        spend = function() return 15 - talent.focused_rage.rank end,
-        spendType = "rage",
-
-        startsCombat = true,
+        school = "physical",
         texture = 132340,
+        range = 5,
+        spend = 15,
+        -- Talent cast scaling: improved_slam (-0.5s per rank)
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 1464, 8820, 11604, 11605, 25241, 25242 },
 
-        handler = function ()
-            removeBuff( "bloodsurge" )
-            removeBuff( "juggernaut" )
-        end,
+        -- Effects:
+        -- [ ] Rank 1464 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 31, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 8820 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 42, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11604 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 67, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 11605 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 86, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25241 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 104, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 25242 #0 -- effect: WEAPON_DAMAGE_NOSCHOOL, aura: NONE, points: 139, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        proc_chance = 100,
     },
 
-
-    -- Raise your shield, reflecting the next spell cast on you.  Lasts 5 sec.
+-- Spell Reflection - Raise your shield, reflecting the next spell cast on you. Lasts 5 sec.
     spell_reflection = {
         id = 23920,
         cast = 0,
-        cooldown = function() return glyph.spell_reflection.enabled and 9 or 10 end,
-        gcd = "off",
-
-        spend = 15,
-        spendType = "rage",
-
-        startsCombat = false,
+        duration = 5,
+        cooldown = 10,
+        school = "physical",
         texture = 132361,
+        spend = 25,
+        spendType = "Rage",
+        max_stack = 1,
 
-        toggle = "interrupts",
-        debuff = "casting",
-        equipped = "shield",
-        readyTime = state.timeToInterrupt,
+        -- Effects:
+        -- [x] Rank 23920 #0 -- effect: APPLY_AURA, aura: REFLECT_SPELLS, points: 99, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
 
-        usable = function()
-            return UnitIsUnit("targettarget","player")
+        handler = function ()
+            applyBuff( "spell_reflection" )
         end,
 
-        handler = function()
-            applyBuff( "spell_reflection" )
-        end
+        proc_chance = 100,
+        proc_charges = 1,
+        proc_type_mask = { 139936, 0 },
+        -- Proc type flags: mask0: Take Melee Ability; Take Ranged Attack; Take Ranged Ability; Take Harmful Ability; Take Harmful Spell
     },
 
-
-    -- Sunders the target's armor, reducing it by 4% per Sunder Armor and causes a high amount of threat.  Threat increased by attack power.  Can be applied up to 5 times.  Lasts 30 sec.
+-- Sunder Armor - Sunders the target's armor, reducing it by 90-520 per Sunder Armor and causes a high amount of threat. Can be applied up to 5 times. Lasts 30 sec.
     sunder_armor = {
         id = 7386,
         cast = 0,
-        cooldown = 0,
+        duration = 30,
         gcd = "spell",
-
-        spend = function() return 15 - talent.focused_rage.rank - talent.puncture.rank end,
-        spendType = "rage",
-
-        startsCombat = true,
+        school = "physical",
         texture = 132363,
+        range = 5,
+        spend = function () return max( 0, 15 + -1 * ( talent.improved_sunder_armor.rank or 0 ) ) end,
+        -- Talent spend flat scaling: improved_sunder_armor (-1 rage per rank)
+        spendType = "Rage",
+        max_stack = 5,
+        copy = { 7386, 7405, 8380, 11596, 11597, 25225 },
 
-        handler = function( rank )
-            applyDebuff( "target", "sunder_armor", nil, min( 5, debuff.sunder_armor.stack + 1 ) )
+        -- Effects:
+        -- [x] Rank 7386 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: -91, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 7405 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: -181, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 8380 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: -271, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 11596 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: -361, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 11597 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: -451, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 25225 #0 -- effect: APPLY_AURA, aura: MOD_RESISTANCE, points: -521, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
+
+        handler = function ()
+            if debuff.sunder_armor.up then
+                applyDebuff( "target", "sunder_armor", nil, min( debuff.sunder_armor.max_stack, debuff.sunder_armor.stack + 1 ) )
+            else
+                applyDebuff( "target", "sunder_armor", nil, 1 )
+            end
         end,
+
+        proc_chance = 100,
     },
 
-
-    -- Your next 5 melee attacks strike an additional nearby opponent.
+-- Sweeping Strikes - Your next $n melee attacks strike an additional nearby opponent.
     sweeping_strikes = {
         id = 12328,
         cast = 0,
+        duration = 10,
         cooldown = 30,
-        gcd = "off",
-
-        spend = function() return glyph.sweeping_strikes.enabled and 0 or 30 end,
-        spendType = "rage",
-
-        talent = "sweeping_strikes",
-        startsCombat = false,
+        school = "physical",
         texture = 132306,
+        range = 100,
+        spend = 30,
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 12328, 12723, 26654 },
 
-        nobuff = "defensive_stance",
+        -- Effects:
+        -- [x] Rank 12328 #0 -- effect: APPLY_AURA, aura: DUMMY, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+        -- [x] Rank 12723 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [ ] Rank 26654 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
-        handler = function()
-            applyBuff( "sweeping_strikes", nil, 10 )
-        end
+        handler = function ()
+            applyBuff( "sweeping_strikes" )
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "sweeping_strikes" ) end
+        end,
+
+        proc_chance = 100,
+        proc_charges = 10,
+        proc_type_mask = { 20, 0 },
+        -- Proc type flags: mask0: Deal Melee Swing; Deal Melee Ability
+
+        -- Related talents:
+        -- talent_0 [0]
     },
 
+-- Tankatronic Goggles
+    tankatronic_goggles = {
+        id = 41312,
+        cast = 50,
+        texture = 136243,
+        max_stack = 1,
 
-    -- Taunts the target to attack you, but has no effect if the target is already attacking you.
+        -- Effects:
+        -- [x] Rank 41312 #0 -- effect: CREATE_ITEM, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        proc_chance = 100,
+    },
+
+-- Taunt - Taunts the target to attack you, but has no effect if the target is already attacking you.
     taunt = {
         id = 355,
         cast = 0,
-        cooldown = 8,
-        gcd = "off",
-
-        startsCombat = true,
+        duration = 3,
+        cooldown = function () return max( 0, 10 + -1 * ( talent.improved_taunt.rank or 0 ) ) end,
+        category_cooldown = 10,
+        school = "physical",
         texture = 136080,
+        cooldown_category_id = 82,
+        cooldown_category = "Taunt/Detaunt",
+        range = 5,
+        -- Talent cooldown scaling (category source): improved_taunt (-1s per rank)
+        spendType = "Rage",
+        max_stack = 1,
 
-        buff = "defensive_stance",
+        -- Effects:
+        -- [ ] Rank 355 #0 -- effect: ATTACK_ME, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        -- [x] Rank 355 #1 -- effect: APPLY_AURA, aura: MOD_TAUNT, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
-        handler = function()
+        handler = function ()
             applyDebuff( "target", "taunt" )
-        end
+        end,
+
+        proc_chance = 100,
     },
 
-
-    -- Blasts nearby enemies increasing the time between their attacks by 10% for 30 sec and doing 300 damage to them.  Damage increased by attack power.  This ability causes additional threat.
-    thunder_clap = {
-        id = 47502,
+-- Throw - Hurl a thrown weapon at the target.
+    throw = {
+        id = 2764,
         cast = 0,
-        cooldown = 6,
-        gcd = "spell",
+        texture = 132324,
+        cooldown_category_id = 76,
+        cooldown_category = "Shoot/Throw",
+        range = 30,
+        max_stack = 1,
 
-        spend = function() return 20 - ( glyph.resonating_power.enabled and 5 or 0 ) - talent.focused_rage.rank - ( talent.improved_thunder_clap.rank == 3 and 4 or talent.improved_thunder_clap.rank == 2 and 2 or talent.improved_thunder_clap.rank == 1 and 1 or 0 ) end,
-        spendType = "rage",
-
+        -- Effects:
+        -- [ ] Rank 2764 #0 -- effect: WEAPON_DAMAGE, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         startsCombat = true,
+    },
+
+-- Thunder Clap - Blasts nearby enemies increasing the time between their attacks by 10% for 10-30 sec and doing 10-123 damage to them. This ability causes additonal threat and will affect up to $i targets.
+    thunder_clap = {
+        id = 6343,
+        cast = 0,
+        duration = 30,
+        category_cooldown = 4,
+        gcd = "spell",
+        school = "physical",
         texture = 136105,
+        cooldown_category_id = 49,
+        cooldown_category = "Direct Damage (AE) - Ability",
+        spend = function () return max( 0, 20 + -1.5 * ( talent.improved_thunder_clap.rank or 0 ) ) end,
+        -- Talent spend flat scaling: improved_thunder_clap (-1.5 rage per rank)
+        spendType = "Rage",
+        max_stack = 1,
+        copy = { 6343, 8198, 8204, 8205, 11580, 11581, 25264 },
 
-        nobuff = "berserker_stance",
+        -- Effects:
+        -- [x] Rank 6343 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 9, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 6343 #1 -- effect: APPLY_AURA, aura: MOD_MELEE_HASTE, points: -11, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 8198 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 22, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 8198 #1 -- effect: APPLY_AURA, aura: MOD_MELEE_HASTE, points: -11, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 8204 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 36, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 8204 #1 -- effect: APPLY_AURA, aura: MOD_MELEE_HASTE, points: -11, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 8205 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 54, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 8205 #1 -- effect: APPLY_AURA, aura: MOD_MELEE_HASTE, points: -11, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 11580 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 81, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 11580 #1 -- effect: APPLY_AURA, aura: MOD_MELEE_HASTE, points: -11, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 11581 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 102, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 11581 #1 -- effect: APPLY_AURA, aura: MOD_MELEE_HASTE, points: -11, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [x] Rank 25264 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 122, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 25264 #1 -- effect: APPLY_AURA, aura: MOD_MELEE_HASTE, points: -11, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        startsCombat = true,
 
-        handler = function( rank )
-            applyDebuff( "target", "thunder_clap" )
-            active_dot.thunder_clap = min( active_enemies, 4 + active_dot.thunder_clap )
+        radius = 8,
+
+        handler = function ()
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "thunder_clap" ) end
         end,
     },
 
-
-    -- Instantly attack the target causing 983 damage.  Can only be used within 20 sec after you kill an enemy that yields experience or honor.  Damage is based on your attack power.
+-- Victory Rush - Instantly attack the target causing ${$AP*$m1/100} damage. Can only be used within $32216d after you kill an enemy that yields experience or honor. Damage is based on your attack power.
     victory_rush = {
         id = 34428,
         cast = 0,
-        cooldown = 0,
         gcd = "spell",
-
-        spend = 0,
-        spendType = "rage",
-
-        startsCombat = true,
+        school = "physical",
         texture = 132342,
+        range = 5,
+        spendType = "Rage",
+        max_stack = 1,
 
-        buff = "victory_rush",
-        nobuff = "defensive_stance",
-
-        handler = function()
-            removeBuff( "victory_rush" )
-        end
-    },
-
-
-    -- Focus your protective gaze on a group or raid target, reducing their damage taken by 3% and transfers -10% of the threat they cause to you.  In addition, each time they are hit by an attack your Taunt cooldown is refreshed.  Lasts 30 min.  This effect can only be on one target at a time.
-    vigilance = {
-        id = 50720,
-        cast = 0,
-        cooldown = 0,
-        gcd = "spell",
-
-        talent = "vigilance",
-        startsCombat = false,
-        texture = 236318,
-
-        --usable = function() return active_dot.vigilance == 0, "can only have 1 active" end,
-        usable = function() return FindRaidBuffByID(buff.vigilance.id) == 0, "can only have 1 active" end, -- tracking it properly is not possible without extending the function, so we just assume that there is only one Prot-Warri per Raid/Group
+        -- Effects:
+        -- [x] Rank 34428 #0 -- effect: SCHOOL_DAMAGE, aura: NONE, points: 44, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
+        startsCombat = true,
 
         handler = function ()
-            active_dot.vigilance = 1
+            if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "victory_rush" ) end
         end,
+
+        proc_chance = 100,
+
+        -- Aura restrictions: caster_state=10
     },
 
-
-    -- In a whirlwind of steel you attack up to 4 enemies within 8 yards, causing weapon damage from both melee weapons to each enemy.
+-- Whirlwind - In a whirlwind of steel you attack up to $i enemies within $a1 yards, causing weapon damage from both melee weapons to each enemy.
     whirlwind = {
         id = 1680,
         cast = 0,
-        cooldown = function() return 10 - talent.improved_whirlwind.rank - ( glyph.of_whirlwind.enabled and 2 or 0 ) end,
+        cooldown = function () return max( 0, 10 + -1 * ( talent.improved_whirlwind.rank or 0 ) ) end,
+        category_cooldown = 10,
         gcd = "spell",
-
-        spend = function() return 25 - talent.focused_rage.rank end,
-        spendType = "rage",
-
-        startsCombat = true,
+        school = "physical",
         texture = 132369,
+        cooldown_category_id = 891,
+        cooldown_category = "Whirlwind",
+        spend = 25,
+        -- Talent cooldown scaling (category source): improved_whirlwind (-1s per rank)
+        spendType = "Rage",
+        max_stack = 1,
 
-        buff = "berserker_stance",
+        -- Effects:
+        -- [ ] Rank 1680 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: -1, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 14, target: TARGET_SRC_CASTER, target2: TARGET_UNIT_SRC_AREA_ENEMY, mechanic: 0
+        -- [ ] Rank 1680 #1 -- effect: TRIGGER_SPELL, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_SRC_CASTER, target2: NONE, mechanic: 0, trigger_spell_id: 44949
+        startsCombat = true,
 
-        handler = function()
-        end
+        radius = 8,
     },
+
 } )
 
-spec:RegisterStateTable("assigned_shout", setmetatable( {}, {
-    __index = function( t, k )
-        return settings.shout_spell == k
-    end
-}))
+-- Resources
+if spec.RegisterResource then
+    spec:RegisterResource( "rage" )
+end
 
-spec:RegisterStateExpr("main_gcd_spell_slam", function()
-    return settings.main_gcd_spell == "slam"
-end)
-
-spec:RegisterStateExpr("main_gcd_spell_bt", function()
-    return settings.main_gcd_spell == "bloodthirst"
-end)
-
-spec:RegisterStateExpr("main_gcd_spell_ww", function()
-    return settings.main_gcd_spell == "whirlwind"
-end)
-
-spec:RegisterStateExpr("rend_may_tick", function()
-    if not debuff.rend.up then
-        return false
-    end
-
-    local current_tick = dot.rend.next_tick
-end)
-
-spec:RegisterSetting("warrior_description", nil, {
-    type = "description",
-    name = "Adjust the settings below according to your playstyle preference. It is always recommended that you use a simulator "..
-        "to determine the optimal values for these settings for your specific character."
-})
-
-spec:RegisterSetting("warrior_description_footer", nil, {
-    type = "description",
-    name = "\n\n"
-})
-
-spec:RegisterSetting("general_header", nil, {
-    type = "header",
-    name = "General"
-})
-
-local main_gcd_spell = {}
-spec:RegisterSetting("main_gcd_spell", "slam", {
-    type = "select",
-    name = "Main GCD Spell",
-    desc = "Select which ability should be top priority",
-    width = "full",
-    values = function()
-        table.wipe(main_gcd_spell)
-        main_gcd_spell.slam = class.abilityList.slam
-        main_gcd_spell.bloodthirst = class.abilityList.bloodthirst
-        main_gcd_spell.whirlwind = class.abilityList.whirlwind
-        return main_gcd_spell
-    end,
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.main_gcd_spell = val
-        class.abilities.main_gcd_spell = class.abilities[ val ]
-    end
-})
-
-local shout_spells = {}
-spec:RegisterSetting("shout_spell", "commanding_shout", {
-    type = "select",
-    name = "Preferred Shout",
-    desc = "Select which shout should be recommended",
-    width = "full",
-    values = function()
-        table.wipe(shout_spells)
-        shout_spells.commanding_shout = class.abilityList.commanding_shout
-        shout_spells.battle_shout = class.abilityList.battle_shout
-        return shout_spells
-    end,
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.shout_spell = val
-        class.abilities.shout_spell = class.abilities[ val ]
-    end
-})
-
-spec:RegisterSetting("queueing_threshold", 60, {
-    type = "range",
-    name = "Queue Rage Threshold",
-    desc = "Select the rage threshold after which heroic strike / cleave will be recommended",
-    width = "full",
-    min = 0,
-    softMax = 100,
-    step = 1,
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.queueing_threshold = val
-    end
-})
-
-spec:RegisterSetting("predict_tfb", true, {
-    type = "toggle",
-    name = "Predict Taste For Blood",
-    desc = "When enabled, Taste For Blood procs will be predicted and displayed in future recommendations",
-    width = "full",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.predict_tfb = val
-    end
-})
-
-spec:RegisterSetting("optimize_overpower", false, {
-    type = "toggle",
-    name = "Optimize Overpower",
-    desc = "When enabled, Overpower will be deprioritized until the GCD before a subsequent Taste For Blood proc.\n\nApplies to Arms only.",
-    width = "full",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.optimize_overpower = val
-    end
-})
-
-spec:RegisterSetting("general_footer", nil, {
-    type = "description",
-    name = "\n\n\n"
-})
-
-spec:RegisterSetting("debuffs_header", nil, {
-    type = "header",
-    name = "Debuffs"
-})
-
-spec:RegisterSetting("debuffs_description", nil, {
-    type = "description",
-    name = "Debuffs settings will change which debuffs are recommended"
-})
-
-spec:RegisterSetting("debuff_sunder_enabled", true, {
-    type = "toggle",
-    name = "Maintain Sunder Armor",
-    desc = "When enabled, recommendations will include sunder armor",
-    width = "full",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.debuff_sunder_enabled = val
-    end
-})
-
-spec:RegisterSetting("debuff_demoshout_enabled", false, {
-    type = "toggle",
-    name = "Maintain Demoralizing Shout",
-    desc = "When enabled, recommendations will include demoralizing shout",
-    width = "full",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.debuff_demoshout_enabled = val
-    end
-})
-
-spec:RegisterSetting("debuffs_footer", nil, {
-    type = "description",
-    name = "\n\n\n"
-})
-
-spec:RegisterSetting("execute_header", nil, {
-    type = "header",
-    name = "Execute"
-})
-
-spec:RegisterSetting("execute_description", nil, {
-    type = "description",
-    name = "Execute settings will change recommendations only during execute phase"
-})
-
-spec:RegisterSetting("execute_queueing_enabled", true, {
-    type = "toggle",
-    name = "Queue During Execute",
-    desc = "When enabled, recommendations will include heroic strike or cleave during the execute phase",
-    width = "full",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.execute_queueing_enabled = val
-    end
-})
-
-spec:RegisterSetting("execute_bloodthirst_enabled", true, {
-    type = "toggle",
-    name = "Bloodthirst During Execute",
-    desc = "When enabled, recommendations will include bloodthirst during the execute phase",
-    width = "full",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.execute_bloodthirst_enabled = val
-    end
-})
-
-spec:RegisterSetting("execute_whirlwind_enabled", true, {
-    type = "toggle",
-    name = "Whirlwind During Execute",
-    desc = "When enabled, recommendations will include whirlwind during the execute phase",
-    width = "full",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.execute_whirlwind_enabled = val
-    end
-})
-
-spec:RegisterSetting("execute_slam_prio", true, {
-    type = "toggle",
-    name = "Slam Over Execute",
-    desc = "When enabled, recommendations will prioritize slam over execute during the execute phase",
-    width = "full",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.execute_slam_prio = val
-    end
-})
-
-spec:RegisterSetting("execute_footer", nil, {
-    type = "description",
-    name = "\n\n\n"
-})
-
-spec:RegisterSetting("weaving_header", nil, {
-    type = "header",
-    name = "Weaving"
-})
-
-spec:RegisterSetting("weaving_description", nil, {
-    type = "description",
-    name = "Enabling weaving will cause Hekili to recommend the player swaps into battle stance and rends/overpowers the target under "..
-        "certain conditions.\n\nApplies to Fury only"
-})
-
-spec:RegisterSetting("weaving_enabled", false, {
-    type = "toggle",
-    name = "Enabled",
-    desc = "When enabled, recommendations will include battle stance swapping under certain conditions",
-    width = "full",
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.weaving_enabled = val
-    end
-})
-
-spec:RegisterSetting("weave_rage_threshold", 100, {
-    type = "range",
-    name = "Maximum Rage",
-    desc = "Select the maximum rage at which weaving will be recommended",
-    width = "full",
-    min = 0,
-    softMax = 100,
-    step = 1,
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.weave_rage_threshold = val
-    end
-})
-
-spec:RegisterSetting("weave_health_threshold", 20, {
-    type = "range",
-    name = "Minimum Target Health",
-    desc = "Select the minimum target health at which weaving will be recommended",
-    width = "full",
-    min = 0,
-    max = 100,
-    step = 1,
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.weave_health_threshold = val
-    end
-})
-
-spec:RegisterSetting("weave_cooldown_threshold", 1.5, {
-    type = "range",
-    name = "Cooldown Threshold",
-    desc = "Select the minimum time left allowed on bloodthirst and whirlwind before weaving can be recommended",
-    width = "full",
-    min = 0,
-    softMax = 8,
-    step = 0.1,
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.weave_cooldown_threshold = val
-    end
-})
-
-spec:RegisterSetting("rend_refresh_time", 0, {
-    type = "range",
-    name = "Refresh Time",
-    desc = "Select the time left on an existing rend debuff at which rendweaving can be recommended",
-    width = "full",
-    min = 0,
-    softMax = 21,
-    step = 0.1,
-    set = function( _, val )
-        Hekili.DB.profile.specs[ 1 ].settings.rend_refresh_time = val
-    end
-})
-
-spec:RegisterSetting("weaving_footer", nil, {
-    type = "description",
-    name = "\n\n\n"
-})
-
+spec:RegisterRanges( "bloodthirst", "hamstring", "mocking_blow", "pummel", "rend", "revenge" )
 
 spec:RegisterOptions( {
     enabled = true,
 
     aoe = 2,
-
-    gcd = 6673,
+    cycle = false,
 
     nameplates = true,
-    nameplateRange = 8,
+    nameplateRange = 10,
+    rangeFilter = false,
 
-    damage = false,
+    damage = true,
+    damageDots = true,
     damageExpiration = 6,
 
-    potion = "speed",
+    potion = "tempered_potion",
 
     package = "Fury",
-    usePackSelector = true
 } )
 
+--[[
+spec:RegisterSetting( "scaffold_strict_range", false, {
+    name = "Scaffold: Strict Range Checks",
+    desc = "If checked, this generated profile can use stricter range checks where supported.",
+    type = "toggle",
+    width = "full",
+} )
+]]--
 
 spec:RegisterPack( "Arms", 20230226, [[Hekili:fN1wVTTnu4Fl5fd5MunFPoPfioaBypS2h6lEy7njXirhZfDBKuj1fg63(oK6gjfPS7wrhqtJnpKNZhp3pHbld(9GDjioo4ZRwSA9IvRU1F5DlVlyh)yjoyxjk(z0tWhYrzW))Z0mwDK3h)J5cshtlqjcgWkQOXa5GDpwrs5Fmp4rBC92nFa2Bjoo4Zld2DGKKGB2jMf3X7)erPKcADuP4xe(X6O9IV(B4NjPeqQ0I9KuqwOyoPiN5xsXXfzpI4xV9NEetzy6ZyAiJJYJX3q2V9XQ979B(QFsXR51FY2jHpKHYti5pfYouuXfNeXyKNYXjnR4BULzsoNDme4apf3UlHi6PyEKjaGktSiCvY)7fCVOf3yuAAyZxdtjm(ncl8wsoHRUlwvEcOor0ScQawVGOe0JPyFbBtb0jPpRFzCgM(eop(ylfvEvwLLHtvxHwLpgconIMe8RkppZAvrgCsD1lHnj494Cg5LrCYKGKzdwyH6e4zN6PHzCsgoKxeMqW38ckTcV1lbl5gNIGtagTeqvDe41S1lwm)0jocuQCFLdEgrG)coUIJdlpGyDcPLjhWOu(b)Yy(9RwCg2OzKBzddZ5aez(nyULyioxCSKbpbfW(GN3M32EfvDOeHLXpp)nEl93CDkKUa8BMp)61NbvICmgG6QwUNH(RIwMhsXjvs2a6XtN8SjFqb7ew3Vz(zWrgyS4WpgqPxdOIt3Yz7gR0Oyb7z3F3S4IIur4R)JPffj8dekJ3rEG4RW6PVsYt6jDvJRU4qSkW0R6N7WRXi4T9g9nO56qnyqvdd0I3e5Eoi8ffbrToLqkkgjb)E3hrEpOqPOBQy4WcWX7P4KTlf8qSQiqKet4pO6tBYJdyAbjg(oL8Sl(exrP4C(dd(5)DfUclck5hOyiIinzMqaqipohNrWSTlB11q68NtXmwo8Jqd5n4lOfqE6upZ7wVxiTXrZNq5LIrV8De(p8Jf(xyffpRHrNo1VSr03us8aSaM2QdkEDOmGWNkTccNuCNn2SrjBtExwiw3nDHvIWXqNnU9kHgTOqxrqTEuCmoftrtZtWaNiUdTiw81(aVb7Uyzih4EHrpuKm2ndlEbtllEflThEsM2VeWcuISuuJtchXa7n0swOu7beG6tEoibUq94POeab5RGtBhRpDY6XuYHmFcR6lKyEb9yiTIDyI0gwAMWIE7HLRuZZIGosbMNjUc9lBeEmH)2RyCPS1lzIg24qvZaWPs71HfxiFBZrvrDsvJl01TK614(acMiS2awRNq73EYFKa3TSGmjCuAR6292sWWgrPKVQ1LVz)mIDjj23stxZfJp)KUbArvJ9(N5iMzc)QuKuzEvwXlae0kWA4MlZsm4UkoLn3BLqTtNCLaudsJLJgkvXKzRXwIgd2bAdgS7(5eFxWUxrurpWSGDFmReSS4K6OBRJAyBDKOPCMF9Nc2j)KC(v8Euvkh(4NLZZ2A4c(LUPed2zoTtZPdBMQv0muahWGXHJH5pbnbcGP1Iu1rZQJCo6ZGWvl5jKZAHC6i2mvKQCHD8oNiX1Kqdm0yagTB6idaiRnNrwgZkDHcs9ucPC70sXYCuxMGmpyGWsURFYAB(egIUvGIyJbrAtr5294m)LcK(jnZNyzODnQwhCxXn2GCV30Lalvj)9dsQhUr5pYK0zdCQC1C(5MEptAcngGqrvjNXyA7M6Kd1rpuhTAHck7M4iyNsbCbwMuPR2goWZT1rt0kUurRx2TocoYsjHRAncMDEiO5jjBVsED0PtkI1vt61rZhUTAZgz7g7oL0)9B8d)FCJBMJY2v1DgXjQd4PGn1rwAGMRXw0qKzDIZKZuD8fjeMAegfPyqwiP70Qiv08BTksVxDh9t1ySPpOUjhZ1yCKLlCEjT00yD09QUxJMXrPMbqsYF3Po8AD2gpRJMVOLw0IM3yv9Myl9EStmbudxMAki4cdXg(BKIuXvPNfY74kv9U6GrMkB3PTSQSfXLRKxf7dhPtYiOD6IPlDNpXw2bf3xJPRSfaV0DeS9752U(lTnnsD019K1Ni5Yslz5(SwZyoitj4Vv1A2Yptd5D)qUGoHOw2aTXVmb6hCc0Zo4vxu4uJFnGIXKL1(DNEXw44mNb0oc9w5o9cG8Mb1u8DHj4A7WXmKyYMCMy2THeecxn3ZWPMzCimTV9iZU5S3xMCqjliTOuAovYb1goi(uAfwMR11BCi16RxSOpR64x7qYW2g(vx2sZDNhkJEhePku053Gq0IIT1V35fZ0VtI(OJQpSJi9GN8FGn9TdM0rpCGuF9g5oL2FigU9nuAkwixzT6TsRPfB90D(B1q4ORNAPVYO9NnqRrfl3P7L375QWwTBkBTNDrO2rVztdMTsW4ypQbG3zwKC0l1OVHrVwJwhhAVzJQMWO5rB9iEELX3ODXipJwuI5FXJ2barv8dqhS7(v8(IVixk4Fc]] )
 
@@ -2430,3 +1897,4 @@ spec:RegisterPackSelector( "protection", "Protection", "|T134952:0|t Protection"
     function( tab1, tab2, tab3 )
         return tab3 > max( tab1, tab2 )
     end )
+
