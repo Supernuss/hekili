@@ -2820,7 +2820,9 @@ if spec.RegisterResource then
     spec:RegisterResource( "mana" )
 end
 
-spec:RegisterRanges( "holy_shock", "avengers_shield", "exorcism", "hammer_of_wrath", "blood_corruption", "eye_for_an_eye" )
+if spec.RegisterRanges then
+    spec:RegisterRanges( "holy_shock", "avengers_shield", "exorcism", "hammer_of_wrath", "blood_corruption", "eye_for_an_eye" )
+end
 
 spec:RegisterOptions( {
     enabled = true,

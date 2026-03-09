@@ -2700,7 +2700,9 @@ if spec.RegisterResource then
     spec:RegisterResource( "mana" )
 end
 
-spec:RegisterRanges( "fire_blast", "flamestrike", "frostbolt", "scorch", "fireball", "pyroblast" )
+if spec.RegisterRanges then
+    spec:RegisterRanges( "fire_blast", "flamestrike", "frostbolt", "scorch", "fireball", "pyroblast" )
+end
 
 spec:RegisterStateExpr( "wowsim_mage_arcane_drop_stack_window", function()
     return mana.pct < 30 and buff.arcane_blast.remains < cast_time.arcane_blast and 1 or 0

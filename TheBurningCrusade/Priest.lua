@@ -2633,7 +2633,9 @@ if spec.RegisterResource then
     spec:RegisterResource( "mana" )
 end
 
-spec:RegisterRanges( "chastise", "mind_flay", "devouring_plague", "holy_fire", "mind_blast", "shadow_word_death" )
+if spec.RegisterRanges then
+    spec:RegisterRanges( "chastise", "mind_flay", "devouring_plague", "holy_fire", "mind_blast", "shadow_word_death" )
+end
 
 spec:RegisterOptions( {
     enabled = true,

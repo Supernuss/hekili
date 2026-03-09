@@ -1559,7 +1559,15 @@ end
 local resourceChange = function( amount, resource, overcap )
     if amount == 0 then return false end
 
+    if type( resource ) == "string" and not state[ resource ] then
+        local normalized = resource:lower()
+        if state[ normalized ] then
+            resource = normalized
+        end
+    end
+
     local r = state[ resource ]
+    if not r then return false end
     local pre = r.current
 
     if amount < 0 and r.spend then r.spend( -amount, resource, overcap )
@@ -1579,27 +1587,59 @@ end
 
 local gain = function( amount, resource, overcap, noforecast )
     amount, resource, overcap = ns.callHook( "pregain", amount, resource, overcap )
-    resourceChange( amount, resource, overcap )
-    if not noforecast and resource ~= "health" then forecastResources( resource ) end
+    local changed = resourceChange( amount, resource, overcap )
+
+    if type( resource ) == "string" and not state[ resource ] then
+        local normalized = resource:lower()
+        if state[ normalized ] then
+            resource = normalized
+        end
+    end
+
+    if changed and not noforecast and resource ~= "health" then forecastResources( resource ) end
     ns.callHook( "gain", amount, resource, overcap )
 end
 
 local rawGain = function( amount, resource, overcap )
-    resourceChange( amount, resource, overcap )
-    forecastResources( resource )
+    local changed = resourceChange( amount, resource, overcap )
+
+    if type( resource ) == "string" and not state[ resource ] then
+        local normalized = resource:lower()
+        if state[ normalized ] then
+            resource = normalized
+        end
+    end
+
+    if changed then forecastResources( resource ) end
 end
 
 
 local spend = function( amount, resource, noforecast )
     amount, resource = ns.callHook( "prespend", amount, resource )
-    resourceChange( -amount, resource, overcap )
-    if not noforecast and resource ~= "health" then forecastResources( resource ) end
+    local changed = resourceChange( -amount, resource, overcap )
+
+    if type( resource ) == "string" and not state[ resource ] then
+        local normalized = resource:lower()
+        if state[ normalized ] then
+            resource = normalized
+        end
+    end
+
+    if changed and not noforecast and resource ~= "health" then forecastResources( resource ) end
     ns.callHook( "spend", amount, resource, overcap, true )
 end
 
 local rawSpend = function( amount, resource )
-    resourceChange( -amount, resource, overcap )
-    forecastResources( resource )
+    local changed = resourceChange( -amount, resource, overcap )
+
+    if type( resource ) == "string" and not state[ resource ] then
+        local normalized = resource:lower()
+        if state[ normalized ] then
+            resource = normalized
+        end
+    end
+
+    if changed then forecastResources( resource ) end
 end
 
 

@@ -1929,7 +1929,9 @@ if spec.RegisterResource then
     spec:RegisterResource( "energy" )
 end
 
-spec:RegisterRanges( "envenom", "eviscerate", "garrote", "gouge", "kick", "rupture" )
+if spec.RegisterRanges then
+    spec:RegisterRanges( "envenom", "eviscerate", "garrote", "gouge", "kick", "rupture" )
+end
 
 spec:RegisterStateExpr( "wowsim_rogue_expose_urgent", function()
     return settings.maintain_expose and combo_points.current == 5 and ( not debuff.major_armor_reduction.up or debuff.expose_armor.remains < 1 ) and 1 or 0

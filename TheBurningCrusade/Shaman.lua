@@ -2313,7 +2313,9 @@ if spec.RegisterResource then
     spec:RegisterResource( "mana" )
 end
 
-spec:RegisterRanges( "earth_shock", "flame_shock", "frost_shock", "chain_lightning", "lightning_bolt", "stormstrike" )
+if spec.RegisterRanges then
+    spec:RegisterRanges( "earth_shock", "flame_shock", "frost_shock", "chain_lightning", "lightning_bolt", "stormstrike" )
+end
 
 spec:RegisterOptions( {
     enabled = true,

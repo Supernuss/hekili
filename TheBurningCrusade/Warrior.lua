@@ -2071,7 +2071,9 @@ if spec.RegisterResource then
     } )
 end
 
-spec:RegisterRanges( "bloodthirst", "hamstring", "mocking_blow", "pummel", "rend", "revenge" )
+if spec.RegisterRanges then
+    spec:RegisterRanges( "bloodthirst", "hamstring", "mocking_blow", "pummel", "rend", "revenge" )
+end
 
 spec:RegisterStateExpr( "wowsim_warrior_arms_hs_rage_threshold", function() return 70 end )
 spec:RegisterStateExpr( "wowsim_warrior_arms_hamstring_rage_threshold", function() return 75 end )

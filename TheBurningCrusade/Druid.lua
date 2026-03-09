@@ -2993,7 +2993,9 @@ if spec.RegisterResource then
     } )
 end
 
-spec:RegisterRanges( "ferocious_bite", "lacerate", "pounce_bleed", "rake", "rip", "swipe" )
+if spec.RegisterRanges then
+    spec:RegisterRanges( "ferocious_bite", "lacerate", "pounce_bleed", "rake", "rip", "swipe" )
+end
 
 spec:RegisterStateExpr( "wowsim_balance_use_faerie_fire", function() return 1 end )
 spec:RegisterStateExpr( "wowsim_balance_use_hurricane", function() return 0 end )

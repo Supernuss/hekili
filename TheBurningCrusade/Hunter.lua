@@ -2905,7 +2905,9 @@ if spec.RegisterResource then
     spec:RegisterResource( "mana" )
 end
 
-spec:RegisterRanges( "counterattack", "mongoose_bite", "wing_clip", "immolation_trap_effect", "arcane_shot", "black_arrow" )
+if spec.RegisterRanges then
+    spec:RegisterRanges( "counterattack", "mongoose_bite", "wing_clip", "immolation_trap_effect", "arcane_shot", "black_arrow" )
+end
 
 spec:RegisterOptions( {
     enabled = true,

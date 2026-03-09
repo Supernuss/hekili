@@ -2644,7 +2644,9 @@ if spec.RegisterResource then
     spec:RegisterResource( "mana" )
 end
 
-spec:RegisterRanges( "shadowburn", "conflagrate", "corruption", "curse_of_agony", "curse_of_doom", "drain_life" )
+if spec.RegisterRanges then
+    spec:RegisterRanges( "shadowburn", "conflagrate", "corruption", "curse_of_agony", "curse_of_doom", "drain_life" )
+end
 
 spec:RegisterStateExpr( "wowsim_warlock_dot_doom_window", function()
     return target.time_to_die >= 60 and debuff.curse_of_doom.down and 1 or 0
