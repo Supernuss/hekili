@@ -74,6 +74,133 @@ local function gain_bear_rage( amount )
     end
 end
 
+local TBC_RAGE_CONVERSION = 274.7
+local TBC_RAGE_DEALT_FACTOR = 3.75 / TBC_RAGE_CONVERSION
+local TBC_RAGE_TAKEN_FACTOR = 2.5 / TBC_RAGE_CONVERSION
+local TBC_RAGE_MAINHAND_HIT_FACTOR = 3.5 / 2
+local TBC_RAGE_OFFHAND_HIT_FACTOR = 1.75 / 2
+local PASSIVE_RAGE_DAMAGE_WINDOW = 10
+
+local MAUL_SPELL_IDS = {
+    [6807] = true,
+    [6808] = true,
+    [6809] = true,
+    [8972] = true,
+    [9745] = true,
+    [9880] = true,
+    [9881] = true,
+    [26996] = true,
+}
+
+local passive_rage_damage_events = {}
+
+local function trim_passive_rage_damage_events( now )
+    local cutoff = now - PASSIVE_RAGE_DAMAGE_WINDOW
+
+    while passive_rage_damage_events[1] and passive_rage_damage_events[1].t < cutoff do
+        table.remove( passive_rage_damage_events, 1 )
+    end
+end
+
+local function add_passive_rage_damage_event( amount )
+    if not amount or amount == 0 then return end
+
+    local now = GetTime and GetTime() or 0
+    passive_rage_damage_events[ #passive_rage_damage_events + 1 ] = { t = now, v = amount }
+    trim_passive_rage_damage_events( now )
+end
+
+local function get_passive_incoming_damage_per_second()
+    local now = GetTime and GetTime() or 0
+    trim_passive_rage_damage_events( now )
+
+    local net_damage = 0
+
+    for i = 1, #passive_rage_damage_events do
+        net_damage = net_damage + passive_rage_damage_events[i].v
+    end
+
+    return max( 0, net_damage ) / PASSIVE_RAGE_DAMAGE_WINDOW
+end
+
+local function is_bear_form_active()
+    return UnitPowerType and UnitPowerType( "player" ) == 1
+end
+
+local function get_bear_swing_speed( is_offhand )
+    local swings = state.swings
+    local speed = swings and ( is_offhand and swings.offhand_speed or swings.mainhand_speed )
+
+    if speed and speed > 0 then
+        return speed
+    end
+
+    return is_offhand and 2.0 or 2.5
+end
+
+local function gain_bear_auto_attack_rage( damage, is_offhand, is_critical )
+    if not damage or damage <= 0 then return end
+
+    local hit_factor = is_offhand and TBC_RAGE_OFFHAND_HIT_FACTOR or TBC_RAGE_MAINHAND_HIT_FACTOR
+
+    if is_critical then
+        hit_factor = hit_factor * 2
+    end
+
+    local rage = ( damage * TBC_RAGE_DEALT_FACTOR ) + ( hit_factor * get_bear_swing_speed( is_offhand ) )
+    gain_bear_rage( rage )
+end
+
+local function gain_bear_damage_taken_rage( damage )
+    if not damage or damage <= 0 then return end
+    gain_bear_rage( damage * TBC_RAGE_TAKEN_FACTOR )
+end
+
+local function get_time_to_next_swing( hand )
+    local speed = state.swings[ hand .. "_speed" ] or 0
+    if speed <= 0 then return 0 end
+
+    local now = state.now + state.offset
+    local swing = state.swings[ hand ] or 0
+
+    if swing == 0 then
+        return speed * ( hand == "offhand" and 0.5 or 1 )
+    end
+
+    local remains = swing + ( ceil( ( now - swing ) / speed ) * speed ) - now
+    if remains <= 0 then remains = speed end
+
+    return remains
+end
+
+local function get_swing_forecast_last( hand )
+    local speed = state.swings[ hand .. "_speed" ] or 0
+    if speed <= 0 then return state.now + state.offset end
+
+    local now = state.now + state.offset
+    return now + get_time_to_next_swing( hand ) - speed
+end
+
+local function get_bear_forecast_rage_per_swing( is_offhand )
+    if not ( state.buff.bear_form.up or state.buff.dire_bear_form.up ) then return 0 end
+    if not is_offhand and state.buff.maul_queue.up then return 0 end
+
+    local speed = get_bear_swing_speed( is_offhand )
+    local weapon_dps = is_offhand and state.weapon_offhand_dps or state.weapon_dps
+    local estimated_damage = max( 0, weapon_dps * speed )
+    local crit_chance = ( GetCritChance and GetCritChance() or 0 ) / 100
+
+    local hit_factor = is_offhand and TBC_RAGE_OFFHAND_HIT_FACTOR or TBC_RAGE_MAINHAND_HIT_FACTOR
+    local expected_hit_factor = hit_factor * ( 1 + crit_chance )
+
+    return ( estimated_damage * TBC_RAGE_DEALT_FACTOR ) + ( expected_hit_factor * speed )
+end
+
+local function get_bear_passive_incoming_rage_per_second()
+    if not ( state.buff.bear_form.up or state.buff.dire_bear_form.up ) then return 0 end
+    return get_passive_incoming_damage_per_second() * TBC_RAGE_TAKEN_FACTOR
+end
+
 
 -- Effect implementation status (class-wide):
 -- Profile: mvp
@@ -1718,7 +1845,6 @@ spec:RegisterAbilities( {
 
         handler = function ()
             applyDebuff( "target", "mangle_bear" )
-            gain_bear_rage( 1 )
         end,
 
         proc_chance = 100,
@@ -1798,6 +1924,11 @@ spec:RegisterAbilities( {
         end,
     },
 
+    maul_queue = {
+        duration = 5,
+        max_stack = 1,
+    },
+
 -- Maul - Increases the druid's next attack by 18-176 damage.
     maul = {
         id = 6807,
@@ -1822,7 +1953,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
-            gain_bear_rage( 1 )
+            applyBuff( "maul_queue", swings and swings.time_to_next_mainhand or nil )
         end,
 
         proc_chance = 100,
@@ -2540,7 +2671,6 @@ spec:RegisterAbilities( {
 
         handler = function ()
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "swipe" ) end
-            gain_bear_rage( 1 )
         end,
 
         proc_chance = 100,
@@ -2782,12 +2912,85 @@ spec:RegisterAbilities( {
 
 } )
 
+spec:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED", function()
+    if not is_bear_form_active() then return end
+
+    local _, subtype, _, sourceGUID, _, _, _, destGUID, _, _, _, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10 = CombatLogGetCurrentEventInfo()
+
+    if sourceGUID == state.GUID then
+        if subtype == "SWING_DAMAGE" then
+            local maul_queued = state.buff.maul_queue.up
+
+            if maul_queued then
+                removeBuff( "maul_queue" )
+                return
+            end
+
+            gain_bear_auto_attack_rage( a1, a10, a7 )
+            return
+        end
+
+        if subtype == "SWING_MISSED" and state.buff.maul_queue.up then
+            removeBuff( "maul_queue" )
+            return
+        end
+
+        if ( subtype == "SPELL_DAMAGE" or subtype == "SPELL_MISSED" ) and MAUL_SPELL_IDS[ a1 or 0 ] then
+            removeBuff( "maul_queue" )
+            return
+        end
+    end
+
+    if destGUID ~= state.GUID then return end
+
+    local damage
+
+    if sourceGUID ~= state.GUID then
+        if subtype == "SWING_DAMAGE" then
+            damage = a1
+        elseif subtype == "SPELL_DAMAGE" or subtype == "RANGE_DAMAGE" or subtype == "SPELL_PERIODIC_DAMAGE" then
+            damage = a4
+        elseif subtype == "ENVIRONMENTAL_DAMAGE" then
+            damage = a2
+        end
+    end
+
+    if damage and damage > 0 then
+        gain_bear_damage_taken_rage( damage )
+        add_passive_rage_damage_event( damage )
+    end
+end )
+
 -- Resources
 if spec.RegisterResource then
     spec:RegisterResource( "combo_points" )
     spec:RegisterResource( "energy" )
     spec:RegisterResource( "mana" )
-    spec:RegisterResource( "rage" )
+    spec:RegisterResource( "rage", nil, {
+        bear_mainhand_swing = {
+            resource = "rage",
+            swing = "mainhand",
+            last = function () return get_swing_forecast_last( "mainhand" ) end,
+            interval = function () return state.swings.mainhand_speed or 0 end,
+            value = function () return get_bear_forecast_rage_per_swing() end,
+        },
+
+        bear_offhand_swing = {
+            resource = "rage",
+            swing = "offhand",
+            last = function () return get_swing_forecast_last( "offhand" ) end,
+            interval = function () return state.swings.offhand_speed or 0 end,
+            value = function () return get_bear_forecast_rage_per_swing( true ) end,
+        },
+
+        bear_incoming_damage = {
+            resource = "rage",
+            setting = "passive_rage_prediction",
+            last = function () return state.now + state.offset - 1 end,
+            interval = 1,
+            value = function () return get_bear_passive_incoming_rage_per_second() end,
+        },
+    } )
 end
 
 spec:RegisterRanges( "ferocious_bite", "lacerate", "pounce_bleed", "rake", "rip", "swipe" )
@@ -2846,6 +3049,13 @@ spec:RegisterSetting( "scaffold_strict_range", false, {
     width = "full",
 } )
 ]]--
+
+spec:RegisterSetting( "passive_rage_prediction", false, {
+    type = "toggle",
+    name = "|T132276:0|t Passive Rage Prediction",
+    desc = "When enabled, rage forecasting includes average incoming damage over the last 10 seconds.",
+    width = "full",
+} )
 
 -- Pets (Hekili-style scaffold)
 spec:RegisterPet( "treants", 33831, "force_of_nature", 30 )

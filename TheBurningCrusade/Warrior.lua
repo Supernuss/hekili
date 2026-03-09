@@ -15,6 +15,135 @@ spec:RegisterGear( "tier5", 30113, 30114, 30115, 30116, 30117 )
 spec:RegisterGear( "tier6", 30969, 30970, 30972, 30974, 30975, 30976, 30977, 30978, 30979, 30980 )
 spec:RegisterGear( "sunwell", 34441, 34442, 34546, 34547, 34568, 34569 )
 
+local TBC_RAGE_CONVERSION = 274.7
+local TBC_RAGE_DEALT_FACTOR = 3.75 / TBC_RAGE_CONVERSION
+local TBC_RAGE_TAKEN_FACTOR = 2.5 / TBC_RAGE_CONVERSION
+local TBC_RAGE_MAINHAND_HIT_FACTOR = 3.5 / 2
+local TBC_RAGE_OFFHAND_HIT_FACTOR = 1.75 / 2
+local PASSIVE_RAGE_DAMAGE_WINDOW = 10
+
+local passive_rage_damage_events = {}
+
+local function trim_passive_rage_damage_events( now )
+    local cutoff = now - PASSIVE_RAGE_DAMAGE_WINDOW
+
+    while passive_rage_damage_events[1] and passive_rage_damage_events[1].t < cutoff do
+        table.remove( passive_rage_damage_events, 1 )
+    end
+end
+
+local function add_passive_rage_damage_event( amount )
+    if not amount or amount == 0 then return end
+
+    local now = GetTime and GetTime() or 0
+    passive_rage_damage_events[ #passive_rage_damage_events + 1 ] = { t = now, v = amount }
+    trim_passive_rage_damage_events( now )
+end
+
+local function get_passive_incoming_damage_per_second()
+    local now = GetTime and GetTime() or 0
+    trim_passive_rage_damage_events( now )
+
+    local net_damage = 0
+
+    for i = 1, #passive_rage_damage_events do
+        net_damage = net_damage + passive_rage_damage_events[i].v
+    end
+
+    return max( 0, net_damage ) / PASSIVE_RAGE_DAMAGE_WINDOW
+end
+
+local function gain_warrior_rage( amount )
+    if not amount or amount <= 0 then return end
+
+    if type( state.gain ) == "function" then
+        state.gain( amount, "rage" )
+    elseif type( gain ) == "function" then
+        gain( amount, "rage" )
+    elseif rage then
+        rage.current = min( rage.max or rage.current, rage.current + amount )
+    end
+end
+
+local function get_warrior_swing_speed( is_offhand )
+    local swings = state.swings
+    local speed = swings and ( is_offhand and swings.offhand_speed or swings.mainhand_speed )
+
+    if speed and speed > 0 then
+        return speed
+    end
+
+    return is_offhand and 2.0 or 2.5
+end
+
+local function gain_warrior_auto_attack_rage( damage, is_offhand, is_critical )
+    if not damage or damage <= 0 then return end
+
+    local hit_factor = is_offhand and TBC_RAGE_OFFHAND_HIT_FACTOR or TBC_RAGE_MAINHAND_HIT_FACTOR
+
+    if is_critical then
+        hit_factor = hit_factor * 2
+    end
+
+    local multiplier = talent.endless_rage.rank > 0 and 1.25 or 1
+    local rage = ( ( damage * TBC_RAGE_DEALT_FACTOR ) + ( hit_factor * get_warrior_swing_speed( is_offhand ) ) ) * multiplier
+
+    gain_warrior_rage( rage )
+end
+
+local function gain_warrior_damage_taken_rage( damage )
+    if not damage or damage <= 0 then return end
+    gain_warrior_rage( damage * TBC_RAGE_TAKEN_FACTOR )
+end
+
+local function get_time_to_next_swing( hand )
+    local speed = state.swings[ hand .. "_speed" ] or 0
+    if speed <= 0 then return 0 end
+
+    local now = state.now + state.offset
+    local swing = state.swings[ hand ] or 0
+
+    if swing == 0 then
+        return speed * ( hand == "offhand" and 0.5 or 1 )
+    end
+
+    local remains = swing + ( ceil( ( now - swing ) / speed ) * speed ) - now
+    if remains <= 0 then remains = speed end
+
+    return remains
+end
+
+local function get_swing_forecast_last( hand )
+    local speed = state.swings[ hand .. "_speed" ] or 0
+    if speed <= 0 then return state.now + state.offset end
+
+    local now = state.now + state.offset
+    return now + get_time_to_next_swing( hand ) - speed
+end
+
+local function get_warrior_forecast_rage_per_swing( is_offhand )
+    if not is_offhand and ( state.buff.heroic_strike_queue.up or state.buff.cleave_queue.up ) then
+        return 0
+    end
+
+    local speed = get_warrior_swing_speed( is_offhand )
+    local weapon_dps = is_offhand and state.weapon_offhand_dps or state.weapon_dps
+    local estimated_damage = max( 0, weapon_dps * speed )
+    local crit_chance = ( GetCritChance and GetCritChance() or 0 ) / 100
+
+    local hit_factor = is_offhand and TBC_RAGE_OFFHAND_HIT_FACTOR or TBC_RAGE_MAINHAND_HIT_FACTOR
+    local expected_hit_factor = hit_factor * ( 1 + crit_chance )
+
+    local multiplier = talent.endless_rage.rank > 0 and 1.25 or 1
+
+    return ( ( estimated_damage * TBC_RAGE_DEALT_FACTOR ) + ( expected_hit_factor * speed ) ) * multiplier
+end
+
+local function get_warrior_passive_incoming_rage_per_second()
+    local multiplier = talent.endless_rage.rank > 0 and 1.25 or 1
+    return get_passive_incoming_damage_per_second() * TBC_RAGE_TAKEN_FACTOR * multiplier
+end
+
 
 -- Effect implementation status (class-wide):
 -- Profile: mvp
@@ -1874,6 +2003,34 @@ spec:RegisterAbilities( {
 } )
 
 spec:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED", function()
+    local _, subtype, _, sourceGUID, _, _, _, destGUID, _, _, _, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10 = CombatLogGetCurrentEventInfo()
+
+    if sourceGUID == state.GUID and subtype == "SWING_DAMAGE" then
+        gain_warrior_auto_attack_rage( a1, a10, a7 )
+        return
+    end
+
+    if destGUID ~= state.GUID or sourceGUID == state.GUID then return end
+
+    local damage
+
+    if sourceGUID ~= state.GUID then
+        if subtype == "SWING_DAMAGE" then
+            damage = a1
+        elseif subtype == "SPELL_DAMAGE" or subtype == "RANGE_DAMAGE" or subtype == "SPELL_PERIODIC_DAMAGE" then
+            damage = a4
+        elseif subtype == "ENVIRONMENTAL_DAMAGE" then
+            damage = a2
+        end
+    end
+
+    if damage and damage > 0 then
+        gain_warrior_damage_taken_rage( damage )
+        add_passive_rage_damage_event( damage )
+    end
+end )
+
+spec:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED", function()
     if not class.auras.overpower_ready then return end
 
     local _, subtype, _, sourceGUID, _, _, _, _, _, _, _, missType = CombatLogGetCurrentEventInfo()
@@ -1887,7 +2044,31 @@ end )
 
 -- Resources
 if spec.RegisterResource then
-    spec:RegisterResource( "rage" )
+    spec:RegisterResource( "rage", nil, {
+        warrior_mainhand_swing = {
+            resource = "rage",
+            swing = "mainhand",
+            last = function () return get_swing_forecast_last( "mainhand" ) end,
+            interval = function () return state.swings.mainhand_speed or 0 end,
+            value = function () return get_warrior_forecast_rage_per_swing() end,
+        },
+
+        warrior_offhand_swing = {
+            resource = "rage",
+            swing = "offhand",
+            last = function () return get_swing_forecast_last( "offhand" ) end,
+            interval = function () return state.swings.offhand_speed or 0 end,
+            value = function () return get_warrior_forecast_rage_per_swing( true ) end,
+        },
+
+        warrior_incoming_damage = {
+            resource = "rage",
+            setting = "passive_rage_prediction",
+            last = function () return state.now + state.offset - 1 end,
+            interval = 1,
+            value = function () return get_warrior_passive_incoming_rage_per_second() end,
+        },
+    } )
 end
 
 spec:RegisterRanges( "bloodthirst", "hamstring", "mocking_blow", "pummel", "rend", "revenge" )
@@ -1977,6 +2158,13 @@ spec:RegisterSetting( "scaffold_strict_range", false, {
     width = "full",
 } )
 ]]--
+
+spec:RegisterSetting( "passive_rage_prediction", false, {
+    type = "toggle",
+    name = "|T132355:0|t Passive Rage Prediction",
+    desc = "When enabled, rage forecasting includes average incoming damage over the last 10 seconds.",
+    width = "full",
+} )
 
 spec:RegisterPack( "Arms", 20230226, [[Hekili:fN1wVTTnu4Fl5fd5MunFPoPfioaBypS2h6lEy7njXirhZfDBKuj1fg63(oK6gjfPS7wrhqtJnpKNZhp3pHbld(9GDjioo4ZRwSA9IvRU1F5DlVlyh)yjoyxjk(z0tWhYrzW))Z0mwDK3h)J5cshtlqjcgWkQOXa5GDpwrs5Fmp4rBC92nFa2Bjoo4Zld2DGKKGB2jMf3X7)erPKcADuP4xe(X6O9IV(B4NjPeqQ0I9KuqwOyoPiN5xsXXfzpI4xV9NEetzy6ZyAiJJYJX3q2V9XQ979B(QFsXR51FY2jHpKHYti5pfYouuXfNeXyKNYXjnR4BULzsoNDme4apf3UlHi6PyEKjaGktSiCvY)7fCVOf3yuAAyZxdtjm(ncl8wsoHRUlwvEcOor0ScQawVGOe0JPyFbBtb0jPpRFzCgM(eop(ylfvEvwLLHtvxHwLpgconIMe8RkppZAvrgCsD1lHnj494Cg5LrCYKGKzdwyH6e4zN6PHzCsgoKxeMqW38ckTcV1lbl5gNIGtagTeqvDe41S1lwm)0jocuQCFLdEgrG)coUIJdlpGyDcPLjhWOu(b)Yy(9RwCg2OzKBzddZ5aez(nyULyioxCSKbpbfW(GN3M32EfvDOeHLXpp)nEl93CDkKUa8BMp)61NbvICmgG6QwUNH(RIwMhsXjvs2a6XtN8SjFqb7ew3Vz(zWrgyS4WpgqPxdOIt3Yz7gR0Oyb7z3F3S4IIur4R)JPffj8dekJ3rEG4RW6PVsYt6jDvJRU4qSkW0R6N7WRXi4T9g9nO56qnyqvdd0I3e5Eoi8ffbrToLqkkgjb)E3hrEpOqPOBQy4WcWX7P4KTlf8qSQiqKet4pO6tBYJdyAbjg(oL8Sl(exrP4C(dd(5)DfUclck5hOyiIinzMqaqipohNrWSTlB11q68NtXmwo8Jqd5n4lOfqE6upZ7wVxiTXrZNq5LIrV8De(p8Jf(xyffpRHrNo1VSr03us8aSaM2QdkEDOmGWNkTccNuCNn2SrjBtExwiw3nDHvIWXqNnU9kHgTOqxrqTEuCmoftrtZtWaNiUdTiw81(aVb7Uyzih4EHrpuKm2ndlEbtllEflThEsM2VeWcuISuuJtchXa7n0swOu7beG6tEoibUq94POeab5RGtBhRpDY6XuYHmFcR6lKyEb9yiTIDyI0gwAMWIE7HLRuZZIGosbMNjUc9lBeEmH)2RyCPS1lzIg24qvZaWPs71HfxiFBZrvrDsvJl01TK614(acMiS2awRNq73EYFKa3TSGmjCuAR6292sWWgrPKVQ1LVz)mIDjj23stxZfJp)KUbArvJ9(N5iMzc)QuKuzEvwXlae0kWA4MlZsm4UkoLn3BLqTtNCLaudsJLJgkvXKzRXwIgd2bAdgS7(5eFxWUxrurpWSGDFmReSS4K6OBRJAyBDKOPCMF9Nc2j)KC(v8Euvkh(4NLZZ2A4c(LUPed2zoTtZPdBMQv0muahWGXHJH5pbnbcGP1Iu1rZQJCo6ZGWvl5jKZAHC6i2mvKQCHD8oNiX1Kqdm0yagTB6idaiRnNrwgZkDHcs9ucPC70sXYCuxMGmpyGWsURFYAB(egIUvGIyJbrAtr5294m)LcK(jnZNyzODnQwhCxXn2GCV30Lalvj)9dsQhUr5pYK0zdCQC1C(5MEptAcngGqrvjNXyA7M6Kd1rpuhTAHck7M4iyNsbCbwMuPR2goWZT1rt0kUurRx2TocoYsjHRAncMDEiO5jjBVsED0PtkI1vt61rZhUTAZgz7g7oL0)9B8d)FCJBMJY2v1DgXjQd4PGn1rwAGMRXw0qKzDIZKZuD8fjeMAegfPyqwiP70Qiv08BTksVxDh9t1ySPpOUjhZ1yCKLlCEjT00yD09QUxJMXrPMbqsYF3Po8AD2gpRJMVOLw0IM3yv9Myl9EStmbudxMAki4cdXg(BKIuXvPNfY74kv9U6GrMkB3PTSQSfXLRKxf7dhPtYiOD6IPlDNpXw2bf3xJPRSfaV0DeS9752U(lTnnsD019K1Ni5Yslz5(SwZyoitj4Vv1A2Yptd5D)qUGoHOw2aTXVmb6hCc0Zo4vxu4uJFnGIXKL1(DNEXw44mNb0oc9w5o9cG8Mb1u8DHj4A7WXmKyYMCMy2THeecxn3ZWPMzCimTV9iZU5S3xMCqjliTOuAovYb1goi(uAfwMR11BCi16RxSOpR64x7qYW2g(vx2sZDNhkJEhePku053Gq0IIT1V35fZ0VtI(OJQpSJi9GN8FGn9TdM0rpCGuF9g5oL2FigU9nuAkwixzT6TsRPfB90D(B1q4ORNAPVYO9NnqRrfl3P7L375QWwTBkBTNDrO2rVztdMTsW4ypQbG3zwKC0l1OVHrVwJwhhAVzJQMWO5rB9iEELX3ODXipJwuI5FXJ2barv8dqhS7(v8(IVixk4Fc]] )
 
