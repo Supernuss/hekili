@@ -2640,32 +2640,11 @@ spec:RegisterAbilities( {
 } )
 
 -- Resources
-if spec.RegisterResource then
-    spec:RegisterResource( "mana" )
-end
+spec:RegisterResource( "mana" )
 
 if spec.RegisterRanges then
     spec:RegisterRanges( "shadowburn", "conflagrate", "corruption", "curse_of_agony", "curse_of_doom", "drain_life" )
 end
-
-spec:RegisterStateExpr( "wowsim_warlock_dot_doom_window", function()
-    return target.time_to_die >= 60 and debuff.curse_of_doom.down and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_warlock_dot_agony_window", function()
-    return target.time_to_die < 60 and target.time_to_die > 30 and debuff.curse_of_agony.down and debuff.curse_of_doom.down and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_warlock_dot_immolate_upkeep", function()
-    return debuff.immolate.down and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_warlock_shadowburn_finish_threshold", function()
-    return 20
-end )
-spec:RegisterStateExpr( "wowsim_warlock_life_tap_urgent_mana", function()
-    return mana.pct < 20 and target.time_to_die > 20 and cooldown.inferno.remains < 15 and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_warlock_life_tap_fill_mana", function()
-    return mana.pct < 60 and target.time_to_die > 20 and cooldown.inferno.remains >= 2 and cooldown.inferno.remains < 15 and 1 or 0
-end )
 
 spec:RegisterOptions( {
     enabled = true,
@@ -2684,6 +2663,69 @@ spec:RegisterOptions( {
     potion = "tempered_potion",
 
     package = "Affliction",
+} )
+
+spec:RegisterSetting( "warlock_affliction_settings_sep", false, {
+    type = "description",
+    name = "|T136145:0|t Affliction Settings",
+    width = "full",
+} )
+
+spec:RegisterSetting( "warlock_use_curse_of_doom", true, {
+    type = "toggle",
+    name = "|T136139:0|t Use Curse of Doom Window",
+    desc = "Cast Curse of Doom in its standard window when enabled.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "warlock_use_curse_of_agony", true, {
+    type = "toggle",
+    name = "|T136139:0|t Use Curse of Agony Window",
+    desc = "Cast Curse of Agony in its standard fallback window when enabled.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "warlock_destruction_settings_sep", false, {
+    type = "description",
+    name = "|T136186:0|t Destruction Settings",
+    width = "full",
+} )
+
+spec:RegisterSetting( "warlock_maintain_immolate", true, {
+    type = "toggle",
+    name = "|T135817:0|t Maintain Immolate",
+    desc = "Refresh Immolate when it is not active.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "warlock_life_tap_urgent_mana_pct", 20, {
+    type = "range",
+    name = "|T136126:0|t Life Tap Urgent Mana",
+    desc = "Use urgent Life Tap when mana percent is below this value.",
+    width = "full",
+    min = 1,
+    max = 80,
+    step = 1,
+} )
+
+spec:RegisterSetting( "warlock_life_tap_fill_mana_pct", 60, {
+    type = "range",
+    name = "|T136126:0|t Life Tap Fill Mana",
+    desc = "Use filler Life Tap when mana percent is below this value.",
+    width = "full",
+    min = 1,
+    max = 100,
+    step = 1,
+} )
+
+spec:RegisterSetting( "warlock_shadowburn_finish_threshold", 20, {
+    type = "range",
+    name = "|T136191:0|t Shadowburn Finish Threshold",
+    desc = "Target health percent threshold for execute-style Shadowburn usage.",
+    width = "full",
+    min = 1,
+    max = 50,
+    step = 1,
 } )
 
 --[[

@@ -2,13 +2,13 @@ actions.precombat+=/fel_armor,if=buff.fel_armor.down
 actions.precombat+=/summon_imp,if=!pet.present
 actions.precombat+=/potion
 
-actions+=/use_items,use_off_gcd=1
-actions+=/potion,use_off_gcd=1
-actions+=/curse_of_doom,if=wowsim_warlock_dot_doom_window
-actions+=/curse_of_agony,if=wowsim_warlock_dot_agony_window
-actions+=/immolate,if=wowsim_warlock_dot_immolate_upkeep
-actions+=/life_tap,if=wowsim_warlock_life_tap_urgent_mana
-actions+=/life_tap,if=wowsim_warlock_life_tap_fill_mana
+actions+=/use_items,use_off_gcd=true
+actions+=/potion,use_off_gcd=true
+actions+=/curse_of_doom,if=settings.warlock_use_curse_of_doom&target.time_to_die>=60&debuff.curse_of_doom.down
+actions+=/curse_of_agony,if=settings.warlock_use_curse_of_agony&target.time_to_die<60&target.time_to_die>30&debuff.curse_of_agony.down&debuff.curse_of_doom.down
+actions+=/immolate,if=settings.warlock_maintain_immolate&debuff.immolate.down
+actions+=/life_tap,if=mana.pct<settings.warlock_life_tap_urgent_mana_pct&target.time_to_die>20&cooldown.inferno.remains<15
+actions+=/life_tap,if=mana.pct<settings.warlock_life_tap_fill_mana_pct&target.time_to_die>20&cooldown.inferno.remains>=2&cooldown.inferno.remains<15
 actions+=/conflagrate,if=dot.immolate.ticking
 actions+=/incinerate,if=dot.immolate.ticking
 actions+=/shadow_bolt

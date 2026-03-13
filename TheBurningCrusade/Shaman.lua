@@ -805,6 +805,11 @@ spec:RegisterAbilities( {
 
         handler = function ()
             consume_elemental_focus_stack()
+            if type( setCooldown ) == "function" then
+                setCooldown( "earth_shock", 6 )
+                setCooldown( "flame_shock", 6 )
+                setCooldown( "frost_shock", 6 )
+            end
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "earth_shock" ) end
         end,
 
@@ -1005,6 +1010,11 @@ spec:RegisterAbilities( {
         handler = function ()
             consume_elemental_focus_stack()
             applyDebuff( "target", "flame_shock" )
+            if type( setCooldown ) == "function" then
+                setCooldown( "earth_shock", 6 )
+                setCooldown( "flame_shock", 6 )
+                setCooldown( "frost_shock", 6 )
+            end
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "flame_shock" ) end
         end,
 
@@ -1166,6 +1176,11 @@ spec:RegisterAbilities( {
         handler = function ()
             consume_elemental_focus_stack()
             applyDebuff( "target", "frost_shock" )
+            if type( setCooldown ) == "function" then
+                setCooldown( "earth_shock", 6 )
+                setCooldown( "flame_shock", 6 )
+                setCooldown( "frost_shock", 6 )
+            end
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "frost_shock" ) end
         end,
 
@@ -2309,9 +2324,7 @@ spec:RegisterAbilities( {
 } )
 
 -- Resources
-if spec.RegisterResource then
-    spec:RegisterResource( "mana" )
-end
+spec:RegisterResource( "mana" )
 
 if spec.RegisterRanges then
     spec:RegisterRanges( "earth_shock", "flame_shock", "frost_shock", "chain_lightning", "lightning_bolt", "stormstrike" )
@@ -2336,71 +2349,120 @@ spec:RegisterOptions( {
     package = "Enhancement",
 } )
 
-spec:RegisterStateExpr( "wowsim_shaman_ele_maintain_earth_totem", function()
-    if totem.earth.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_shaman_ele_maintain_air_totem", function()
-    if totem.air.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_shaman_ele_maintain_water_totem", function()
-    if totem.water.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_shaman_ele_maintain_fire_totem", function()
-    if totem.fire.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_shaman_ele_chain_lightning_aoe", function()
-    if active_enemies >= 2 then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_shaman_ele_chain_lightning_clearcasting", function()
-    if buff.clearcasting.react and cooldown.chain_lightning.ready then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_shaman_ele_chain_lightning_mana", function()
-    if mana.pct > 70 and cooldown.chain_lightning.ready then return 1 end
-    return 0
-end )
+spec:RegisterSetting( "shaman_ele_settings_sep", false, {
+    type = "description",
+    name = "|T136048:0|t Elemental",
+    width = "full",
+} )
 
-spec:RegisterStateExpr( "wowsim_shaman_enh_maintain_earth_totem", function()
-    if totem.earth.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_shaman_enh_maintain_air_totem", function()
-    if totem.air.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_shaman_enh_maintain_water_totem", function()
-    if totem.water.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_shaman_enh_maintain_fire_totem", function()
-    if totem.fire.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_shaman_enh_flame_shock_refresh", function()
-    if dot.flame_shock.ticking then return 0 end
-    return 1
-end )
-spec:RegisterStateExpr( "wowsim_shaman_enh_shock_mana_reserve", function()
-    return max( action.earth_shock.spend or 0, action.flame_shock.spend or 0 )
-end )
-spec:RegisterStateExpr( "wowsim_shaman_enh_shamanistic_rage_mana", function()
-    local dynamic_floor = ( action.shamanistic_rage.spend or 0 ) + wowsim_shaman_enh_shock_mana_reserve
-    local fallback_floor = mana.max * 0.30
+spec:RegisterSetting( "shaman_ele_maintain_earth_totem", true, {
+    type = "toggle",
+    name = "|T136025:0|t Elemental Maintain Earth Totem",
+    desc = "When enabled, the Elemental APL maintains an Earth totem when its slot is empty.",
+    width = "full",
+} )
 
-    if mana.current <= max( dynamic_floor, fallback_floor ) then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_shaman_enh_fire_nova_window", function()
-    local fire_nova_floor = ( action.fire_nova_totem.spend or 0 ) + wowsim_shaman_enh_shock_mana_reserve + ( action.stormstrike.spend or 0 )
+spec:RegisterSetting( "shaman_ele_maintain_air_totem", true, {
+    type = "toggle",
+    name = "|T136052:0|t Elemental Maintain Air Totem",
+    desc = "When enabled, the Elemental APL maintains an Air totem when its slot is empty.",
+    width = "full",
+} )
 
-    if active_enemies > 1 and buff.magma_totem.up and mana.current >= fire_nova_floor then return 1 end
-    return 0
-end )
+spec:RegisterSetting( "shaman_ele_maintain_water_totem", true, {
+    type = "toggle",
+    name = "|T136053:0|t Elemental Maintain Water Totem",
+    desc = "When enabled, the Elemental APL maintains a Water totem when its slot is empty.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "shaman_ele_maintain_fire_totem", true, {
+    type = "toggle",
+    name = "|T135817:0|t Elemental Maintain Fire Totem",
+    desc = "When enabled, the Elemental APL maintains a Fire totem when its slot is empty.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "shaman_ele_chain_lightning_aoe", 2, {
+    type = "range",
+    name = "|T136015:0|t Elemental Chain Lightning AoE Targets",
+    desc = "Minimum enemy count to cast Chain Lightning in the Elemental APL.",
+    width = "full",
+    min = 1,
+    max = 10,
+    step = 1,
+} )
+
+spec:RegisterSetting( "shaman_ele_chain_lightning_mana", 70, {
+    type = "range",
+    name = "|T136048:0|t Elemental Chain Lightning Mana %",
+    desc = "Minimum mana percent to cast Chain Lightning in the mana-based fallback rule.",
+    width = "full",
+    min = 0,
+    max = 100,
+    step = 1,
+} )
+
+spec:RegisterSetting( "shaman_enh_settings_sep", false, {
+    type = "description",
+    name = "|T136051:0|t Enhancement",
+    width = "full",
+} )
+
+spec:RegisterSetting( "shaman_enh_maintain_earth_totem", true, {
+    type = "toggle",
+    name = "|T136025:0|t Enhancement Maintain Earth Totem",
+    desc = "When enabled, the Enhancement APL maintains an Earth totem when its slot is empty.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "shaman_enh_maintain_air_totem", true, {
+    type = "toggle",
+    name = "|T136052:0|t Enhancement Maintain Air Totem",
+    desc = "When enabled, the Enhancement APL maintains an Air totem when its slot is empty.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "shaman_enh_maintain_water_totem", true, {
+    type = "toggle",
+    name = "|T136053:0|t Enhancement Maintain Water Totem",
+    desc = "When enabled, the Enhancement APL maintains a Water totem when its slot is empty.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "shaman_enh_maintain_fire_totem", true, {
+    type = "toggle",
+    name = "|T135817:0|t Enhancement Maintain Fire Totem",
+    desc = "When enabled, the Enhancement APL maintains a Fire totem when its slot is empty.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "shaman_enh_flame_shock_refresh", true, {
+    type = "toggle",
+    name = "|T135813:0|t Enhancement Keep Flame Shock Up",
+    desc = "When enabled, the Enhancement APL refreshes Flame Shock when it is not active.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "shaman_enh_shamanistic_rage_mana", 30, {
+    type = "range",
+    name = "|T136088:0|t Enhancement Shamanistic Rage Mana %",
+    desc = "Fallback mana percent floor for casting Shamanistic Rage in the Enhancement APL.",
+    width = "full",
+    min = 0,
+    max = 100,
+    step = 1,
+} )
+
+spec:RegisterSetting( "shaman_enh_fire_nova_min_targets", 2, {
+    type = "range",
+    name = "|T135824:0|t Enhancement Fire Nova Min Targets",
+    desc = "Minimum enemy count required before Fire Nova Totem is considered in the Enhancement APL.",
+    width = "full",
+    min = 1,
+    max = 10,
+    step = 1,
+} )
 
 --[[
 spec:RegisterSetting( "scaffold_strict_range", false, {
@@ -2411,9 +2473,8 @@ spec:RegisterSetting( "scaffold_strict_range", false, {
 } )
 ]]--
 
-spec:RegisterPack( "Elemental", 20260228, [[Hekili:vFvtVnUnq0Fl5Irw0cvl50KDbIZHcSaDtdspOcS3OeL0ilIirkqs5adyOF7lPuSeP(kXzZEOxsCm58EdN5roVGCr)hYpblb0JER9UETN3ND8246Ub5lpuci)sC8t4DQpqXfQF(1COaOsCUELd5mCIgabRIhRwf5hvrYLFJIIMa11FzTcwrjeJE8gKFgjjbA3jiIr(FNjF4FQdbAgMg3WsDOidxGP1HCMeljm1Nsz86W)gEIKtq(5eHu0CcGuCvUu9XhBorafhLdjO)c5hZjsGtWi)lQdlWen8jbKIOk16(4ynSi)0C1XtYO7QGGNbCP67KQKFwSIQstDezeipXjH9mThPNvhBEq7sAm2SmgycpqYKqHdh0zNOo82T1H5kuOXhmGLJLzbS0GUa0GF1SGRArQkOtZo1H1eVZlBToCvDyd9Peo8M43gin3)5sf6xNEnW7HaGcfeqZAD4M3rEjamNq31xsUE20AiJ3T9COCWgHtxeEjeBrqbExbUpNU59Mtg44uvAix1PaLT3GJpVGuGVdu9csH(8fKqafp1HUERha4GZKg1VyIA0Ba1RmankNXsYResnsUR1qDAPkbeOqQqyMZ6D5AURsw7VT3Y83k13Wz7vYHMk4LJfz6YRxD4XJAf648xPb9wxh(P(mOVKuGfkwo0KbZFN(fDpflR4Giq8mjvsbHWs6FzFAUqM4ANjJGSjtM)bGjp69WfNPu4b5KDzsQktAaB5B0K4NovzNS3VvlPg8IQ6Dqw8tnGp)9YeM0Xy3oDmTuXXGj1laQNg7z6gtju3jmiIPgqyjLu)zjhIzfr4)Fp6yam)YhvyZ3h(OHLPB6x8x6jJMo9EGl0Ry5izJ316Yoxlqupf9TIsgxQZcV23o0ooAmz4uFVwSWsj5WjYeoDQNFB7Fmwg87K0Txmq2uF)uXA241rnuImtuJ6ZDXAlnMoC7gGo0f7mRMQRmnYwDOMQWhfYTD3677w98l8Nt5(TwKFXVWTBp5vWaGF2Y8syFUfA7zc3U5SiZWlIMkBSUB7Rd2QLDpz1tT93SaF2oKgHXaIAl)dNOCNYkKzKD(wMz7xzT7oRmMF5jHA)3mYjrRkTXhWQlhE68oECmX36T(tMqoYsGH6AwhiRUSLZjjW1MGbMeMQn4n6Qy7K4w1y7K8vtud36AfPXmCDKZyjy6C2cOHZ7JWci5Fvde(Q5)x5dWEixB7XhxjZyCKVFvjWPvn2QKi0pc]] )
-spec:RegisterPack( "Enhancement", 20260228, [[Hekili:TJvWUnUnq0VLCXOlARQLI3SjaX5qbkqtAr6bv0EJsusuweMIuGKkU5I(27qP1wK0sYBq2IIc0lgYKZ8MHdFZBKnke97O4cSMGEoAD0nRJIUni661xhDdkw)Adbf3GZ3J3bpWX1WN)eVcZZj1eU2S3RmbUWGHs0kZH9rXzTuM(rokBkGJ(4DGTnKC0ZFcfxrlkidwsu5O4)uO)1FPlLmgJUuvfUgZ7sLcnwtfWtLczx6pt2tzuifKIskdcmo3SRkOrsYf1zy93U9hoq5fLTYxtoqWnc(3rl3EvnMAGViHwN1skwnUqfwLaPgJ1ioqKDpnfILmOkOf8DTKJGkX89BhSn48TdQX)vIXKVpCYW)EJUbtrzPfKt7kJURsZP8DjQkkHvyCmRTSmy4RbfId8P9uPLe(oDvIOmHGLWdAHMuFcaR1waLtxfUoJPYl6kC9JHsJ0K8UEFa4xx2FfKHN7BjvsUORnIEk3tN29RfP6FdQ0BMa9wPnVrYIKyYy19BzW1ip)1jlYZrxwY5VmcZsimi6qvAAouX3rmaOXYDeDWbQUIYdxVYeLGMC99kIwdHsfm4vVdj6kjrvjyovZmMquWAvAl800AdpmPGsEyZABRBvKekKPk7fpYiTUtnezcRxUeZgpWtGFy0AxUCnExnE0fZgVaGXj1uI6HWv(Dk(1mld8YGZyg9gXfVCXWzLtbTno3k(nYUaC)2VUjSPxbO9I89thRRa2XEiFwnrLEByKBBHqwd9g09KXoOX1ol2dTj9XEgyqXVqKky9(5RBwVj8Au8bS00RQqXpw3iKAOxonQlDaGUugqOvbDpHI7FQF0pPe3Y0WJp3)QaeooJrkq)ikoxcKpjfJIVQl1tRPlDvxQ9YUsohNgdzKRyjsdPRxCoA65AtFb5WSjGrN8i2lRLAYPRx6S7QoUycdqTzwO81nhrYxL1GZhxgNjes7sVFlCjpq0hbFgjztmUz5yCMA7mrWvS2a8Nwg4jKHNb6ZKYnOF7SO7Pr)zkYGoneb4TjxuR2QO5naWe27SdB2eH1saOl9HU0nRhb8K0VbPW1gOoU1jDE7dLXQqBRge(9nXVz6I5emcWIbpHoypSZ3p4kdoazFzEgLxN7vpdNsb2(Q)0CG(CA(gRLZj35jEh(Xbs9Xy(Mo)yyov)dDWDgZ1NwZ3NoFAbcxFE(u)xNKoymoYtqByQtFyVqxS)amBjNX5ugGU1MiBnBZNnFNTDod7STZ8dpp(o6))GR)lp4YN18(hu5I47AWKVA0BAq0u)eZf6WV7sk99S(mSIu8BCN)eMU0V5X)4dWNrFaqOvxjaouCBdrYBvQE)q)9d]] )
-spec:RegisterPack( "Enhancement WoWSims", 20260228, [[Hekili:TJvtVnUnq0Fl7fJUOTQ2kFSjaX5qbkqtAr6bv0CJs0suweMIuGKkU(I(TVdPITjPLKtq2IIc0lcmuZ8MHCEZBKdAb6prjfynb9u884RNhhFtu8fZVEXnOe9UgckPbNVbVgwWX1WZFHxH55KAcx3L9S45eATXMDmbUWGLs0kZb7qjRAPm9dC0QHcWvX3c22qYrp9fusfTOG0BjrLJsEwO)9FRlJ4glvfUgZ7YKcnwtfWQsHSl7xjBOmkKcsrjLbbgNBERkQrsYf1RW6VF5pTLYlkBL7s3sWnc(pqlx(PAm1aFrkTEvlPy2XnQWQui1ySgXwIS7XHqSKb3gAbFDlzpOsmFZYEBJo91r14)o1yYpUyWW)rJUbtrzPdKd7kJUUsZP81PQkkHvyCCvBzzu)Fgvi2Yh2tLws4R1vPIYucwcl0cnP(aao7nbkhkf(oJPYZ6ku(XWvJ0K8(EVf4xVf)xxJd8SKkjN1XgHLW94H3(TIs9Vbr6DtFEVKM3jvrsmzS6ULmOiYZ3n4L8yKLPC(TrxMcbl5GWScqy2rq0y5AIostRnCN0ck5(fXZD9CftikyTk9iMFPN19sBuLMMdv21ehN2s1vu(I5ZmNMOMC9DkIwdhjvuVxwhs1vsIQsW8QATkskfszL7M75YUflHSgQy0nKJ11J7DsX1YEaIGiFJL2az9giHMnWXC5Iyxp7l7wp9luE9LMx8cCVZj1uI6(fZcBudlzogeuSon3ngXfVC2W5KtrTnExxWPWJs5dWDl)MMWofcuYlePc23Fs6fXxJs2ILM2tfk5H6gHudTVzXDz940LXaULkQ7ruIDLDMpPe3Y0WYNSFdaHJxXifOFgLKlbwJKIrjFQllqEPlBwxM72(Qm7h)czKV(isdzDqC2B6PYrVHCy0eWinUh7PLpn50ftD29feNmHbOUCuOcLkpIuOWQbNRMgNb0o7YUBjuK7jxhbFevytmUE6yCIa7irWxF2a8xMg4buEhb6tuVnOFZOOFQ4tx29DzGSStzBGgodQ36I6Q3aQx6a6bLEdslMFUeCVE(RC4EnD4ka((2j11DQQbdlSX12cV3Id6(UPIXQyxR6heeAY49ddoxWLSDuOYa04DdqJ1RJmSxcdEhV0u6cA46hCyb)k3dIZuLWtZ40CFr7EUInDgr72JLgy4qA4Ue5dtsS504DitNt(tKcy1hhPzJX49jHXWCQ(h6G7nO0Mw36w28MS5w20MFm3RF89)pE6)YJNcvi(4JJ8r8dn(jSl9DnUzOF74OT83EozxlNFfwrk(dEW)HLV7H)6ZWZ4pdi0QReadkPTHi5TkL1p0x)]] )
+spec:RegisterPack( "Elemental", 20260313, [[Hekili:1EvxVTUnm0)n5(W68Yh92Vasa2ak2TzxKbmxG(MILTPJfQSLNKCdYl63(iTBIDCCAAtxFjXH6qEOKpuKHnI9iZpMBb2IXdhF1WjJM4nC4L3o6wMVDtbW8l4rpZxHpKZZWpVxczqULlPv2iv8ykcgvPocxL5hwkK2hYzH9g2HJqSfqeBX1m)urCmuJemrm)Nu2F(xUaipLNhvXIlWKYZ45UaTYYTcf(uIs7c(b8Sqky(sHXAQ2cqcVuAXhxuTLknWsvsYYvrXKfFEe5DTDHfYmmFiNhkHy2FWSyw(wovOQ)EppMqESfrOuPILLgBdOqc0LTbbBp6wMXnwqVPte)obUXIFKgZuTGJhzG1kYxz8QpowIrcJHaJLa)bxBtxAv4UYfmWfu9KxLvVy168MeWQHmLUgkr4vNhHCH(a6qBDiBTMJPLkPbor51NhLRrP0HKwzTdTOR8LMcngQgwV58ynrOHdiLm29CLwG2Qv7zIWBpkHKpValHCitagxWSPOiVNKikLYaPyvQnN2lCf0qyNfjghn8OugwMK4fjrfreQ7q8EAaJu1EksPK0MXRtijiXBEBghDugPxcEfefZEF7oYHpD(mUDXwtSdvs7(vA4pl0qKklK3CJXXp6QfFMubiJ7kYBT0URr(4cTZVeEY5r4NPe(YZJYpzj8zE545xcFvB1uFDaQ0rVaAdTsDBUXJVH0eAs3HDyE63)NfpS4pVZf4cEmfCbIScL2(ApSV9ApRVHD3G)TeZPySyrLH44LwvgEYGgqHE(kW45MxfHeLuQwJHNaP54fiRbnAhBDHGfy)rlbRoVDbu)rxqyPDlUCvf9L57HooMaJ9R5HCdCNBUl4xrQBDLbAA(dvzpXZ49zGYoQKsLiK7ULY4TRg7xM(BTluUqKmT)cl38(8TTMN899wknOBzu)H)qv(jjzhYb7x60pbhONpz8BvRmOBDYroJ2t)EscAklg0PKO)WxR)jrWRRI22nk1fTMBA6O2qQD74RVBSP2gpymP2l()Vw4lsb819E)l5Tng0oTuPOU)WkZ6LLEgu5er9iZJm4T79FIGUDKJzVNCKa)bOR7Se0LKX)n2o4(2)vLFcVasAweF867uLM57xwa68sJPQxb7)c]] )
+spec:RegisterPack( "Enhancement", 20260313, [[Hekili:nJvuVTTnq4Fl9L0MgpnBNU2MI6aSbmSLUbpGPIT3KeTeLnHLi1iPSxEH)23Du2suYsokPja7HyWqE8(UJ8499bfml4Rb(jenny58PZF)0RNDT30PV7MRVjWxFFbnWVGeVLSggWj5WV)mFdHhtZPCnU29zcsc6dLOugdRh4VQKLPVJhSAqhRkOXbl)qG)gwscTYsQkoW)Vf6F)3mr0gmmrQnKCc3ejfAIMjGrPcPj6xPBzzmieKIuwgamjgxv5viPXI8ve9vl((9mEsAP8(W9usHGpHLUyvzAQxN59se75MV0NhsZGSwl4RlPDDYPlDg)O0skFTEtOinKsKWaTqtZrNPOAnJVw5vLPHq2hMtyCn8NRTxy)1ZoZzqATKetryim5ibP2Ydqa))zaa2ojuvib3ns)VhkdAJGDMZIX6CYi9EktsB5CCId(U27Gplv0qgSUAcosKMgUoozXmxtke4OHxFvMqKKvQ0UtUJizKvz0j4dKforOAJiEBO94ssvu5o6erbMlt2rYkPlYj)7BQCt1LA1g8Gxh8KjhwWwK5UWLJeACitPzXHs41Byke5YbHVR5vqD1r37D(Kc)hpWBVTVRPtIe063o1B6SXLj2BxUyhPVu44HuTnvfapMO)QJhbAHmhELY2Ei7DJUUjbwtAZ64sj8Uw)5f9dwFxcT8BdOUt7CPpu1VJjqMKcjZMlEvIq3QGbaElSrxx7uO1cX2NGiQ4I7Oay0CgvDB)rr92YHhIAICnvRUW2D05fSxzXfUNw327PvNlA3O75QBG7b)ly7yxINX52hSb8luF9N9U5b(7Osf46dS(ZN)Xa)9ejh9gWV)J)5Y7w(lFYezI(6gQjILxiK6du6VoHMskZ0Vgi7P)tjCVLa0)ICWosPwKdOatedAdwtvEMVy9qQiltShRYbJKeLjApvcZd9WbJzGCbnAwvcBIYGNJMOvL6J2Xfw4l5TSojbngKVqwru0pbejrFNjYPoePwEGSPMp7)T5ZPkyoSqh9ryYENn3WyyEB0XipW3oYQLS6oegU0QT0HlfN5GmTQ5TSXb(uo2lij4Nc0qzZ52uf)CNDCnUJJwuZq3y0k0O3Hg1SnFrbidLQB24Xws4iGAjWhi0mrV5yUEkdTDlHvIIplddc)p8TcF)m0MORmrJJNBWWTpokmKF)JoKphB8JisTMoeR8aPrhYdm()qN4pwcLBa(4rBdxKj6ZlgkW69KPo97UoI5hDlfDI9ovS3myOnsQEt0fMOxbpO7NWVjgCwebE2u3a0PKUtaoB2GryBzbMOBHJVrlnWg39ipWoF7RLBh4AP7nDtQ2USZMgZFuh09OHWgyD0r0aPtsyH76NgCoIkCWRryHBjvVYwSG3Td3ibVwJGd0h1j0aCB9mw862s7zfVtf7yXSBpPrIPJIfhuDvT0CJ2rneal(DoosLxtR1Bqm43wONdYQvRz8g2Fd8zg68gVLb1SIp(JQNLAXx0sX(lnEIvJFBvgNWrosuFA9xSvIO8TK)G367Wb6eU7VUe(D(LWEl1BW2I(LfujVuPS7l4)c]] )
 
 spec:RegisterPackSelector( "elemental", "Elemental", "|T136048:0|t Elemental",
     "If you have spent more points in |T136048:0|t Elemental than in any other tree, this priority will be automatically selected for you.",

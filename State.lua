@@ -4287,6 +4287,9 @@ local mt_default_totem = {
         elseif k == "up" or k == "active" then
             return ( t.expires > ( state.query_time ) )
 
+        elseif k == "down" then
+            return not ( t.expires > ( state.query_time ) )
+
         elseif k == "remains" then
             if t.expires > ( state.query_time ) then
                 return ( t.expires - ( state.query_time ) )
@@ -4296,7 +4299,7 @@ local mt_default_totem = {
 
         end
 
-        Error( "UNK: totem." .. name or "no_name" .. "." .. k )
+        Error( "UNK: totem." .. ( t.name or "no_name" ) .. "." .. k )
     end,
     __newindex = function( t, k, v )
         if v == nil then return end

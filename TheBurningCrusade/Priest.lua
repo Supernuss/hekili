@@ -2629,9 +2629,7 @@ spec:RegisterAbilities( {
 } )
 
 -- Resources
-if spec.RegisterResource then
-    spec:RegisterResource( "mana" )
-end
+spec:RegisterResource( "mana" )
 
 if spec.RegisterRanges then
     spec:RegisterRanges( "chastise", "mind_flay", "devouring_plague", "holy_fire", "mind_blast", "shadow_word_death" )
@@ -2655,22 +2653,6 @@ spec:RegisterOptions( {
 
     package = "Shadow",
 } )
-
-spec:RegisterStateExpr( "wowsim_priest_shadow_precast_vt", function() return 1 end )
-spec:RegisterStateExpr( "wowsim_priest_shadow_use_starshards", function() return 0 end )
-spec:RegisterStateExpr( "wowsim_priest_shadow_use_dev_plague", function() return 0 end )
-spec:RegisterStateExpr( "wowsim_priest_shadow_latency", function() return 0.05 end )
-spec:RegisterStateExpr( "wowsim_priest_shadow_next_nuke_cd", function() return min( cooldown.mind_blast.remains, cooldown.shadow_word_death.remains ) end )
-spec:RegisterStateExpr( "wowsim_priest_shadow_mind_flay_clip_1tick", function() return wowsim_priest_shadow_next_nuke_cd >= gcd and wowsim_priest_shadow_next_nuke_cd < action.mind_flay.tick_time * 2 + wowsim_priest_shadow_latency end )
-spec:RegisterStateExpr( "wowsim_priest_shadow_mind_flay_clip_2tick", function() return wowsim_priest_shadow_next_nuke_cd >= gcd and ( wowsim_priest_shadow_next_nuke_cd < action.mind_flay.tick_time * 3 + wowsim_priest_shadow_latency or ( wowsim_priest_shadow_next_nuke_cd >= action.mind_flay.tick_time * 4 + wowsim_priest_shadow_latency and wowsim_priest_shadow_next_nuke_cd < action.mind_flay.tick_time * 5 + wowsim_priest_shadow_latency ) ) end )
-spec:RegisterStateExpr( "wowsim_priest_shadow_mind_flay_cast", function() return wowsim_priest_shadow_next_nuke_cd >= gcd end )
-
-spec:RegisterStateExpr( "wowsim_priest_smite_use_starshards", function() return 0 end )
-spec:RegisterStateExpr( "wowsim_priest_smite_use_dev_plague", function() return 0 end )
-spec:RegisterStateExpr( "wowsim_priest_smite_use_mind_blast", function() return 0 end )
-spec:RegisterStateExpr( "wowsim_priest_smite_use_shadow_word_death", function() return 0 end )
-spec:RegisterStateExpr( "wowsim_priest_smite_holy_fire_weave", function() return 0 end )
-spec:RegisterStateExpr( "wowsim_priest_smite_holy_fire_window", function() return dot.shadow_word_pain.remains > action.smite.cast_time and dot.shadow_word_pain.remains < action.holy_fire.cast_time end )
 
 --[[
 spec:RegisterSetting( "scaffold_strict_range", false, {
@@ -2719,6 +2701,43 @@ spec:RegisterPackSelector( "shadow", "Shadow", "|T136207:0|t Shadow",
     end )
 
 -- Settings
+spec:RegisterSetting( "priest_shadow_header", false, {
+    type = "header",
+    name = "Shadow",
+    width = "full",
+} )
+
+spec:RegisterSetting( "shadow_precast_vampiric_touch", true, {
+    type = "toggle",
+    name = "Shadow: Precast Vampiric Touch",
+    desc = "When enabled, precombat will cast Vampiric Touch before combat starts.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "shadow_use_starshards", false, {
+    type = "toggle",
+    name = "Shadow: Use Starshards",
+    desc = "When enabled, Starshards is used on cooldown in the Shadow WoWSims profile.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "shadow_use_devouring_plague", false, {
+    type = "toggle",
+    name = "Shadow: Use Devouring Plague",
+    desc = "When enabled, Devouring Plague is used on cooldown in the Shadow WoWSims profile.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "shadow_mind_flay_clip_latency", 0.05, {
+    type = "range",
+    name = "Shadow: Mind Flay Clip Latency",
+    desc = "Latency buffer used by the Mind Flay clipping windows in the Shadow WoWSims profile.",
+    width = "full",
+    min = 0,
+    max = 0.25,
+    step = 0.01,
+} )
+
 spec:RegisterSetting( "dots_in_aoe", false, {
     type = "toggle",
     name = "|T252997:0|t|T136207:0|t|T135978:0|t Apply DoTs in AOE",
@@ -2741,5 +2760,46 @@ spec:RegisterSetting( "min_shadowfiend_mana", 25, {
     min = 0,
     max = 100,
     step = 1,
+} )
+
+spec:RegisterSetting( "priest_smite_header", false, {
+    type = "header",
+    name = "Smite",
+    width = "full",
+} )
+
+spec:RegisterSetting( "smite_use_starshards", false, {
+    type = "toggle",
+    name = "Smite: Use Starshards",
+    desc = "When enabled, Starshards is used on cooldown in the Smite WoWSims profile.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "smite_use_devouring_plague", false, {
+    type = "toggle",
+    name = "Smite: Use Devouring Plague",
+    desc = "When enabled, Devouring Plague is used on cooldown in the Smite WoWSims profile.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "smite_use_mind_blast", false, {
+    type = "toggle",
+    name = "Smite: Use Mind Blast",
+    desc = "When enabled, Mind Blast is used on cooldown in the Smite WoWSims profile.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "smite_use_shadow_word_death", false, {
+    type = "toggle",
+    name = "Smite: Use Shadow Word: Death",
+    desc = "When enabled, Shadow Word: Death is used on cooldown in the Smite WoWSims profile.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "smite_holy_fire_weave", false, {
+    type = "toggle",
+    name = "Smite: Holy Fire Weave",
+    desc = "When enabled, Holy Fire is woven inside the Shadow Word: Pain window in the Smite WoWSims profile.",
+    width = "full",
 } )
 

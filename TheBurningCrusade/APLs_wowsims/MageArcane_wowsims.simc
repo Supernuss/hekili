@@ -2,14 +2,15 @@ actions.precombat+=/arcane_intellect,if=buff.arcane_intellect.down&buff.arcane_b
 actions.precombat+=/mage_armor,if=buff.mage_armor.down
 actions.precombat+=/potion
 
+actions+=/variable,name=arcane_regen_phase,op=set,value=mana.pct<settings.arcane_regen_stop_mana&buff.arcane_blast.remains>=cast_time.arcane_blast
 actions+=/use_items,use_off_gcd=1
 actions+=/potion,use_off_gcd=1
 actions+=/arcane_explosion,if=active_enemies>=3
-actions+=/arcane_power,if=mana.pct>=30&active_enemies<3
-actions+=/presence_of_mind,if=buff.arcane_power.up&mana.pct>=30&active_enemies<3
-actions+=/icy_veins,if=mana.pct>=30&active_enemies<3
-actions+=/arcane_blast,if=mana.pct>=20|buff.bloodlust.up&mana.pct>=10
-actions+=/arcane_blast,if=wowsim_mage_arcane_drop_stack_window=1
-actions+=/arcane_missiles,if=wowsim_mage_arcane_regen_missiles=1
-actions+=/frostbolt,if=wowsim_mage_arcane_regen_frostbolt=1
+actions+=/arcane_power,if=mana.pct>=settings.arcane_regen_stop_mana&active_enemies<3
+actions+=/presence_of_mind,if=buff.arcane_power.up&mana.pct>=settings.arcane_regen_stop_mana&active_enemies<3
+actions+=/icy_veins,if=mana.pct>=settings.arcane_regen_stop_mana&active_enemies<3
+actions+=/arcane_blast,if=mana.pct>=settings.arcane_regen_start_mana|buff.bloodlust.up&mana.pct>=settings.arcane_regen_bloodlust_start_mana
+actions+=/arcane_blast,if=mana.pct<settings.arcane_regen_stop_mana&buff.arcane_blast.remains<cast_time.arcane_blast
+actions+=/arcane_missiles,if=variable.arcane_regen_phase&buff.arcane_blast.stack>=settings.arcane_regen_missiles_min_stack
+actions+=/frostbolt,if=variable.arcane_regen_phase&buff.arcane_blast.stack<settings.arcane_regen_missiles_min_stack
 actions+=/arcane_blast

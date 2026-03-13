@@ -2696,38 +2696,11 @@ spec:RegisterAbilities( {
 } )
 
 -- Resources
-if spec.RegisterResource then
-    spec:RegisterResource( "mana" )
-end
+spec:RegisterResource( "mana" )
 
 if spec.RegisterRanges then
     spec:RegisterRanges( "fire_blast", "flamestrike", "frostbolt", "scorch", "fireball", "pyroblast" )
 end
-
-spec:RegisterStateExpr( "wowsim_mage_arcane_drop_stack_window", function()
-    return mana.pct < 30 and buff.arcane_blast.remains < cast_time.arcane_blast and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_mage_arcane_regen_missiles", function()
-    return mana.pct < 30 and buff.arcane_blast.remains >= cast_time.arcane_blast and buff.arcane_blast.stack >= 3 and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_mage_arcane_regen_frostbolt", function()
-    return mana.pct < 30 and buff.arcane_blast.remains >= cast_time.arcane_blast and buff.arcane_blast.stack < 3 and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_mage_fire_maintain_vulnerability_stacks", function()
-    return debuff.fire_vulnerability.stack < 5 and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_mage_fire_refresh_vulnerability", function()
-    return debuff.fire_vulnerability.remains < 5.5 and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_mage_fire_flamestrike_aoe", function()
-    return active_enemies >= 3 and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_mage_fire_blast_single_target", function()
-    return active_enemies < 3 and cooldown.fire_blast.remains == 0 and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_mage_frost_blizzard_aoe", function()
-    return active_enemies >= 3 and 1 or 0
-end )
 
 spec:RegisterOptions( {
     enabled = true,
@@ -2748,6 +2721,109 @@ spec:RegisterOptions( {
     package = "Mage",
 } )
 
+-- Settings
+spec:RegisterSetting( "mage_arcane_header", false, {
+    type = "header",
+    name = "Arcane",
+    width = "full",
+} )
+
+spec:RegisterSetting( "arcane_regen_start_mana", 20, {
+    type = "range",
+    name = "Arcane: Regen Start Mana",
+    desc = "Start Arcane conservation behavior below this mana percentage.",
+    width = "full",
+    min = 0,
+    max = 100,
+    step = 1,
+} )
+
+spec:RegisterSetting( "arcane_regen_bloodlust_start_mana", 10, {
+    type = "range",
+    name = "Arcane: Regen Start Mana (Bloodlust)",
+    desc = "Start Arcane conservation behavior below this mana percentage while Bloodlust is active.",
+    width = "full",
+    min = 0,
+    max = 100,
+    step = 1,
+} )
+
+spec:RegisterSetting( "arcane_regen_stop_mana", 30, {
+    type = "range",
+    name = "Arcane: Regen Stop Mana",
+    desc = "Leave Arcane conservation behavior at or above this mana percentage.",
+    width = "full",
+    min = 0,
+    max = 100,
+    step = 1,
+} )
+
+spec:RegisterSetting( "arcane_regen_missiles_min_stack", 3, {
+    type = "range",
+    name = "Arcane: Missiles Stack Threshold",
+    desc = "Use Arcane Missiles during conservation when Arcane Blast stacks are at least this value.",
+    width = "full",
+    min = 1,
+    max = 3,
+    step = 1,
+} )
+
+spec:RegisterSetting( "mage_fire_header", false, {
+    type = "header",
+    name = "Fire",
+    width = "full",
+} )
+
+spec:RegisterSetting( "fire_maintain_vulnerability_stacks", true, {
+    type = "toggle",
+    name = "Fire: Maintain Fire Vulnerability Stacks",
+    desc = "When enabled, Scorch is used to build Fire Vulnerability stacks up to 5.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "fire_refresh_vulnerability", 5.5, {
+    type = "range",
+    name = "Fire: Refresh Fire Vulnerability",
+    desc = "Refresh Fire Vulnerability with Scorch when remaining duration is below this threshold.",
+    width = "full",
+    min = 0,
+    max = 30,
+    step = 0.1,
+} )
+
+spec:RegisterSetting( "fire_flamestrike_aoe", 3, {
+    type = "range",
+    name = "Fire: Flamestrike Enemy Threshold",
+    desc = "Use Flamestrike at or above this enemy count.",
+    width = "full",
+    min = 1,
+    max = 10,
+    step = 1,
+} )
+
+spec:RegisterSetting( "fire_blast_single_target", true, {
+    type = "toggle",
+    name = "Fire: Use Fire Blast in Single Target",
+    desc = "When enabled, Fire Blast is used below the Flamestrike enemy threshold when off cooldown.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "mage_frost_header", false, {
+    type = "header",
+    name = "Frost",
+    width = "full",
+} )
+
+spec:RegisterSetting( "frost_blizzard_aoe", 3, {
+    type = "range",
+    name = "Frost: Blizzard Enemy Threshold",
+    desc = "Use Blizzard at or above this enemy count.",
+    width = "full",
+    min = 1,
+    max = 10,
+    step = 1,
+} )
+
 --[[
 spec:RegisterSetting( "scaffold_strict_range", false, {
     name = "Scaffold: Strict Range Checks",
@@ -2760,7 +2836,7 @@ spec:RegisterSetting( "scaffold_strict_range", false, {
 -- Pets (Hekili-style scaffold)
 spec:RegisterPet( "water_elemental", 31687, "summon_water_elemental", 45 )
 
-spec:RegisterPack( "Arcane Wowhead", 20230924, [[Hekili:9EvBVTTnq4FlffWjfRw2X5TLIMc01bSLGTGH5o09jjrjF2MiuKAKu2nfb63(UJ6Lqjl7g0c0Vyjt(W7nE39Ck8KWpgoFbZcH3nB6StNE1SZdMoD6StonCU9HCiCEol9E2k8fjld)996uMekJ)KA7AGTG2)bHcFbLJrvOtrmRT2CZBMmz72TbBRWfKQYMSvzf3pzvbFbmjvWmgWmjdL9eMtOtwKBgRvwMLRKJtvkXc1wPzmlHl4woygNVbLEsbxyVrgMmSHplCoRWUwPdN)7W94jr7HVybuDaWKgoNoW4PxnE2zVPm(gjkBMOm2QzsJWP8Y4LAvwRtgeoxWnwd5JmfGpUZf3ajlralc)LW5PAUf0Cgg1y6vGnyl3UMlpzkEIusK4tNtgbFoxOm0kw00DISgqUgmGmfIulJY4Yf(kaXEQp2eb)lFHP7J5mFmlf4nMXQ53dDHzPaXswHW26knNjvvirhXKdcrpz3XwDamwG1hvhRudzQnquAH2adzP7jakaPnGlXWfzkrSeJsNtsmO(aLXJkJtkwUCyuuAJdsLDeSsOsyIi7AqNHpnS8CqhLUMUPc04f8dEbnUgI2srw0ip)hHr6G0Q2GI8NmMdz4K9DrN0hv1ZoH5l9ruNbMR2c6E4(zFC80hI2aCPPhOR8bLX1ALoIN5Ao0bhM13nUrLDAEE1b)hd2(GjFGQ44Y7bRbFBnZIlQb5r4tf5WB5eomplLVKdunyJMlmqeEpKzC6A)vIeEm7dKqg28Om(DLXZ8Y0zcru1FIOQ7QA8OQUCuvoj8z7v4la39wDinb7MzdmwSxzz81LXN5UzpU(YnJBmCbIIP1y0cVIlJF8XYySGFt0Q0fbx0roLXVAN7SAru5YN(DzvdAsTzJyblxUAh9xJZP(ZgiNYPQ(Pb7V8jJjzb5POR(2Y4lN63XihlS4M1reeNuU45jf)wTWgvQRrEvZomoJ0pjm7qDU77iAUqWzsIhRtA7CihZ5sanMfH8h(2HMX9Q23rqUGBBh0b9Kxug)CeYo7ZX2kcbKAR0rFNPD7D6mtvTrmDMs3NAaJxBWwveQgMv0zXwtsmVa7i8P3)33DZD)gYCwg)X1yjkplxPX7GLkm0CunXYrOdb)xb2vdDkJkJk5lSQmKWgxa7GjxbMGYB)donmbXd)bLe1RB7JQ7U(VOuSkV)30Afx)4t(8RAp)5FZNV82BCMpDStBimkJD0942uUJAjwOeo)LLX)jg0qnvpc0T4k(t6GDnh76A(0SoJDt5WtRhWzmf1htt5GdYCWjDCcVxghzSVex(VAYMlVTYCnbTj4)01t2jZ518LxtjxJouI1HevBwejPx81e1O9NFoSwEkvSXd)1QCOw4ii)5s8x)P5q8x1FUJkr(HMySpSwsxYXoaJ(OdZIp6zpMHVYpe6Vt7zNjk81B1yc(R4pwG)6TJb4VOpTVll9BKo3xMTe6DUX7Xp)AIz(AKyMcoDP2F3SbCNggtc(EPfV(SrhVhk6hFCp0ZVAaLvFSVMU2l17OkA3HKSBIGo52(mKKgBObF7Lt9b2sc2bZjtPQSM6qmC(KQA)YKQ0VoFgt)J0)Bv6VFZ3N0F9oFtcLnqJEsKoH))]] )
-spec:RegisterPack( "Fire Wowhead", 20230925, [[Hekili:DAvxVTTnu0FlffW5HflBR20LuahG9b2wc2cgIBrFtsuuuweMIuLKkAUpOF77EPSKPKTZkgcqSn5LhE)4CVhgTk6trBYiww0tHldF3Y7cVjy5T3egUkAJDFflAtfHUJSf(IKuc))34AwBYxunfmsgU7EHc(cGIrvRPGffwBL5Jlw000e00zxavvUOrzf7wSTMNXwqfeJHzwuciVihGCrwLzUwzjwUsoNQuImvJ0mNKYfClNzMx9cGDAnxyFqgLEwNE1DGxuXOrpDl4g8SmwNLmdnAdA58L3np8Mp2M8GeaLiAtSAI0iC3ABsUwvoeBbrBeCJ1GHgrXGpEYLSyssQGLf9ZrBOAULP5eivr0Bz2GgUTGlxTeobfHeCyiqTXneW5TG3obGERYfqU1y18DmFutRZZdWSJbWhwlOUcDkjlMcP(BreF33PlfE8YY0KTkPjovZi2ceK37IXbpM)TVr0z(WAH)G0yoPwyhse9hGQQLWDcjEHy8HUy86S1yzeHx8CCX4(6)qe2FWsUwR0X8shJC0D9(X(uzATP77JS6gFR409XVW4sZeJ(GVrUAtmLunXOF03Ok1zURBNe9ipuZR6S8ZgOnIi3JuqUChZAGVvqSWIAM8k4tLTGPB4ODiPMNZziPS)kRnSyOwxAWR6UlKOf8x4YTXPq6ask7PcwChVWGfXnLK)jE8Q(NOlOpHrz5q(WQIZ4GNDFBYQW2KzTjzmhD178bUs44W(z22Abr3M88HED07HgMlXIXa5fwmtYkHHaU7ZJktjcrC3pIXM1Uw24Ujvytlc(L7ADoCHYgdTEmYUa4FuRxrDVw56FDWmLlFeMsfgYEmgOJn(4bVCl6wX(QIayQJXINjO3OJi1VfKpfDOnIMJBLsM22bHqLMHTae75gB1FAIMsGEVunxi4ejo7EuTAdRc4xPmOAHdp99CnHN5Q6Uu4jaf038E5K2BAt(Ea5K95WSgHGrThyxtcMHTF9HJoeRL8VwZIj6sLEcALq6Mj72Ay4Y5RHAvDLZlpqvZu2GCfT2eddP402K1TjEccEB5kvqX6fy4jU3Gyw0MgIwcCkOF8l)0Zp9Wt)oOz1M8PcOJJxwP0W4HCfuxU6Wq5RGSj7R1aDaYOgvjoBP2QkbnsybAbrULzcAF8pHHTTjFaq7ZstDfIeAqNZbWnmS7kW42hFOS3I3D0iNQiSnet12ci)S5py7avAK1PY5cGg922K)cMqdxJ75cpc)2)vbWC35U5UhFxWC3lc4u3JbMJJ3NJViae9F1xf4GEcpfD83cl)399aTp256MGH2IFy9It4BxZZxJuYzVgD81GAG7Hi9M)lOMDzw95VfFojEdNNdF(Z6X6WJ6iTZopHD9Y(e4V2XTgqeWXxR3F9JA3xFqpF9zKZ7G9x6lJ(a4lSp(c7fY9xDq42FXbUR)IDcZoAY)tfxF0g0CDaEIwMVPE6GxpsID9QRpr2D9evxSgDQA79RcNDbv2rPSjIIxJYHRb1qe1X6P3hokx1R3nWUMQnokDpOYHM3PboA)rAxow35L7MckkOHuWEEm45WohFiTxYP)92tn2790d8XBhIQXVOE6zh)84tVSWt9SdpyghMh9V]] )
-spec:RegisterPack( "Frost Wowhead", 20230930, [[Hekili:fJ1FpsTnq0plOkT3Du2S)4G7a0DivkQTGApv1qf9VsI3Kj76Eo2bBNBzpDkF27yNnjoztwOuHQqcYAp(nppEM5ztWIG3h4Nq0qWnlNV885V485ElE6Y5p95b(6D5qGFoj(wYA8dojd)7Fsku6YOpi2UbijMP3Xe4himkrHmgnzJwNRE5SzB3U1BBLDEXISzBfA2TZwxqtGzXmIsbQzzi0Zsnyoljxnvk0envWNgleSeXwUAkzfLr1uqnn)oe8vfuM(T8Gvdt7lrAKdXb3G8FdnjbQSeuXb()g6RxwgvTdENllPX7MEhq5QwEo1YqACf5MA45uddrsCuww(oFixdzRazzKHByisksPmK7FxzuxoGd8nJgi29ys57WrXH)DjG4VIGeGeBaq5Lxp03F9mImMWHWvskJrj8y4j00RLeAYKvfPPEhmTNX1hfkkxdmgeRni9OphuDMRzPhXlXc(FxiHWmcNeUgYmEP(7W4ne5AqD1YHxBMGPbEirMjKM1z9DbN(XcOAWJ4xvrwMGhUftdLHadYaUMWS7XCq7zwYDWK1SD5B8a0goHvzShWjRyqYWWMkIlu4Mznn2G1APOiFsfyHjcTNZ8xpFyiY3jfRWehBaFLqPQp6FdKskyTh82OxbgJLyvdJ5oUDaLgWDeJINeXjx3ouyDkxfS)yDcOlazuPuidPMC2oapEy7ljwHiG1jH26e3b3NWKl2I57oJNYW(wHXKC3bZfMVEsHccfPPHRXn3IUbfwsOItYn0YyvZavzNnmOkJToA4mUeYi4)(QlMBlf)tfugr47kJ0sk)wqRWV2GLGrejWpb)xHEdi3sn2z6GrtPqINlNm0GI1ZQwaFda5MMjaCp(lTOmcRfW4l(JDyZ4YitoaAaLVgpHrFKw36jQQUa9fndtiWiNOqXq6TLQ3GKAVDRWYdCzY9)mLkXL8ACWomlbPryQLfM41PjGniHTSUh4Ef5p8q1VRObgXdTDZ8uAuB56fNn50kS8sRDsOXXEuEykJUEJ(HhCnO7CN15WUE(MA5dCkwmHPByoNNdTBpbDgS(m8QymkgQPzWJpY(4aA0SpA4YkS1hVfC0E3fTIrV)EImXy((YDGdzyZ8xTCYJYe3HUTBok3K9AtnhCnAZjS2ZCIs5lMp5qi2xZaFkNjuMcIVoyQ2P19BQMV7YwoVZofW4PTd9NRo0mrtB9owv3K3lpwF1LDGhUteBfg7yZ5ZhmrjW)o8SehT9Meb(BjsoUhub(F4h(JBE7n)mkzxg9(nyYpnlxiXAIutrXjjv9tpPmscFSaddjyfLWu)rk0ImSbwITudtyuyjZVInslJwS8LMwMC0X25pzF(4FDsvnCZVR79HJF6IpDMNPl(BT(3SSLOtS7hSmNQ0g8d8r3Urid8)f4w8Mab(2zS3XRIP4N3yVZx1sd8DB)h4V3HbVoqJXdJDTJ0SKwzad(wPb3bB0gmyCURVCve65RN2ZxXsSvNKsc8Fuz0rKfCy1GYkgSFMlhA6q3Jax4AKRwsp7U01UgTLEg9CJroPRMyEZIQY57TIxm6(VJ6tz0KYObuGSJpUkuz0RkJUyU7P(Ean(EX8Eo3CDzjnVY0VsLRwF1OBz91IrsQC67oeb(FuPZ9W40YO(IBLrp8W(ZKregIUgR5lJoZEiDADv7OIDvaoUGhIKns2V8SLLJj8zjWHIFnxXQts0acHLrxHgulgwg94JUVDktAA2A495hN3hks2dOMqMfTXBC0viZwcS0UfXokvAuTaxR9AH8z)7HSNgPDS((WvV26Nl(24N(I6wFD5O(AVC(bOV0PDrRaVfSJ2ERV4EVgDlgVtxTuTnn7sh3lHCmNLQ2yX9axBKQ63cBeup3b1MRjybOJOOZTdCjV28w(9VYQriDGEzh8U2ED0o4)HGw2AECCBt(HFG8qAZD0l)sa5G57(s7d2mnt3OQpA029D32O(YofbDER(X1(h(14oxOW517nk9JfvAFtUDV)F8sfJx8AFWU1f7lJ79ODREGBXv7unxWy4Ob(qENRru)g)G2)e8pd]] )
+spec:RegisterPack( "Arcane", 20260313, [[Hekili:9EvxVPnmu0)n8YqzqPRBtIG02BTp09qMuFZjoj3aw1X2Y2bwLq53(SDibYxaRfTxAISVFCUNCV3tbnh9BuqkwdONVB2DpmBX8fEZMD)S7NJc0VjauGaN8kET5fgo383FitWm3XVr54uR7kEHmXC0l8xci5kuqCbHQFKHIhm0lqb4c9gUefeuiajRqz8zdjnfQCbujOauaLO0kh8GmCbvBE9zhCbgoMcPOFIc4ct6bTjIjAcNHc2ILe7T23OfMh5yg2tKOlJwwgzmvtyRvEyxvekH1aluP5IqRDLrtkJIlYYQVpMIvApjKJjmvz0k)YOeZjHAso0YgxIdRyOwXwSbRaK2qbwKxOGqEww46KuBT0GA75eny5UJfNXPfNZjbV6zlpUVdbLinX1qjvUTfcbgKtGdfZIJr7aQH)iOCL9etW(YOb7iRAdZ1qRDt)YHYUGVdK2m)WOz(0ppoZ9keUeCRHKqckGLy5(WCcl1cRV(FJqijVfUfmDD20(TpyAXs9H8UF)Hg8ykNNslmD3)d0xJtNeZEFdRMhmO(7xbQ)4ZKlhFKCmGnF2OiRE9Hx)H4raIHjsE9CKworPiuqzBIcDw3dz1M4ax3vC3aWnklFoSLj5kDmNwrzU1xdsOT2)ODZnj88y8G7RhEoMW0aLcjAVu(ow)ArsOuc2ml6UVhoACVzp74zm3iLfIL5CzNyD8IMfVNBrRRu3cs3QYA9TzOGDyjZYZOGhZfCPgslJURAyNBQmNMMx5twAINrS6uvxP8A4Tp5)5Uf2usM)4e2KZqwLpnu8pwSnrUdXmSFvmr5tn3AoRURCQv9ZVFR5uUW309n1Ph7xp6V8cJ9tgDKFL)WZ7NIPg90PNiE6p)utQkLXVVREOLOAVYEL)IbCWPjznUUsx5FPsTDyx2kQDvH62julbo52KUgzNBxfC63ORlQ1sl733tQ6IL5qsuxdAE)9JlVC7yN1828EMD5dKk3Q5Xk5(lXpn3nRXFNzDeI58jTTarSj8P)Iv)BhkJEHVBdy(TdbkbKy)3BSBtr)9]] )
+spec:RegisterPack( "Fire", 20260313, [[Hekili:vsvYUTnmq0)gFPbQEjjTfWoaThkqYH0dSa5gLhrnYMiuKcKuoWx03EjPqKOKLCsp4fmRV5XzE0v0)sj5GfPpVE567xUz1MKLlVD16nuI9Cfsjva7v4G7psO099V56GXZcfK7t2OQ1mNPxuVq4LgkjRMlSpkPztx41ucuBpQ0ucPUc1YAJlPJ88CSnh0WOekrWnwtaDybulSU)(CaT1gmvvuKEGL7TqaMLRKT25w0dbuczcmN(lQ11(RLuLQ93bzSXNX7rWuLz1MjI624O4SZPNqUCCZVZhuVfct7GOMdoEdTwU8GjPWXOPLaxADFspvlKOgY4cU9CQX6yFtZ(fn7ZXS6II2OheusiOM9BB2FxpGmmLMD0dH7NfcZxsn6bKju0HavJfA0CCy8t12VnBB9XEctrjwYrxpEy34MuiC7AgRM)kMckSV8ro8947Fs2ntagBQXzqGPwqFaTboDmsUyAhbKqsmLsKREtgvAhFb5rSqVhpk)r8II3vgied3tSUnrn6x1G(f9jhSWlgOzG0TTlTOqGmBIhpbWf7otZfcoizyWFpggNE3vY8DS0jbKc6sLEuT6DCXLZu3wHr9eQnEpVRmSKsEd0spTtjpwwP0wmVz)62hiLBYcIbjnp5EyRqM)HNKbgm)pUY)ZW04jqvbx0TSys6y0VS7RJh5B4f7MNkxCfAS5PPQFpn0v5ru2051Yrnp151zRti7MivRDRIdPnT593lAfBTtKk2y7fRh1)hksl(a1OT3nDl(qfNTFc1M4shDG6R)Wd6h2D9R5460DXEjtmH6XIHnA7v7ZIzvmgJGGWG)eH(V)]] )
+spec:RegisterPack( "Frost", 20260313, [[Hekili:9jvtVnoiq0)n9Yw5nF1v9I7H9qLAoK9aRuVH9amofvmyb4uLEGF7lyRy741jxSrZW7npEZJUM(xkraEKEyZQn)A121BZwTA36NEMs8NBqkPb4FchJh0qD87RwJZNQEwzarcTZ0A5XoVBENiRDucRvQ8VPPSfzEhLaT(pmwkH02GwDRlI5dPqG9qqhNsOeL05DDQdRGwLpE8qNABDyHPQQ4ixKQqaUxA091LEmPaudmfkO)M6Jt)EGAm9)VcX2eIl3qYpxCcL650UlDPXkeUnoCRe6rEclqnwlrxO8L8qPd9EP(OlRk5FfmL87VbROam44OUunr)tt1qhiMjAcxPH0EWICtndgTNfLeRTQkdSCqh9iThvkK7ZeMV0HYhcLtBZSsLscAo21FueZHp4T3EI1XGtbyRn2zCn24)87L2iDp1tO1L6CjoTIs(cS6KRsjVv3ySEuek3ek7Pku2fHYc7t2KPsQgSAx2GV9J8Fo)H9OSk)2g2d3XSc7xI)Xh7aZZmMLX17eH9dDJ1gc5pojrNVE6v6HD7(db6PfVe9sk8687l53j7oLIjHug4qXFIlXxL2OP7Aqo9WZDRr6)(]] )
 

@@ -2816,9 +2816,7 @@ spec:RegisterAbilities( {
 } )
 
 -- Resources
-if spec.RegisterResource then
-    spec:RegisterResource( "mana" )
-end
+spec:RegisterResource( "mana" )
 
 if spec.RegisterRanges then
     spec:RegisterRanges( "holy_shock", "avengers_shield", "exorcism", "hammer_of_wrath", "blood_corruption", "eye_for_an_eye" )
@@ -2843,75 +2841,68 @@ spec:RegisterOptions( {
     package = "Retribution\ \(LightClub\)",
 } )
 
-spec:RegisterStateExpr( "wowsim_paladin_prot_apply_sow_jow_ready", function()
-    if debuff.judgement_of_wisdom.down and cooldown.judgement_of_wisdom.remains == 0 and buff.seal_of_wisdom.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_paladin_prot_apply_sow_jow_wait", function()
-    if debuff.judgement_of_wisdom.down and buff.seal_of_wisdom.down and cooldown.judgement_of_wisdom.remains > 0 then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_paladin_prot_swap_to_sor", function()
-    if buff.seal_of_wisdom.down and buff.seal_of_righteousness.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_paladin_prot_judge_sor", function()
-    if buff.seal_of_righteousness.up then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_paladin_prot_exorcism_mana", function()
-    if mana.pct > 40 then return 1 end
-    return 0
-end )
+-- Settings
+spec:RegisterSetting( "paladin_prot_settings_sep", false, {
+    type = "header",
+    name = "Protection Settings",
+    width = "full",
+} )
 
-spec:RegisterStateExpr( "wowsim_paladin_ret_jotc_setup", function()
-    if debuff.judgement_of_the_crusader.down and buff.seal_of_command.up then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_paladin_ret_seal_command_low", function()
-    if mana.current <= 1000 and buff.seal_of_command.down and buff.seal_of_blood.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_paladin_ret_judgement_blood_low", function()
-    if mana.current <= 1000 and buff.seal_of_blood.remains < 1 and buff.seal_of_command.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_paladin_ret_seal_blood_low", function()
-    if mana.current <= 1000 and buff.seal_of_command.down and buff.seal_of_blood.remains < 1 then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_paladin_ret_crusader_strike_low", function()
-    if mana.current <= 1000 and buff.seal_of_command.down and buff.seal_of_blood.up then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_paladin_ret_seal_command_window", function()
-    if mana.current > 1000 and buff.seal_of_command.down and buff.seal_of_blood.up and cooldown.crusader_strike.remains > gcd.remains then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_paladin_ret_judgement_blood_window", function()
-    if mana.current > 1000 and buff.seal_of_blood.up and buff.seal_of_command.down and cooldown.crusader_strike.remains > gcd.remains then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_paladin_ret_crusader_strike_high", function()
-    if mana.current > 1000 and buff.seal_of_command.down and ( buff.seal_of_blood.up or buff.seal_of_command.up ) then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_paladin_ret_seal_blood_from_command", function()
-    if mana.current > 1000 and buff.seal_of_command.up then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_paladin_ret_seal_blood_missing", function()
-    if mana.current > 1000 and buff.seal_of_blood.down and buff.seal_of_command.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_paladin_ret_exorcism_window", function()
-    if mana.current > 1000 and buff.seal_of_command.down and cooldown.crusader_strike.remains > gcd.remains and mana.pct > 40 then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_paladin_ret_consecration_window", function()
-    if mana.current > 1000 and buff.seal_of_command.down and cooldown.crusader_strike.remains > gcd.remains and mana.pct > 60 then return 1 end
-    return 0
-end )
+spec:RegisterSetting( "paladin_prot_exorcism_mana", 40, {
+    type = "range",
+    name = "Protection: Exorcism Mana %",
+    desc = "Minimum mana percentage required to cast Exorcism in the Protection profile.",
+    width = "full",
+    min = 0,
+    max = 100,
+    step = 1,
+} )
+
+spec:RegisterSetting( "paladin_ret_settings_sep", false, {
+    type = "header",
+    name = "Retribution Settings",
+    width = "full",
+} )
+
+spec:RegisterSetting( "paladin_ret_seal_command_low", 1000, {
+    type = "range",
+    name = "Retribution: Low Mana Threshold",
+    desc = "Mana threshold used for low-mana seal/judgement priorities in the Retribution profile.",
+    width = "full",
+    min = 0,
+    max = 10000,
+    step = 50,
+} )
+
+spec:RegisterSetting( "paladin_ret_seal_command_window", 1000, {
+    type = "range",
+    name = "Retribution: High Mana Threshold",
+    desc = "Mana threshold used for high-mana Crusader Strike windows in the Retribution profile.",
+    width = "full",
+    min = 0,
+    max = 10000,
+    step = 50,
+} )
+
+spec:RegisterSetting( "paladin_ret_exorcism_window", 40, {
+    type = "range",
+    name = "Retribution: Exorcism Mana %",
+    desc = "Minimum mana percentage required to cast Exorcism in high-mana windows for the Retribution profile.",
+    width = "full",
+    min = 0,
+    max = 100,
+    step = 1,
+} )
+
+spec:RegisterSetting( "paladin_ret_consecration_window", 60, {
+    type = "range",
+    name = "Retribution: Consecration Mana %",
+    desc = "Minimum mana percentage required to cast Consecration in high-mana windows for the Retribution profile.",
+    width = "full",
+    min = 0,
+    max = 100,
+    step = 1,
+} )
 
 --[[
 spec:RegisterSetting( "scaffold_strict_range", false, {

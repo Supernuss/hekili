@@ -11,7 +11,7 @@ local state = Hekili.State
 local CommitKey = ns.commitKey
 local FindUnitBuffByID, FindUnitDebuffByID = ns.FindUnitBuffByID, ns.FindUnitDebuffByID
 local GetItemInfo = ns.CachedGetItemInfo
-local GetResourceInfo, GetResourceKey = ns.GetResourceInfo, ns.GetResourceKey
+local GetResourceInfo, GetResourceKey, GetResourceID = ns.GetResourceInfo, ns.GetResourceKey, ns.GetResourceID
 local RegisterEvent = ns.RegisterEvent
 local RegisterUnitEvent = ns.RegisterUnitEvent
 
@@ -181,8 +181,9 @@ end
 local HekiliSpecMixin = {
     RegisterResource = function( self, resourceID, regen, model, meta )
         local resource = GetResourceKey( resourceID )
+        local resourceType = type( resourceID ) == "string" and GetResourceID( resource ) or resourceID
 
-        if not resource then
+        if not resource or resourceType == nil then
             Hekili:Error( "Unable to identify resource with PowerType " .. resourceID .. "." )
             return
         end
@@ -190,10 +191,10 @@ local HekiliSpecMixin = {
         local r = self.resources[ resource ] or {}
 
         r.resource = resource
-        r.type = resourceID
+        r.type = resourceType
         r.state = model or setmetatable( {
             resource = resource,
-            type = resourceID,
+            type = resourceType,
 
             forecast = {},
             fcount = 0,

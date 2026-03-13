@@ -1924,45 +1924,12 @@ spec:RegisterAbilities( {
 } )
 
 -- Resources
-if spec.RegisterResource then
-    spec:RegisterResource( "combo_points" )
-    spec:RegisterResource( "energy" )
-end
+spec:RegisterResource( "combo_points" )
+spec:RegisterResource( "energy" )
 
 if spec.RegisterRanges then
     spec:RegisterRanges( "envenom", "eviscerate", "garrote", "gouge", "kick", "rupture" )
 end
-
-spec:RegisterStateExpr( "wowsim_rogue_expose_urgent", function()
-    return settings.maintain_expose and combo_points.current == 5 and ( not debuff.major_armor_reduction.up or debuff.expose_armor.remains < 1 ) and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_rogue_expose_pool_window", function()
-    return settings.maintain_expose and combo_points.current == 5 and debuff.expose_armor.remains < 2 and energy.current >= 50 and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_rogue_snd_pool_window", function()
-    return combo_points.current == 5 and buff.slice_and_dice.remains < 2 and energy.current >= 50 and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_rogue_finisher_expose_gate", function()
-    return ( not settings.maintain_expose or debuff.expose_armor.remains > 3 or not debuff.major_armor_reduction.up ) and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_rogue_rupture_window", function()
-    return combo_points.current >= 4 and not dot.rupture.ticking and target.time_to_die >= 10 and buff.slice_and_dice.remains > 2 and wowsim_rogue_finisher_expose_gate and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_rogue_rupture_cleave_gate", function()
-    return ( active_enemies < 2 or not buff.blade_flurry.up ) and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_rogue_deadly_poison_refresh", function()
-    return debuff.deadly_poison.up and debuff.deadly_poison.remains < 2 and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_rogue_snd_start", function()
-    return buff.slice_and_dice.down and combo_points.current >= 1 and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_rogue_snd_refresh", function()
-    return buff.slice_and_dice.remains < 1 and combo_points.current >= 1 and 1 or 0
-end )
-spec:RegisterStateExpr( "wowsim_rogue_execute_finisher", function()
-    return combo_points.current >= 3 and target.time_to_die < 10 and 1 or 0
-end )
 
 spec:RegisterOptions( {
     enabled = true,
@@ -1981,6 +1948,162 @@ spec:RegisterOptions( {
     potion = "tempered_potion",
 
     package = "Assassination\ \(wowtbc\.gg\)",
+} )
+
+-- Settings
+spec:RegisterSetting( "rogue_assassination_settings_sep", false, {
+    type = "description",
+    name = "|T132292:0|t Assassination",
+    width = "full",
+} )
+
+spec:RegisterSetting( "rogue_deadly_poison_refresh", 2, {
+    type = "range",
+    name = "|T132108:0|t Assassination Deadly Poison Refresh",
+    desc = "Refresh Deadly Poison via Shiv when remaining duration is below this threshold.",
+    width = "full",
+    min = 0,
+    max = 5,
+    step = 0.1,
+} )
+
+spec:RegisterSetting( "rogue_execute_min_cp", 3, {
+    type = "range",
+    name = "|T132292:0|t Execute Finisher Min Combo Points",
+    desc = "Minimum combo points for execute-phase finishers.",
+    width = "full",
+    min = 1,
+    max = 5,
+    step = 1,
+} )
+
+spec:RegisterSetting( "rogue_execute_ttd", 10, {
+    type = "range",
+    name = "|T136129:0|t Execute Finisher Time To Die",
+    desc = "Execute-phase finishers are used when target time-to-die is below this value.",
+    width = "full",
+    min = 1,
+    max = 30,
+    step = 1,
+} )
+
+spec:RegisterSetting( "rogue_combat_settings_sep", false, {
+    type = "description",
+    name = "|T132090:0|t Combat",
+    width = "full",
+} )
+
+spec:RegisterSetting( "maintain_expose", true, {
+    type = "toggle",
+    name = "|T132354:0|t Maintain Expose Armor",
+    desc = "When enabled, Expose Armor windows are prioritized according to the Combat flow.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "rogue_expose_urgent_remains", 1, {
+    type = "range",
+    name = "|T132354:0|t Expose Armor Urgent Refresh",
+    desc = "Treat Expose Armor as urgent when remaining duration is below this threshold.",
+    width = "full",
+    min = 0,
+    max = 10,
+    step = 0.1,
+} )
+
+spec:RegisterSetting( "rogue_expose_pool_remains", 2, {
+    type = "range",
+    name = "|T132354:0|t Expose Armor Pool Window",
+    desc = "Pool for Expose Armor when remaining duration is below this threshold.",
+    width = "full",
+    min = 0,
+    max = 10,
+    step = 0.1,
+} )
+
+spec:RegisterSetting( "rogue_pool_energy", 50, {
+    type = "range",
+    name = "|T136018:0|t Finisher Pool Energy",
+    desc = "Energy threshold used for Slice and Dice / Expose Armor pooling windows.",
+    width = "full",
+    min = 20,
+    max = 100,
+    step = 1,
+} )
+
+spec:RegisterSetting( "rogue_finisher_expose_gate", 3, {
+    type = "range",
+    name = "|T132354:0|t Finisher Expose Safety",
+    desc = "Allow non-Expose finishers when Expose Armor remaining time is above this threshold.",
+    width = "full",
+    min = 0,
+    max = 10,
+    step = 0.1,
+} )
+
+spec:RegisterSetting( "rogue_rupture_min_cp", 4, {
+    type = "range",
+    name = "|T132155:0|t Rupture Min Combo Points",
+    desc = "Minimum combo points required before applying Rupture.",
+    width = "full",
+    min = 1,
+    max = 5,
+    step = 1,
+} )
+
+spec:RegisterSetting( "rogue_rupture_ttd", 10, {
+    type = "range",
+    name = "|T136129:0|t Rupture Time To Die",
+    desc = "Rupture is only applied when target time-to-die is at least this value.",
+    width = "full",
+    min = 1,
+    max = 60,
+    step = 1,
+} )
+
+spec:RegisterSetting( "rogue_subtlety_settings_sep", false, {
+    type = "description",
+    name = "|T132320:0|t Subtlety",
+    width = "full",
+} )
+
+spec:RegisterSetting( "rogue_snd_start_cp", 1, {
+    type = "range",
+    name = "|T132306:0|t Slice and Dice Start Combo Points",
+    desc = "Minimum combo points to start Slice and Dice when it is down.",
+    width = "full",
+    min = 1,
+    max = 5,
+    step = 1,
+} )
+
+spec:RegisterSetting( "rogue_snd_refresh", 1, {
+    type = "range",
+    name = "|T132306:0|t Slice and Dice Refresh",
+    desc = "Refresh Slice and Dice when remaining duration is below this threshold.",
+    width = "full",
+    min = 0,
+    max = 10,
+    step = 0.1,
+} )
+
+spec:RegisterSetting( "rogue_snd_pool_window", 2, {
+    type = "range",
+    name = "|T132306:0|t Slice and Dice Pool Window",
+    desc = "Pool for Slice and Dice when remaining duration is below this threshold.",
+    width = "full",
+    min = 0,
+    max = 10,
+    step = 0.1,
+} )
+
+spec:RegisterSetting( "rogue_finisher_snd_gate", 2, {
+    type = "range",
+    name = "|T132306:0|t Finisher Slice and Dice Safety",
+    desc = "Allow non-Slice and Dice finishers when Slice and Dice remaining time is above this threshold.",
+    width = "full",
+    min = 0,
+    max = 10,
+    step = 0.1,
 } )
 
 --[[

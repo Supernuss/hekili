@@ -2901,9 +2901,7 @@ spec:RegisterAbilities( {
 } )
 
 -- Resources
-if spec.RegisterResource then
-    spec:RegisterResource( "mana" )
-end
+spec:RegisterResource( "mana" )
 
 if spec.RegisterRanges then
     spec:RegisterRanges( "counterattack", "mongoose_bite", "wing_clip", "immolation_trap_effect", "arcane_shot", "black_arrow" )
@@ -2927,52 +2925,6 @@ spec:RegisterOptions( {
 
     package = "Beast\ Mastery\ \(wowtbc\.gg\)",
 } )
-
-spec:RegisterStateExpr( "wowsim_hunter_bm_swap_to_viper", function()
-    if mana.pct <= 20 and buff.aspect_of_the_viper.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_hunter_bm_swap_to_hawk", function()
-    if mana.pct >= 30 and buff.aspect_of_the_hawk.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_hunter_bm_auto_window", function()
-    if cooldown.auto_shot.remains <= gcd.remains or mana.pct <= 20 then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_hunter_bm_multishot_window", function()
-    if cooldown.auto_shot.remains > gcd.remains then return 1 end
-    return 0
-end )
-
-spec:RegisterStateExpr( "wowsim_hunter_sv_swap_to_viper", function()
-    if mana.pct <= 30 and buff.aspect_of_the_viper.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_hunter_sv_swap_to_hawk", function()
-    if mana.pct >= 50 and buff.aspect_of_the_hawk.down then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_hunter_sv_followup_window", function()
-    if cooldown.auto_shot.remains > gcd.remains then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_hunter_sv_weave_proxy_raptor", function()
-    if active_enemies <= 1 and wowsim_hunter_sv_followup_window > 0 and target.time_to_die > 15 then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_hunter_sv_auto_window", function()
-    if cooldown.auto_shot.remains <= gcd.remains or mana.pct <= 30 then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_hunter_sv_multishot_window", function()
-    if wowsim_hunter_sv_followup_window > 0 then return 1 end
-    return 0
-end )
-spec:RegisterStateExpr( "wowsim_hunter_sv_arcane_window", function()
-    if wowsim_hunter_sv_followup_window > 0 then return 1 end
-    return 0
-end )
 
 --[[
 spec:RegisterSetting( "scaffold_strict_range", false, {
@@ -3014,6 +2966,65 @@ spec:RegisterSetting( "suggest_explosive_st", false, {
     name = "|T135826:0|t Suggest Explosive Trap on Single Target",
     desc = "When enabled, |T135826:0|t Explosive Trap will be suggested in single target scenarios as well as AoE.",
     width = "full",
+} )
+
+spec:RegisterSetting( "hunter_bm_settings_sep", false, {
+    type = "description",
+    name = "|T132164:0|t Beast Mastery (wowsims)",
+    width = "full",
+} )
+
+spec:RegisterSetting( "hunter_bm_viper_swap_to_viper_pct", 20, {
+    type = "range",
+    name = "|T132160:0|t BM Swap to Viper at Mana %",
+    desc = "Mana threshold where the Beast Mastery APL switches to |T132160:0|t Aspect of the Viper.",
+    width = "full",
+    min = 0,
+    max = 100,
+    step = 1,
+} )
+
+spec:RegisterSetting( "hunter_bm_viper_swap_to_hawk_pct", 30, {
+    type = "range",
+    name = "|T132311:0|t BM Swap to Hawk at Mana %",
+    desc = "Mana threshold where the Beast Mastery APL switches back to |T132311:0|t Aspect of the Hawk.",
+    width = "full",
+    min = 0,
+    max = 100,
+    step = 1,
+} )
+
+spec:RegisterSetting( "hunter_sv_settings_sep", false, {
+    type = "description",
+    name = "|T132215:0|t Survival (wowsims)",
+    width = "full",
+} )
+
+spec:RegisterSetting( "hunter_sv_weave_raptor", true, {
+    type = "toggle",
+    name = "|T132223:0|t SV Weave Raptor Strike",
+    desc = "When enabled, the Survival APL allows |T132223:0|t Raptor Strike weaves during follow-up windows.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "hunter_sv_viper_swap_to_viper_pct", 30, {
+    type = "range",
+    name = "|T132160:0|t SV Swap to Viper at Mana %",
+    desc = "Mana threshold where the Survival APL switches to |T132160:0|t Aspect of the Viper.",
+    width = "full",
+    min = 0,
+    max = 100,
+    step = 1,
+} )
+
+spec:RegisterSetting( "hunter_sv_viper_swap_to_hawk_pct", 50, {
+    type = "range",
+    name = "|T132311:0|t SV Swap to Hawk at Mana %",
+    desc = "Mana threshold where the Survival APL switches back to |T132311:0|t Aspect of the Hawk.",
+    width = "full",
+    min = 0,
+    max = 100,
+    step = 1,
 } )
 
 spec:RegisterSetting( "manage_mana_viper", false, {

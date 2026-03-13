@@ -5,15 +5,15 @@ actions.precombat+=/potion
 
 actions+=/use_items,use_off_gcd=1
 actions+=/potion,use_off_gcd=1
-actions+=/judgement_of_the_crusader,if=wowsim_paladin_ret_jotc_setup
-actions+=/seal_of_command,if=wowsim_paladin_ret_seal_command_low
-actions+=/judgement_of_blood,if=wowsim_paladin_ret_judgement_blood_low
-actions+=/seal_of_blood,if=wowsim_paladin_ret_seal_blood_low
-actions+=/crusader_strike,if=wowsim_paladin_ret_crusader_strike_low
-actions+=/seal_of_command,if=wowsim_paladin_ret_seal_command_window
-actions+=/judgement_of_blood,if=wowsim_paladin_ret_judgement_blood_window
-actions+=/crusader_strike,if=wowsim_paladin_ret_crusader_strike_high
-actions+=/seal_of_blood,if=wowsim_paladin_ret_seal_blood_from_command
-actions+=/seal_of_blood,if=wowsim_paladin_ret_seal_blood_missing
-actions+=/exorcism,if=wowsim_paladin_ret_exorcism_window
-actions+=/consecration,if=wowsim_paladin_ret_consecration_window
+actions+=/judgement_of_the_crusader,if=debuff.judgement_of_the_crusader.down&buff.seal_of_command.up
+actions+=/seal_of_command,if=mana.current<=settings.paladin_ret_seal_command_low&buff.seal_of_command.down&buff.seal_of_blood.down
+actions+=/judgement_of_blood,if=mana.current<=settings.paladin_ret_seal_command_low&buff.seal_of_blood.remains<1&buff.seal_of_command.down
+actions+=/seal_of_blood,if=mana.current<=settings.paladin_ret_seal_command_low&buff.seal_of_command.down&buff.seal_of_blood.remains<1
+actions+=/crusader_strike,if=mana.current<=settings.paladin_ret_seal_command_low&buff.seal_of_command.down&buff.seal_of_blood.up
+actions+=/seal_of_command,if=mana.current>settings.paladin_ret_seal_command_window&buff.seal_of_command.down&buff.seal_of_blood.up&cooldown.crusader_strike.remains>gcd.remains
+actions+=/judgement_of_blood,if=mana.current>settings.paladin_ret_seal_command_window&buff.seal_of_blood.up&buff.seal_of_command.down&cooldown.crusader_strike.remains>gcd.remains
+actions+=/crusader_strike,if=mana.current>settings.paladin_ret_seal_command_window&buff.seal_of_command.down&(buff.seal_of_blood.up|buff.seal_of_command.up)
+actions+=/seal_of_blood,if=mana.current>settings.paladin_ret_seal_command_window&buff.seal_of_command.up
+actions+=/seal_of_blood,if=mana.current>settings.paladin_ret_seal_command_window&buff.seal_of_blood.down&buff.seal_of_command.down
+actions+=/exorcism,if=mana.current>settings.paladin_ret_seal_command_window&buff.seal_of_command.down&cooldown.crusader_strike.remains>gcd.remains&mana.pct>settings.paladin_ret_exorcism_window
+actions+=/consecration,if=mana.current>settings.paladin_ret_seal_command_window&buff.seal_of_command.down&cooldown.crusader_strike.remains>gcd.remains&mana.pct>settings.paladin_ret_consecration_window

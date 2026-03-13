@@ -226,9 +226,20 @@ function Hekili:Debug( ... )
 	end
 
 	local prepend = format( indent > 0 and ( "%" .. ( indent * 4 ) .. "s" ) or "%s", "" )
-	text = text:gsub("\n", "\n" .. prepend )
+    text = tostring( text or "" )
+    text = text:gsub("\n", "\n" .. prepend )
 
-	active_debug.log[ active_debug.index ] = format( "%" .. ( indent > 0 and ( 4 * indent ) or "" ) .. "s" .. text, "", select( start, ... ) )
+    local debugFormat = "%" .. ( indent > 0 and ( 4 * indent ) or "" ) .. "s" .. text
+    local debugArgs = { "", select( start, ... ) }
+
+    for i = 2, #debugArgs do
+        if debugArgs[ i ] == nil then
+            debugArgs[ i ] = "nil"
+        end
+    end
+
+    local ok, output = pcall( format, debugFormat, unpack( debugArgs ) )
+    active_debug.log[ active_debug.index ] = ok and output or ( prepend .. text )
     active_debug.index = active_debug.index + 1
 end
 
@@ -326,8 +337,10 @@ function Hekili:SaveDebugSnapshot( dispName )
                 custom = format( " |cFFFFA700(Custom: %s[%d])|r", state.spec.name, state.spec.id )
             end
 
-            local overview = format( "%s%s; %s|r", state.system.packName, custom, dispName )
-            local recs = Hekili.DisplayPool[ dispName ].Recommendations
+            local displayName = dispName or k or "Unknown"
+            local overview = format( "%s%s; %s|r", state.system.packName, custom, displayName )
+            local displayPool = Hekili.DisplayPool[ displayName ]
+            local recs = displayPool and displayPool.Recommendations or {}
 
             for i, rec in ipairs( recs ) do
                 if not rec.actionName then
@@ -336,7 +349,8 @@ function Hekili:SaveDebugSnapshot( dispName )
                     end
                     break
                 end
-                overview = format( "%s%s%s|cFFFFD100(%0.2f)|r", overview, ( i == 1 and " - " or ", " ), class.abilities[ rec.actionName ].name, rec.time )
+                local ability = class.abilities[ rec.actionName ]
+                overview = format( "%s%s%s|cFFFFD100(%0.2f)|r", overview, ( i == 1 and " - " or ", " ), ( ability and ability.name ) or rec.actionName or "unknown", rec.time )
             end
 
             insert( v.log, 1, overview )

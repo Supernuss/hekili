@@ -5,5 +5,5 @@ actions.precombat+=/potion
 actions+=/use_items,use_off_gcd=1
 actions+=/potion,use_off_gcd=1
 actions+=/icy_veins
-actions+=/blizzard,if=wowsim_mage_frost_blizzard_aoe=1
+actions+=/blizzard,if=active_enemies>=settings.frost_blizzard_aoe
 actions+=/frostbolt

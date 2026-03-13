@@ -3,12 +3,13 @@ actions.precombat+=/power_word_fortitude,if=buff.power_word_fortitude.down&buff.
 actions.precombat+=/inner_fire,if=buff.inner_fire.down
 actions.precombat+=/potion
 
+actions+=/variable,name=holy_fire_window,op=set,value=dot.shadow_word_pain.remains>action.smite.cast_time&dot.shadow_word_pain.remains<action.holy_fire.cast_time
 actions+=/use_items,use_off_gcd=1
 actions+=/potion,use_off_gcd=1
 actions+=/shadow_word_pain,if=!dot.shadow_word_pain.ticking
-actions+=/starshards,if=wowsim_priest_smite_use_starshards&cooldown.starshards.remains=0
-actions+=/devouring_plague,if=wowsim_priest_smite_use_dev_plague&cooldown.devouring_plague.remains=0
-actions+=/mind_blast,if=wowsim_priest_smite_use_mind_blast&cooldown.mind_blast.remains=0
-actions+=/shadow_word_death,if=wowsim_priest_smite_use_shadow_word_death&cooldown.shadow_word_death.remains=0
-actions+=/holy_fire,if=wowsim_priest_smite_holy_fire_weave&wowsim_priest_smite_holy_fire_window
+actions+=/starshards,if=settings.smite_use_starshards&cooldown.starshards.remains=0
+actions+=/devouring_plague,if=settings.smite_use_devouring_plague&cooldown.devouring_plague.remains=0
+actions+=/mind_blast,if=settings.smite_use_mind_blast&cooldown.mind_blast.remains=0
+actions+=/shadow_word_death,if=settings.smite_use_shadow_word_death&cooldown.shadow_word_death.remains=0
+actions+=/holy_fire,if=settings.smite_holy_fire_weave&variable.holy_fire_window
 actions+=/smite

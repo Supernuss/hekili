@@ -100,6 +100,13 @@ end
 
 
 function ns.GetResourceKey( id )
+    if type( id ) == "string" then
+        local key = id:lower()
+        if ResourceInfo[ key ] ~= nil then
+            return key
+        end
+    end
+
     return ResourceByID[ id ]
 end
 
