@@ -22,6 +22,45 @@ local TBC_RAGE_MAINHAND_HIT_FACTOR = 3.5 / 2
 local TBC_RAGE_OFFHAND_HIT_FACTOR = 1.75 / 2
 local PASSIVE_RAGE_DAMAGE_WINDOW = 10
 
+local GetNumShapeshiftForms = _G.GetNumShapeshiftForms
+local GetShapeshiftFormInfo = _G.GetShapeshiftFormInfo
+local IsUsableSpell = _G.IsUsableSpell
+
+local function is_active_warrior_stance( spellID )
+    if type( GetNumShapeshiftForms ) ~= "function" or type( GetShapeshiftFormInfo ) ~= "function" then
+        return false
+    end
+
+    local forms = GetNumShapeshiftForms() or 0
+    for i = 1, forms do
+        local _, _, isActive, _, formSpellID = GetShapeshiftFormInfo( i )
+        if isActive and formSpellID == spellID then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function can_activate_warrior_stance( spellID, auraKey )
+    if is_active_warrior_stance( spellID ) then
+        return false
+    end
+
+    if auraKey and state.buff and state.buff[ auraKey ] and state.buff[ auraKey ].up then
+        return false
+    end
+
+    if type( IsUsableSpell ) == "function" then
+        local usable = IsUsableSpell( spellID )
+        if usable == false then
+            return false
+        end
+    end
+
+    return true
+end
+
 local passive_rage_damage_events = {}
 
 local function trim_passive_rage_damage_events( now )
@@ -85,7 +124,7 @@ local function gain_warrior_auto_attack_rage( damage, is_offhand, is_critical )
         hit_factor = hit_factor * 2
     end
 
-    local multiplier = talent.endless_rage.rank > 0 and 1.25 or 1
+    local multiplier = state.talent.endless_rage.rank > 0 and 1.25 or 1
     local rage = ( ( damage * TBC_RAGE_DEALT_FACTOR ) + ( hit_factor * get_warrior_swing_speed( is_offhand ) ) ) * multiplier
 
     gain_warrior_rage( rage )
@@ -128,19 +167,20 @@ local function get_warrior_forecast_rage_per_swing( is_offhand )
 
     local speed = get_warrior_swing_speed( is_offhand )
     local weapon_dps = is_offhand and state.weapon_offhand_dps or state.weapon_dps
+    weapon_dps = weapon_dps or 0
     local estimated_damage = max( 0, weapon_dps * speed )
     local crit_chance = ( GetCritChance and GetCritChance() or 0 ) / 100
 
     local hit_factor = is_offhand and TBC_RAGE_OFFHAND_HIT_FACTOR or TBC_RAGE_MAINHAND_HIT_FACTOR
     local expected_hit_factor = hit_factor * ( 1 + crit_chance )
 
-    local multiplier = talent.endless_rage.rank > 0 and 1.25 or 1
+    local multiplier = state.talent.endless_rage.rank > 0 and 1.25 or 1
 
     return ( ( estimated_damage * TBC_RAGE_DEALT_FACTOR ) + ( expected_hit_factor * speed ) ) * multiplier
 end
 
 local function get_warrior_passive_incoming_rage_per_second()
-    local multiplier = talent.endless_rage.rank > 0 and 1.25 or 1
+    local multiplier = state.talent.endless_rage.rank > 0 and 1.25 or 1
     return get_passive_incoming_damage_per_second() * TBC_RAGE_TAKEN_FACTOR * multiplier
 end
 
@@ -563,6 +603,7 @@ spec:RegisterAbilities( {
     battle_stance = {
         id = 2457,
         cast = 0,
+        usable = function () return can_activate_warrior_stance( 2457, "battle_stance" ) end,
         category_cooldown = 1,
         school = "physical",
         texture = 132349,
@@ -613,6 +654,7 @@ spec:RegisterAbilities( {
     berserker_stance = {
         id = 2458,
         cast = 0,
+        usable = function () return can_activate_warrior_stance( 2458, "berserker_stance" ) end,
         category_cooldown = 1,
         school = "physical",
         texture = 132275,
@@ -895,6 +937,7 @@ spec:RegisterAbilities( {
     defensive_stance = {
         id = 71,
         cast = 0,
+        usable = function () return can_activate_warrior_stance( 71, "defensive_stance" ) end,
         category_cooldown = 1,
         school = "physical",
         texture = 132341,
@@ -2039,11 +2082,11 @@ spec:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED", function()
     if missType ~= "DODGE" then return end
     if subtype ~= "SWING_MISSED" and subtype ~= "SPELL_MISSED" and subtype ~= "RANGE_MISSED" then return end
 
-    applyBuff( "overpower_ready" )
+    if type( state.applyBuff ) == "function" then state.applyBuff( "overpower_ready" ) end
 end )
 
 -- Resources
-spec:RegisterResource( "rage", nil, {
+spec:RegisterResource( "rage", {
     warrior_mainhand_swing = {
         resource = "rage",
         swing = "mainhand",
@@ -2312,11 +2355,11 @@ spec:RegisterSetting( "warrior_prot_shield_block_revenge", true, {
     width = "full",
 } )
 
-spec:RegisterPack( "Arms", 20260310, [[Hekili:DJvZoUTnq43gJe0avj70TTa2lq7PM9WErfO3OeT4ylctjkqsvvxyON9qsNvKY20Ykb5q7Hvwl5mFZWpo)bHsq)jkLGva61LXlFkEvsCuYtXFmEfkvDSbqPn4Id496xQXv6N)MOsAw8iJJjgLL8wrHEdu62wkt9PA02BJ4sTSnqb61euAjLqGZscYIZO2N)xyHGYf95nMFOQJ957m)7FahOmQ2Qc(oktBlCHIYRLrncOGxTfR(Hn)O(PIbzsfUUa6F5EIuYBvFGUBZ22D7I8xmIW7QdOlJZjcnr0)YGa6LBLqgvbvYpyEJVBx2(cYMeFr0GCGbszT(pJvvyXEqfPOvqMINrOWZlJ9vyMUPwdcuXfyg9FP17D6raRMxVzKaQW0A56L(GOkBRjGiRGHB8u3F5BROgEfMPzEb9a4Dclbmtvg1uOwVzz8cjOuAxqg1X7K0QSUZ32zy9DFMH90)a)du0QaF07kPcwhTM8nGCx3TqwYWvFdGAu)nyxyImIkAfcOw98M7QRvVkADMrNffCoZCDgnIfFJOFiOK6Jhby4JoWgiTVoG8zPVCcdsuJICbHeeh0rlMZwyU9Ce9iHVkME6OQlsBUFGYfcZ)Bq0W7ariHp7JdILjam5yuBZOB613Lu9uwRtMQua60pgzMm2ZpiHvIRmKv9(GOmJG0bWUW3x8LQcd7F7scbtTMPB8FSCLsqWPfEXSZ4OwkVKQF3TyVtNMSWu5qD03Js1XGsT3zBgVkE5YNqPAfQnaGs)uvJMjbsF(Y(8ZhJ(CgvQKr9VGsTVzhqa2HBzk9RVAhyWRxNTD(zvpVUTBikfQXBzab97iL22gLCRKwOBUdckwpJXvnd7ZFw7oXoq97FAaBvqWUDJshs(Bzq6JbrAYwN95R1EPd6RL0yGFAkdCRMRxcTVmgqFAkY0fVOHAJHm7Zx0NpzCJR)RZ4JY0mw)N)EzDxpAN1hsnnw(x(Ezz)g5wn8ZA1HJBMaJrfPSaC)cvpmKUAmJa9QcwZhqhfB2WWU)68zxhiVDXPXjjE(azpEHAX5L(oAtRXsMJXUOUYvH2jtwM6oOnkunjCnQqi54GRN54gbLRN4(o0ShohEqcRdhUu40o8CV0cxv8U2AMzLHMGXIvOPyUS27GawhFwvE)QD8)xuojjCFIzshxnxK17FxFEyo)0PhOQVBkP(837DJ7pchY0fpD4Zamm)ZLduy)Mdp8mpZDmLvJm5BFhIXMZ6O4wvjxGstBBarDRDCjfc95d]] )
+spec:RegisterPack( "Arms", 20260314, [[Hekili:vFvtVPntq4)nwTQrUyiVPTsasV9utoKlUs92AVypgVI1ET2DDPuH8V9oRj4pawWokhApKaXEMN57zEcXJ8DIFmvdKNNoz6dtM5DV70zt8U3J4R3vae)cA0g6A8l50m83)VmtzE4oUGgBuwjkLr4li(RkzC9J5KvxeXzpGYwarKNrOtzXXWbjbv0buRc)bvkzczvyH5dMExvyI5p)gSHXzeFotPv1omKql5A8Rpxha0intKt8lvqatdgpeYPR4qm5Ren6igHAFIFecoizumgPY1G2vZYGaTiiMbvHlRcNoPfujeTHdkvo(JbSzwbBvzsI7kQwZHavQOu7gl2M3Iu3xzq6ERifd1yfdzcjLZ(nlF9likHmklhtwZrVSf6ZL0yG)7wgqNwMhdYGioTWg0DLXa6d3kzMcuUo1TisJqTWKmRcDQcvGwJENYD7HYCafl6bMsg(b8liQe7zASkgoAkpqPLSnGXSF6n3SB3EUz3MYK8TS8yJj)8BUjvCA2rJwlQehTCJkLsihXy5cBkxRyglpWOqTMrcb30E52lt1weVfwkm8JboDxF0AsaVcKAtJMxyYGFz8zWwqowCqC8MmEGQJRdJKGubYnypCD6(KHYEVS2yEJXyNST4S(wVBU85kO1RD0Z(MhBi1Mde)eKfITMWeOX7CllUq)3CBf6oAJkeOtLaUKHh36Pnsu7P23SDBpDSvl7l5UQTg6KxknZumX1Q9d9AqEznAJm22H2iqThpQnOJ3J)hDxHN9n8dnYtvxQi9UQq75197V2(6uv72633PCcsblQDixJmIqAcIm8c)zKsoE1xtZn8KgiXKXYLywptYfI46bKEMR2rX5uLrOJSZWTnyyNBIFI)JzfyhcG5TPvHhqRkSM2LB1tMGuKW4nNlvUnr9hw8XEXz1txteJtFhlzXLdsl6EmMQEQra8Xnu(UZ8nrssW6O4fAzj0vQUC4mg(CAFlXMHokmspf14Cgyg9UjrU5t7csxUwDu)s006RyVb7oryBh)8ftN4meoyDHTzc)1azl)QUqAg3FnO1L6Kt3fclxmG1GoxFf41XOzPLJ9vFdeHUzIxcgRjJE9J9U7zp)z7c646vozy46DbNiCdraBc7yHpsVI68XXdzKPQLdmt1C22kkdPr0gdchBSh6pABDGzO2)V(bHENtnH6qIQZU178UlLH2VFix3n32l1PcjX3VSaK5L1)V(Ac5p)]] )
 
-spec:RegisterPack( "Fury", 20260310, [[Hekili:vFvtVTnoq0)ngTyl0kj74UlGTpShk2Kd5IkWEJu0sJIiSKOa5OOgGa9BFjPC1x2YoUbff9qsKjh(EVz4O5ft8iFLeeZqG8OVR)A3LEUoERDxDNpjaFPeibLSOdSN0puWY1)(lvYxml(sMGfBoSsujJ0Bqc2xXZW7li7plIRUthBjerE0JeKYJJH2ibvulQnH)htk5cztyP5pCuVuI5J)lCGNX1Skfj8mnxSiKlkuoLsisKVNH)X2)CpivG8aiPkKvebnpC2OyiMbuvQOc)epz7(QKeNHl6elQlM5SzcrSuxlAEOla9YvkGYrix9jZtIKe6trXB9ggIgKdzGsvO)XWkYKpbOdYZbkkOXCyNV7WdedmmLwZvPdx9gfVHywEPwWDbF8ZosiNXluB2Qae5fpPCQf1kEoTU9kGMOVqOhJMgftXujOPilEKEmfemLlv4GSkfyzyQtzeUzRV7IlYGPIThPW3GOkegIDTg2SAEr87a566ZH8XLMf3rzyxtL8yz88sP9MyuWNCxCTQ1KwGlxaMeS4zqwkQb5Cb3QWUWOsGf)Itv5cRuJQKsOa3CXk6GdBAkoFhX1Rx7EJLRuwUcLA1mlkdL(Ul3j3b2eTVigSAPB)U3m8hQLOmG9SnDmR9mqHciNdQDB9VjvOMs)hoxI96RxTZwJ0X24poQMbsbpIAsLdNrUB(1RwsGUlsPLR1DyP7kV1Ka9bkmaqcUpVuiriUj0VjSnVAcZ4ku508ajW(K1XcsyvzO(XhToydM8A9xApA762zZKaOGTpdIj)db1CBou)kbrA3gqYzAtVtgn3eUtlh3Eqhon3a2sdyFFZ(j3tOC1SuE(X49qoClds3DzKMmJVjCZ2MWBEo)G0TDxdZRVwzRVZOLw9uQWfxH9XEads7(5LgU)8plU7Dj65UB4RH5)62zUhPVdTgN)(2XXMbZnTCqPA0MgU8CVfYM0GpPY759oWAuL07QV3Dcs9vGtnVS7nCIMUSDLl85mX6fCxewbV8Di4B9kB(jexKRXfGDx7L95ScTynNDOTW63R(UaScF(bsJ9FAvN)pKQNAgzb5dnHZxAE913Wl)9wtnHFSp)An8Tj38Z8MMCB(9i3g9pjqmVHh09TC6mupTnT9Bv9M9rVvtTrMODFtRX0z1kRctfssqqvjilQSwWiH8))]] )
+spec:RegisterPack( "Fury", 20260314, [[Hekili:nFvuVTjmq4)nrRAvSesx3MusEypmT2h6lmP9Mbh8rWkagzBkRsr8BF2MwWqItdRtA7H2qmhF3335J7ZbTa9duablb0d(Z9VD(Yf345VCUV)suG8PsafuIJ3J3PUOaNR()3Q4pPx8PmgMOFybRIhRUbkyBfntExbA7PrCHk2sig9G6IukHaTrcI4wuBI(jMZPmEtuP(dQuTuI(RFh2tZOOGmQqkmegsWvzs1LpyeaowszfOGkbesLqUafaf4Tzab9vKureDq9ReeRah4uSsJy(oq6jP5qOKfsOqt0MMi)59GYH49zGquO(td2s7msaSmnSMkshLYBCMYTvjjEBXszgekszvspcRUOhs7BPr6JNhjooVuT)4XHCmTq0eTADtKaKsAXoHxDBjnmrvGdFo0WysOmLdQmKrS0z7D1P82xRELc4mzQxzSSnF(ZBIM5kT6DLTYq4xqCLQTOxOzmgrMs5cJo)0F9KwxFCsRv5lRMwq0P8ZtpL9i9c0kC(Y0XXq92wbGla(EGR2Fu7JJAggCtDUwmFkjBuV8Os(IfVbSgujx8QVIDes9va2JaVKvRfjGjp5vvAUNPCexX5qHUS5AN26P1n3NOZUlcdtx(gy6u3RCpf4S5AOY348f6uCUqYvRps6gqiGHYDXynHqLOEA3fGHXUN2OJ)riekGCkiAPL)0OR4u88DnrUlghoCUxWva(8BHnrx1RO4ma)y7gG7jzJLZQ)xvtkWz04q9E0ETOKk7xLNelxzuCKdyFpOqIl0(YxOr4uDLg4cAgRyA6hKodxvV7j0b9YPbutqukVqxcqb3LxY4sGyQ9TO1ezS59AUxRtwcnRB6TWRt4VF9hgl1M7pzuw8(AAY6tRthp7lYQ5(Uaul3DkJR1xXssc3ftwl5vGDu2hBqN4JpPXgvlH1d0Fuc7vNi)1jU1hVl4rhqy16l)WbdisV1HLC6BYxT2F(Sl5aa2G25H8NazV9UnKpVKtahOPbtSDZbxZ(Ns9z0U95v(OG7mWCf8mh(OZShMTAA(NtSqT5cRtD2norXMZBC0T6Y5BMlxVv(2KO1HqZGH2aBw7FzPF8S)zV7us5WHlzA)vdkp2t7pMGR(xWp183kzkJJccQkbErL5hcjrOFd]] )
 
-spec:RegisterPack( "Protection", 20260310, [[Hekili:TAvqVjopq0)nOD1wLLaTD3vc6H9w7HURuQ2EZjM4jeR6yhz7aQFhYV9VXjqXjqOvPCae4z88EEMXZZKqYtKig1cKhNnD2TtNhoni82P3CnjY(AjqIkPPVqxJ)qslWV)RwzHulxjDMEvOOmxemQkDkA(z1Zr8cdjAvfxyVxswDYOp)wClLqk5XqsuoNXGwpbtkj6PCUPoPuZvAU916e3)wrnaRorjRtS5qDYw12CGIRSUIZGasKGBSMMZcKrRew8Np2C2QmqSkllEDkRbn6oY7wNBbhxbjDLayKFtSipDBAVtMCoiyXgbTONBZ9DBLqPy2CU2y7521(UvO0wQi2y18xGEoEJVJAydix33LBDUCyLOum9aAo1LSZYcsvffujJlxhBYvv2aMAR8qm7B2fXFmIiwNmblhoZROwRaojy(MCa9ZbbYawlcGjaROgEr8wQ2v4JlX(SyBELKb64cfdIlOCPf)0qag0qH9oKkOLbAW5c2SSOoz2bU47JJl)6cWfLmgBNgeIWPJddguOg(W6SQPc()DOGmWr(ypByv4NLvzCHa0VloDUcXGnuJ1ncOB3CyNBqM2eivJbSVJxpoAV7UlE3m9L2c2HwxFB9AD9n1a)nxa43DHUHaPkLWbzWUfpuexwNmDCCC4rdUTSbIbjuWbeJ7qqM1aIgNQhKwP1G02U(zpp5My3oW7bAal1cV2)ubq3anez4jk9jYIlppYbTINUF(QRxmQud4umCC0B6bh6lZaPXrjS7uM2V9C2ignE(HTZhreh1W2RpsAst7lM0KC2aAJZjN288WWzOMpMQLUupj6(IsuUYj6ILP2OvN0OYgu)ag)kBU7QAuvjOLvgNKVtJ(ps)3iuN8CBTRo5l3)VV6QhkCicSNFMG3kqFB537xsQF4uE1prDfpB5zYGNmg(PSZV)jNo7pqy3NSRF4nhWLF7Pgx59yKLH(U49qd)L9EyH)YDEiHVH9Zz8wAKPRlAscdMVePlyFCT29sHtoJM)IzxgSALj8c1XkCVBapweFY7kG3L)FkqB1O7gUDkWDA48eCprJyJ0Y7I6XsStoT01LbHDD3tgsbD50pa8TIvoG7QiD3Yzt8LIU78e7iziFm6ieDmul(Ci1m8M8)]] )
+spec:RegisterPack( "Protection", 20260314, [[Hekili:TE1YUTnmqW)gJw0av)knna25qp1KdPfqfn3Omn5klctrkqs5a3d6BVKs2XuVCsKZHejZD0mlxTChB0e0FqHuSbqpoD80VnE2K5btNzVClk0SpdqHzyYw8g7ncCQ9))wjnaXWKcxO9CjM6OqlZveB4NKpfYs1OW15mU5EbAD30FJ9rYac6XjOWegLcvibnXxIIvpHvkMuvSkZDHz2xSk29XFcBzCgkKZ0gD5EaIX5CJ92hl3t4d5yUgIygWLsGaVMdu0pqgB64dsNWaonsZXPnGnZh2AUusnjmL20a2CFyPsLbZJ0gfBl0a41(avWoqSPjKV5GCALqIDBdkg2vtJJdiY0uSGYeBI0jYCtav(S4eNnd7y8MbWyXQrfRkdVgBmCOtX8d5e679kKgmgRa6GNREHgLzFjhzsYfuqfLkPqukMjm2)kvMcLAFeaHJZcuGdIUy1IIvtpLe(yCjXTxssifreA)Cpz87KCkKk7F75IQWC2)ov77zt2gzz6mzWPtmJZb1RkqTJjuyhwBCNMR3XoP2PeDvjdRSe2e483z(E4GP9GhzB17Mt9L(XA0x6hQu3RVeDpCmTuzIuYDAfCyr7vmD)WsQ(pO7EKDqeiGugy7fUBPTzOueLDuCajxPaHPA9U3aj6ihuBZTcSVn5E90eoG3bLzq)dgAMbl(atGeqjzKJZhD9zHzkWofYooP18B7CDqOD5ITZtqA26nDaJ2o)WYzdGXbnSCElRffUPzqzXzhO0oqhTqhJcTLAHRMJcVpnZA3a0Y3p4dUMLUIbfp4kSs7jD4Oq6GxQ0Fz5xBwBlEOlun3XxXIxEMsrNC4V3p)ZpQ7Yyp0ESQv8WlaSl)IN)vU7KXXrBi0Lgvo4JYZ03FzptE)LRzQ7h440bVLgyf7dTozjZ38Yr2BW(7Oj1OZ4)Uy6fks1CCpoA790ptTnuh9QMP1Z4HPwLFzDEo4gwRPYZ8RJMTYH)9lxB7UrD7QCHuFONDu3UzVbnR8qCQv3O4ULth57qCxpztl3bFYR5p0wJfduc3eynq)LONFHXNU)VF2oNm3K4(ElH5zGsKR1LZGr))d]] )
 
 
 

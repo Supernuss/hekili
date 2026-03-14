@@ -2965,7 +2965,7 @@ end )
 spec:RegisterResource( "combo_points" )
 spec:RegisterResource( "energy" )
 spec:RegisterResource( "mana" )
-spec:RegisterResource( "rage", nil, {
+spec:RegisterResource( "rage", {
     bear_mainhand_swing = {
         resource = "rage",
         swing = "mainhand",

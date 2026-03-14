@@ -1405,6 +1405,11 @@ do
         timeout = timeout + state.gcd.remains
 
         local r = state[ resource ]
+        if not r then return end
+
+        r.times = r.times or {}
+        r.values = r.values or {}
+        r.forecast = r.forecast or {}
 
         -- We account for haste here so that we don't compute lots of extraneous future resource gains in Bloodlust/high haste situations.
         remains[ resource ] = timeout
@@ -1568,12 +1573,12 @@ local resourceChange = function( amount, resource, overcap )
 
     local r = state[ resource ]
     if not r then return false end
-    local pre = r.current
+    local pre = r.current or r.actual or 0
 
     if amount < 0 and r.spend then r.spend( -amount, resource, overcap )
     elseif amount > 0 and r.gain then r.gain( amount, resource, overcap )
     else
-        r.actual = max( 0, r.current + amount )
+        r.actual = max( 0, pre + amount )
         if not overcap then r.actual = min( r.max, r.actual ) end
     end
 
@@ -2477,8 +2482,11 @@ local mt_stat = {
 
         elseif k == "weapon_dps" or k == "weapon_offhand_dps" then
             local low, high, offlow, offhigh = UnitDamage( "player" )
+            low, high = low or 0, high or 0
+            offlow, offhigh = offlow or low, offhigh or high
+
             t.weapon_dps = 0.5 * ( low + high )
-            t.weapon_offhand_dps = 0.5 * ( low + high )
+            t.weapon_offhand_dps = 0.5 * ( offlow + offhigh )
 
         elseif k == "weapon_speed" or k == "weapon_offhand_speed" then
             local main, off = UnitAttackSpeed( "player" )
