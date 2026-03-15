@@ -8,6 +8,7 @@ name: Package and Release
 on:
   push:
     tags:
+      - "v2*"
       - "v3*"
 
 # a workflow is built up as jobs, and within these jobs are steps
