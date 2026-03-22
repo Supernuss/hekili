@@ -584,18 +584,19 @@ spec:RegisterAbilities( {
         copy = { 2048, 5242, 6192, 6673, 11549, 11550, 11551, 25289 },
 
         -- Effects:
-        -- [ ] Rank 2048 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 304, addl_points: 1, points_per_level: 1, sp_bonus: 1, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
-        -- [ ] Rank 5242 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 34, addl_points: 1, points_per_level: 0.5, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
-        -- [ ] Rank 6192 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 54, addl_points: 1, points_per_level: 0.5, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
-        -- [ ] Rank 6673 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 14, addl_points: 1, points_per_level: 0.5, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
-        -- [ ] Rank 11549 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 84, addl_points: 1, points_per_level: 1, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
-        -- [ ] Rank 11550 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 129, addl_points: 1, points_per_level: 1, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
-        -- [ ] Rank 11551 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 184, addl_points: 1, points_per_level: 1, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
-        -- [ ] Rank 25289 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 231, addl_points: 1, points_per_level: 1, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+        -- [x] Rank 2048 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 304, addl_points: 1, points_per_level: 1, sp_bonus: 1, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+        -- [x] Rank 5242 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 34, addl_points: 1, points_per_level: 0.5, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+        -- [x] Rank 6192 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 54, addl_points: 1, points_per_level: 0.5, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+        -- [x] Rank 6673 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 14, addl_points: 1, points_per_level: 0.5, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+        -- [x] Rank 11549 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 84, addl_points: 1, points_per_level: 1, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+        -- [x] Rank 11550 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 129, addl_points: 1, points_per_level: 1, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+        -- [x] Rank 11551 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 184, addl_points: 1, points_per_level: 1, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
+        -- [x] Rank 25289 #0 -- effect: APPLY_AURA, aura: MOD_ATTACK_POWER, points: 231, addl_points: 1, points_per_level: 1, sp_bonus: 0, radius_idx: 9, target: TARGET_UNIT_CASTER_AREA_PARTY, target2: NONE, mechanic: 0
 
         radius = 20,
 
         handler = function ()
+            applyBuff( "battle_shout" )
         end,
     },
 

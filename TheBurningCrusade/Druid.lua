@@ -34,16 +34,26 @@ spec:RegisterGear( "sunwell",
     34571, 34572, 34573
 )
 
+spec:RegisterGear( "wolfshead_helm", 8345 )
+
+local function remove_druid_buff( auraKey )
+    if type( state.removeBuff ) == "function" then
+        state.removeBuff( auraKey )
+    elseif type( removeBuff ) == "function" then
+        removeBuff( auraKey )
+    end
+end
+
 local function clear_druid_forms()
-    removeBuff( "aquatic_form" )
-    removeBuff( "bear_form" )
-    removeBuff( "cat_form" )
-    removeBuff( "dire_bear_form" )
-    removeBuff( "flight_form" )
-    removeBuff( "moonkin_form" )
-    removeBuff( "swift_flight_form" )
-    removeBuff( "travel_form" )
-    removeBuff( "tree_of_life" )
+    remove_druid_buff( "aquatic_form" )
+    remove_druid_buff( "bear_form" )
+    remove_druid_buff( "cat_form" )
+    remove_druid_buff( "dire_bear_form" )
+    remove_druid_buff( "flight_form" )
+    remove_druid_buff( "moonkin_form" )
+    remove_druid_buff( "swift_flight_form" )
+    remove_druid_buff( "travel_form" )
+    remove_druid_buff( "tree_of_life" )
 end
 
 local function spend_cat_combo_points()
@@ -71,6 +81,20 @@ local function gain_bear_rage( amount )
         gain( amount, "rage" )
     elseif rage then
         rage.current = min( rage.max or rage.current, rage.current + amount )
+    end
+end
+
+local function gain_cat_energy( amount )
+    amount = amount or 0
+
+    if amount <= 0 then return end
+
+    if type( state.gain ) == "function" then
+        state.gain( amount, "energy" )
+    elseif type( gain ) == "function" then
+        gain( amount, "energy" )
+    elseif energy then
+        energy.current = min( energy.max or energy.current, energy.current + amount )
     end
 end
 
@@ -187,6 +211,7 @@ local function get_bear_forecast_rage_per_swing( is_offhand )
 
     local speed = get_bear_swing_speed( is_offhand )
     local weapon_dps = is_offhand and state.weapon_offhand_dps or state.weapon_dps
+    weapon_dps = weapon_dps or 0
     local estimated_damage = max( 0, weapon_dps * speed )
     local crit_chance = ( GetCritChance and GetCritChance() or 0 ) / 100
 
@@ -327,6 +352,11 @@ spec:RegisterAuras( {
         max_stack = 1,
         -- Aura effects: MECHANIC_IMMUNITY, MOD_SHAPESHIFT, PERIODIC_TRIGGER_SPELL
         -- Aura targets: TARGET_UNIT_CASTER
+    },
+
+    wolfshead_helm = {
+        id = 17768,
+        max_stack = 1,
     },
 
     challenging_roar = {
@@ -881,6 +911,10 @@ spec:RegisterAbilities( {
         handler = function ()
             clear_druid_forms()
             applyBuff( "bear_form" )
+
+            if state.equipped and state.equipped.wolfshead_helm then
+                gain_bear_rage( 5 )
+            end
         end,
 
         proc_chance = 100,
@@ -920,6 +954,10 @@ spec:RegisterAbilities( {
         handler = function ()
             clear_druid_forms()
             applyBuff( "cat_form" )
+
+            if state.equipped and state.equipped.wolfshead_helm then
+                gain_cat_energy( 20 )
+            end
         end,
 
         proc_chance = 100,
@@ -1138,6 +1176,10 @@ spec:RegisterAbilities( {
         handler = function ()
             clear_druid_forms()
             applyBuff( "dire_bear_form" )
+
+            if state.equipped and state.equipped.wolfshead_helm then
+                gain_bear_rage( 5 )
+            end
         end,
 
         proc_chance = 100,
@@ -2922,7 +2964,7 @@ spec:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED", function()
             local maul_queued = state.buff.maul_queue.up
 
             if maul_queued then
-                removeBuff( "maul_queue" )
+                remove_druid_buff( "maul_queue" )
                 return
             end
 
@@ -2931,12 +2973,12 @@ spec:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED", function()
         end
 
         if subtype == "SWING_MISSED" and state.buff.maul_queue.up then
-            removeBuff( "maul_queue" )
+            remove_druid_buff( "maul_queue" )
             return
         end
 
         if ( subtype == "SPELL_DAMAGE" or subtype == "SPELL_MISSED" ) and MAUL_SPELL_IDS[ a1 or 0 ] then
-            removeBuff( "maul_queue" )
+            remove_druid_buff( "maul_queue" )
             return
         end
     end
@@ -3142,23 +3184,23 @@ spec:RegisterSetting( "tank_swipe_ap_threshold", 2700, {
 spec:RegisterPet( "treants", 33831, "force_of_nature", 30 )
 
 spec:RegisterPack( "Balance", 20260313, [[Hekili:vwvtVTnpm4Fl9sXgwF9YhRD4DR9sXoS0dDhC36HHklzB6yIylzijVSCr)2hLDCSAqs2ccqGef5ZJi1dPztzpXIZfwG94SjZUzY8PZJMmz(KjFKfB30aS4gr2kXsAHuut)FVOsiZ6SVPsjY9XBuTAVPNvphJ1gwCAlwzxizPha7z))1tPqAGm2JtPvLyEo07kyY2rGJ)fDlM74nAuPr7ghVqPD8VcRWkKOxRkWkIurMfvstuJgYu1Pc77U791kLCfktOiQVclUlTTOik0yuUAT09WbJvOxLOksSLqYASkFm(9o4eyylvAPzxK9B36)Uii)keGgHKcudENnG1IYLMO0(AqsRHoC0NlZHo8cmfPHAbkn3ope3YwTgZeYJJ6opcdJWbYSjM1I(Y2bJm0PlVixzJcTezXmQiVmewFH)KP4Gd9WnS7qqTwlSLhehsMqpqBs68imeJvO9WXI)fOnKXDQXjSy6kl9WWIFQenEXwNQYX9BQrJXZp3020O02TkWLGKk)zoUvJYvG1e54o(cBFqDQGAqMdK21wkiZar8MqHmkZQAj1oDesQj9Nivb))C8F(Dd4rcQnVCLJVUeZkd9wi3mYQJlvEW)DtfMH2QrCZ9R8KdJK(zhNU7BP5PEiC8PV4bnp00SaMjvEvqgTfs7GRDvJotY26uq7j2urVGUhwu7lyEdZig6ElC8k04lwpWI7w1n5bkeTvwA5JDtIaPiTcYz3ZIZORnvNf0SI)sBHJFPJF8wdh)whF(WGcwCGlmljgopE314mc4OjcU5NhCH9oD5XfuQCKEQrgdp1t6hopsh6WcjC)UUrYgoXt01)7e9QgYr063sqDJhQbRJnPJGBPFX7MQEAjYHhW)6Cy4Ot)OF8r9bOT3XN(DF)pbmItVXUeLs1uHbY)Mm4lGVzXpEl5DR3pwCCBdOLTM(ay)5p]] )
-spec:RegisterPack( "Feral", 20260313, [[Hekili:1IvBVTTnq4Fl9lUonPAw21zBD2gyfdBl5dzatzOFyOsIwIYMisKAKuj1ag63(oQxSKLjLLt3GbmSPU75EUx4DhKRT7JUoHij29HPtME7Kz2ZSMaFBFRRJCxk21jff8eAd8dkkb((xXCuS60DXmuOsBblJhap5ZSp7qseUoRZiXY7OUR1I8KzGkP4a3hSTDD2scdXLIIfbvWN7)l8msyUFkNW4e5UC)igp3)3XprIjGX5SismysuGKWOcRuooGLSgjVE53fGKEG0j3qIwUolkYQ(aRq2l0871PtcI)KhlYtUf79cjo8GUDFqpyi3Y4uXbnl)BL8h0y48dKmcH5eSxeHdFPIlkvcXfkDYZS44eeHkwmRnepJ4e06y8nQK3sXwsKehEdlDPalV5zuCgEzcIIScY4CmvUOuZgkbjkAyBa5KuflQX1QcYrQWaZlLrOsrnARwoF0Bczslqjljj4jcDZOXykMVzxJmZMSFFzCigJ4biHeeZkl9QrseFdwcAMG9KmVqcELI3QNlSkCApazpGHq(HJfBBtuWT2eJ9aprlFRcJLsDi2zBn)ucwftAaSmQyG1hLaXCwaHLj8wtK4lkUDAyA(amOacdHATZj49HPdaVQS9GtUFtzStJwgdoNANf9AM97h3LQ1)Vo13R(xDM0QjIEIr1v1TAPQS708T5QzJfVMvPl8tFNHY63pDshUSy60RniCTK1jIe0xxS0wBfPUAnTcEAH6W9QHtZv2M6j3X57jmDrLqJA3N9atn3OThkzpziG568mMlGZpm)DIRZliovrryA9p)NpC3d)2hZ9Z9FClo3NKKY4YQjTVnehHYILVn3NJ)NmykdmnwWsa5qzswcmwhoiylevWcR87lqiIfhZEbGxjehjY9FbZHZZekHj0CFPsSs2M7hteG5wNjRLJYkmFg9iPddvcdlsGwJe4pcdt9Fpy6wvsQ5RpULiu7luSyaOo8NeIquqgrwAlxBJkAsca45e6ty4cRkeCNSuPIb6jq4trz5weCmgIJ7AVlcHgeNbRRapIaCKxZP)(Veyfs4eXxUbCQTKGTTLgr31y1k3f)10ysarg3GBBVV2O)uUpW9kZ8yje5(2FrbAy7JM2YYWclXT8OkiL1IwenkoIMLSgxMIJHA687VROwqDW0JZxQCnS2vMA7gxhNSumNMju78b5MW)G668jumIQwhSq8ITlllLGF(qX2MyQAYuO7NCDcaFdsgi1oJD3eQE7oqQQJDLqPSreo3Ir5(lY9N1G6jcQGFwh4zPWYQyzJw1dwv)c2EY1P9nXcty6YiI7vUbD1izL5(GrVP7a8C)rqrVMXm5(RwM7pV45VbUNC8eNIJhdLzh1bPuNztY93VxDdutNz)Rku90bTL62BRUMOfCUYnNFzUP2XBfXw1iUE8id9Q71nBiBJAkoF7LX5ZLAmLdMpqYD8ohkc(9xgbnqay66WiqX8zLD)bJ29CXadLN)3uJ9JVAAnwpfwCggug3gR3N6SAWqq7QZKVHX3Vwpuld1FjtPu9Tm9fS9YrZn479sTPlH2MB3RJCqT876Plam7C6eTEgWIPGYx3JYnA1Alsqtv8Yi97ooP78UJVVP5YMT5je6VnRddZTFVOMOgIaR6layUlQMuWasCVI7vGwhpJULt2DiTUnoSn3OvJpyp5B2Is1l4Q69k9)9stMFjxTtPh)yD7j1bXwV8RgCkpSWbl)4(V)]] )
+spec:RegisterPack( "Feral", 20260322, [[Hekili:1IvBVTTnq4Fl9lUjnPAwYXDBD2gyfdBl5dzatzOFyOsIwIYIisKAKuXnag63(oQxIKLjLTt3(sGm19YZ9ChV7I8S9EWZncjXE37m15dtN54yzpZ(g75EUYNZXEU5OWhrBGhOOm4V)kMJsvN(CkdfP0wWk4HWB(m7ZUKmHN76csQ8wQ3A9w2bujhh6DVTTNBcjkcxlkwe2y(YGFHxqIkdY5egNiFUmiMXld(D8JKuc4ColMKcUefkjmQWkNJdzzRrYRw(DHiPpiD21K4LRlIJTApWkITLwENoDYq8h9zX(YeS)wsA0l6o8fJydzcJtfVOz9pBK)fnoD8bsgJWCc2pMWH)O4fLkr4kLo4DwCCgIqflM13epH4e06u81QK3srcjwIJUMLVuGLx)ekTaVmdrrwHfCoMkxuRzhKGefnQVb5KCfkATRvJjNOObMFoJqLIwRTA58jVjIjTaLSKKWhj0ntUatX8np3jZSP72vZdPyepejKGywf5xorI4BWsqZmSVK5hrWRu4w9EHvvq7dw2hqiKF4yrsFGcH1MuSpejAXBdnwl1lCNT18dbydN0zWAwXaQ3lbI5SqcRq4VMiXNfVDinn)eCOaOHiT(5a7DJZjyVMS9jNC)MYyhYwgjNd9ZIrDZUDxmeQT)Un1pQ(xEK0QjGEGt1v1TAPQS7W8T5QzJfVMvzO5DENHY637mDaww44CLbHBLSnrKH(6IL2ARi1vRPvWdlup9O60H5kBt9KX)tbjphhzTLLglsWOi)eCA2qsze67SkTM0V)7lrG5gWVcOAp9uCIN7tyUaoVDET9mp3TiovbDy6(p)N3F79)2hldkdEibxgqYYzCzZK53gHJrfPY3wgWvOcYLLbcwgihQqYYG1aGdcta2clSkVRYcXS0u2wW8kH4irzWwmhoVqOeMqldKkXQrBzqkraUBDHSvokRY9f09KoksjmS4bAnsG)im8n49GR7v5PMh)qcrO2VOArcqD4hzeHOcmII8EH2gfBscbZZj0hXWfCffCRSwPQfaYa6tbzzccogd84Z93DHqdtlG1BGxramYBX0F)xcSYs4mXxUgcQesysFPr0N78At4I)AEkjKit7SB)OV1P)uzaG9g38qTjkdS)IYOr9pYPNNHfCs7frnMu2kAfBuDeTiBnUofNc16L3DBvTG6aN9ZxQCTNB1tvlAwxLapEF1INyQAivK3N8Cdbyd8msT(4WLIAx0dKQ5ypjuLA0chBhPYGfLbZ6S6bcQm)SbMNLd7TILDA1oJv9eSiLNB)lzvUW09me3VEz6MPZk3DJXOz4S8YGjq9SMjoLbRwwgmV69VbUcS)WNQJVaQG2R5qToZMwgSBN6YLMM0bxwP6HZCR1D0UBDSfCUkmNFEHP2jDvCRAA3irKH2ZJgMDGTtnfM)W5H5JLAmLdMFIGB)1pua87ppaAaaWG2tdavJQv(9hm63JXbgkp)VPg7hF1W6c9qyXrqqnVDH(yAW2aNI1U8i5B7PV6iulc1FjtPu7Tm9fSJIrZn4h9sTPlH2MB3RdCqT87gPlamw0zQ2idqHdO8vJOCNw9wOe0uXxgH)WXjdN3T)9nnx2SnpHq)TzD2WC73ZQjQbgy1yeG5UOgwJ1u65esQVI7CGw7p)UhbmCaUUTrSn3e(mJp7PFZOrQ(gznFAQ)Vx2Y83jRFPW(Vw3(vdSyVVFwNDQpSkaHquTFF0Fah)jukIQ(eKW)RbiHN7TqpCAeftle1s79V)]] )
 spec:RegisterPack( "Tank", 20260313, [[Hekili:9w1sVTnoq4)n5Y2vRFeNwSBSpuuu04dPhukYHfHIusJIimfPajv969a)T3Hu2w0X2Xn9qViqnp((goVizm5bsAjZcK7NmAYnJMoEAYi87SjKu7MwGK2YkwXEgpizn43hyYvEHBekwP3zJQtxGkEu9ykVXqsZ74c7Dss(jb(6zOlTqb5(XJjP18YsO3uWu0JUJ(jDhV0rB1CLMB34OvkTJ(fyfxWrU1QkUazKvy5kPjPvdfQMCM9pM)xLCnKLdmDg6tZ74vZZ7QQsouCsPAT0T8u(3W0RYuvz2AiBnxuUhHxQ4vWWwR0sZEp7)9vShKAmb7wUx7V29a9sWkanMZ92xcbp2jkXyXc58zxvQSdc1qdJln3oozwmovmqZHSkpBvOLIiaps3EqMEWfaAuOs()ZLpNPvmDeehPBpetIHOHjFw0FDJfBwZBFZ3WftVIz96ZAvRb9I5gWAr6njwSLllGzgRflVAWuReLNlT6lvjfDAniTlM3Btui0cYYdVdDIJD7qY92K5nyGDs63bTbXy)0Zis6AMw69chtQ5g)8ryqWr9)0WnguPJA6ABvA72HMNbjwUkCuRMlxbwtIJ6O3z7Dk0e2GHmGJB2AgkgqI3ep7XLfIoC6evXXMF9FJnQ0)0r)3VzapsqJ5P35ORR5f1XwZKBgy1rLkp4)xRGxWTIbCl9N8KddK(pokg7BP5HEiC0Xp5bTmw0KiMXHsr0nAlK2DMgYgbrYUMCq7j2iWof3Y7A8jmVGjidHsNJk4gFYAjjnCkSMeQWkLfpEFyTjiz5cOK8rsAbg2yEM53(D6X0DRRqyoqjXIL4ZI2jBXD05o6mh9kh9uT6o6TyYkz2aJ7SWZ10lX1zNVd4oDa1Jm0d)1xc(Zo7hGFsuA6Lg6HFMh(DweTFiMt0SBUuu8gtOlWlEqD8oeum62L2JmeUbD(O79Nn6I3s0d)jxWC6k7hEdW(tSaAil35RSw)dVBFZ635eW5F8noepu9R3N)YhLhWPx4(24DI7FF(WwSqcjNzGYVIw85q7FkRZJajnTRf0YoJjyg5h)]] )
 
 
-spec:RegisterPackSelector( "balance", "Balance (IV)", "|T136096:0|t Balance",
+spec:RegisterPackSelector( "balance", "Balance", "|T136096:0|t Balance",
     "If you have spent more points in |T136096:0|t Balance than in any other tree, this priority will be automatically selected for you.",
     function( tab1, tab2, tab3 )
         return tab1 > max( tab2, tab3 )
     end )
 
-spec:RegisterPackSelector( "feral_dps", "Feral DPS (IV)", "|T132115:0|t Feral DPS",
+spec:RegisterPackSelector( "feral_dps", "Feral", "|T132115:0|t Feral DPS",
     "If you have spent more points in |T132276:0|t Feral than in any other tree and have not taken Thick Hide, this priority will be automatically selected for you.",
     function( tab1, tab2, tab3 )
         return tab2 > max( tab1, tab3 ) and talent.thick_hide.rank == 0
     end )
 
-spec:RegisterPackSelector( "feral_tank", "Feral Tank (IV)", "|T132276:0|t Feral Tank",
+spec:RegisterPackSelector( "feral_tank", "Tank", "|T132276:0|t Feral Tank",
     "If you have spent more points in |T132276:0|t Feral than in any other tree and have taken Thick Hide, this priority will be automatically selected for you.",
     function( tab1, tab2, tab3 )
         return tab2 > max( tab1, tab3 ) and talent.thick_hide.rank > 0

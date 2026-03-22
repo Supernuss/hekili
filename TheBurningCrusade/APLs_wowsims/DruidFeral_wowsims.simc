@@ -17,5 +17,5 @@ actions+=/mangle_cat,if=energy.current>=2*action.mangle_cat.spend-20&energy.curr
 actions+=/shred,if=buff.clearcasting.up
 actions+=/shred,if=energy.current>=42
 actions+=/mangle_cat,if=energy.current>=action.mangle_cat.spend&energy.time_to_max>1
-actions+=/cat_form,if=energy.current<action.mangle_cat.spend-20&dot.rip.remains<settings.feral_rip_end_thresh&mana.current>=action.cat_form.spend
-actions+=/cat_form,if=energy.current<10&mana.current>=action.cat_form.spend
+actions+=/cat_form,if=equipped.wolfshead_helm&energy.current<action.mangle_cat.spend-20&dot.rip.remains<settings.feral_rip_end_thresh&mana.current>=action.cat_form.spend
+actions+=/cat_form,if=equipped.wolfshead_helm&energy.current<10&mana.current>=action.cat_form.spend
