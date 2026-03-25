@@ -15,7 +15,6 @@ spec:RegisterGear( "tier5", 30144, 30145, 30146, 30148, 30149 )
 spec:RegisterGear( "tier6", 31026, 31027, 31028, 31029, 31030 )
 spec:RegisterGear( "sunwell", 34448, 34558, 34575 )
 
-
 -- Effect implementation status (class-wide):
 -- Profile: mvp
 -- [x] TALENT_SPEC_SELECT (points 0/1 => primary/secondary)
@@ -407,6 +406,10 @@ spec:RegisterAbilities( {
         -- [ ] Rank 27441 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 274, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         -- [ ] Rank 27441 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
 
+        handler = function ()
+            gain( 1, "combo_points" )
+        end,
+
         proc_chance = 100,
     },
 
@@ -491,6 +494,10 @@ spec:RegisterAbilities( {
         -- [ ] Rank 26863 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 149, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         -- [ ] Rank 26863 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         startsCombat = true,
+
+        handler = function ()
+            gain( 1, "combo_points" )
+        end,
 
         proc_chance = 100,
     },
@@ -605,6 +612,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             applyDebuff( "target", "cheap_shot" )
+            gain( 2, "combo_points" )
         end,
 
         proc_chance = 100,
@@ -1094,6 +1102,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             applyDebuff( "target", "garrote" )
+            gain( 1, "combo_points" )
         end,
 
         proc_chance = 100,
@@ -1121,6 +1130,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             applyBuff( "ghostly_strike" )
+            gain( 1, "combo_points" )
         end,
 
         -- Related talents:
@@ -1167,6 +1177,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             applyDebuff( "target", "gouge" )
+            gain( 1, "combo_points" )
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "gouge" ) end
         end,
 
@@ -1203,6 +1214,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             applyDebuff( "target", "hemorrhage" )
+            gain( 1, "combo_points" )
         end,
 
         proc_chance = 100,
@@ -1483,6 +1495,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             applyBuff( "premeditation" )
+            gain( 2, "combo_points" )
         end,
 
         -- Related talents:
@@ -1660,6 +1673,10 @@ spec:RegisterAbilities( {
         -- [ ] Rank 5938 #0 -- effect: DUMMY, aura: NONE, points: 0, addl_points: 0, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         startsCombat = true,
 
+        handler = function ()
+            gain( 1, "combo_points" )
+        end,
+
         proc_chance = 100,
     },
 
@@ -1716,6 +1733,10 @@ spec:RegisterAbilities( {
         -- [ ] Rank 26862 #0 -- effect: NORMALIZED_WEAPON_DMG, aura: NONE, points: 97, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         -- [ ] Rank 26862 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         startsCombat = true,
+
+        handler = function ()
+            gain( 1, "combo_points" )
+        end,
 
         proc_chance = 100,
     },
@@ -2028,6 +2049,13 @@ spec:RegisterSetting( "rogue_pool_energy", 50, {
     min = 20,
     max = 100,
     step = 1,
+} )
+
+spec:RegisterSetting( "show_energy_ticks", false, {
+    type = "toggle",
+    name = "|T136018:0|t Show Energy Ticks",
+    desc = "Print detected passive energy ticks in chat for debugging.",
+    width = "full",
 } )
 
 spec:RegisterSetting( "rogue_finisher_expose_gate", 3, {

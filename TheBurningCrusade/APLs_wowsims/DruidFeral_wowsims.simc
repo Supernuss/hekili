@@ -14,8 +14,9 @@ actions+=/ferocious_bite,if=combo_points.current>=5&(target.time_to_die<settings
 actions+=/ferocious_bite,if=combo_points.current>=5&dot.rip.ticking&debuff.mangle.remains>=1.5&energy.current>=35
 actions+=/mangle_cat,if=debuff.mangle.remains<1.5
 actions+=/mangle_cat,if=energy.current>=2*action.mangle_cat.spend-20&energy.current<22+action.mangle_cat.spend&energy.time_to_max<=1
-actions+=/shred,if=buff.clearcasting.up
-actions+=/shred,if=energy.current>=42
+actions+=/shred,if=!solo&(buff.clearcasting.up|energy.current>=42)
+actions+=/mangle_cat,if=solo&(buff.clearcasting.up|energy.current>=42)
 actions+=/mangle_cat,if=energy.current>=action.mangle_cat.spend&energy.time_to_max>1
+actions+=/claw,if=solo&talent.mangle.rank=0&energy.current>=action.claw.spend
 actions+=/cat_form,if=equipped.wolfshead_helm&energy.current<action.mangle_cat.spend-20&dot.rip.remains<settings.feral_rip_end_thresh&mana.current>=action.cat_form.spend
 actions+=/cat_form,if=equipped.wolfshead_helm&energy.current<10&mana.current>=action.cat_form.spend

@@ -47,19 +47,6 @@ local function consume_flurry_stack()
     applyBuff( "flurry", nil, stacks - 1 )
 end
 
-local function consume_elemental_focus_stack()
-    if not class.auras.elemental_focus or not buff.elemental_focus or not buff.elemental_focus.up then return end
-
-    local stacks = buff.elemental_focus.stack or 1
-
-    if stacks <= 1 then
-        removeBuff( "elemental_focus" )
-        return
-    end
-
-    applyBuff( "elemental_focus", nil, stacks - 1 )
-end
-
 local totem_element = {
     disease_cleansing_totem = "water",
     earth_elemental_totem = "earth",
@@ -213,6 +200,14 @@ spec:RegisterAuras( {
         max_stack = 1,
         copy = { 29177, 29178, 29179, 29180, 30160 },
         -- Aura effects: MOD_WEAPON_CRIT_PERCENT, PROC_TRIGGER_SPELL
+        -- Aura targets: TARGET_UNIT_CASTER
+    },
+
+    clearcasting = {
+        id = 16246,
+        duration = 15,
+        max_stack = 2,
+        -- Aura effects: ADD_PCT_MODIFIER
         -- Aura targets: TARGET_UNIT_CASTER
     },
 
@@ -612,7 +607,7 @@ spec:RegisterAbilities( {
         cooldown_category_id = 85,
         cooldown_category = "Direct Damage (AE-Chain) - Ability",
         range = 30,
-        spend = 255,
+        spend = function () return buff.clearcasting.up and ( 255 * 0.6 ) or 255 end,
         spendType = "Mana",
         max_stack = 1,
         copy = { 421, 930, 2860, 10605, 25439, 25442 },
@@ -627,7 +622,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
-            consume_elemental_focus_stack()
+            if buff.clearcasting.up then removeStack( "clearcasting", 1 ) end
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "chain_lightning" ) end
         end,
 
@@ -779,7 +774,7 @@ spec:RegisterAbilities( {
         cooldown_category_id = 19,
         cooldown_category = "Quick Damage - Spell",
         range = 20,
-        spend = 30,
+        spend = function () return buff.clearcasting.up and ( 30 * 0.6 ) or 30 end,
         spendType = "Mana",
         max_stack = 1,
         copy = { 8042, 8044, 8045, 8046, 10412, 10413, 10414, 25454 },
@@ -804,7 +799,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
-            consume_elemental_focus_stack()
+            if buff.clearcasting.up then removeStack( "clearcasting", 1 ) end
             if type( setCooldown ) == "function" then
                 setCooldown( "earth_shock", 6 )
                 setCooldown( "flame_shock", 6 )
@@ -985,7 +980,7 @@ spec:RegisterAbilities( {
         cooldown_category_id = 19,
         cooldown_category = "Quick Damage - Spell",
         range = 20,
-        spend = 55,
+        spend = function () return buff.clearcasting.up and ( 55 * 0.6 ) or 55 end,
         spendType = "Mana",
         max_stack = 1,
         copy = { 8050, 8052, 8053, 10447, 10448, 25457, 29228 },
@@ -1008,7 +1003,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
-            consume_elemental_focus_stack()
+            if buff.clearcasting.up then removeStack( "clearcasting", 1 ) end
             applyDebuff( "target", "flame_shock" )
             if type( setCooldown ) == "function" then
                 setCooldown( "earth_shock", 6 )
@@ -1155,7 +1150,7 @@ spec:RegisterAbilities( {
         cooldown_category_id = 19,
         cooldown_category = "Quick Damage - Spell",
         range = 20,
-        spend = 115,
+        spend = function () return buff.clearcasting.up and ( 115 * 0.6 ) or 115 end,
         spendType = "Mana",
         max_stack = 1,
         copy = { 8056, 8058, 10472, 10473, 25464 },
@@ -1174,7 +1169,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
-            consume_elemental_focus_stack()
+            if buff.clearcasting.up then removeStack( "clearcasting", 1 ) end
             applyDebuff( "target", "frost_shock" )
             if type( setCooldown ) == "function" then
                 setCooldown( "earth_shock", 6 )
@@ -1461,7 +1456,7 @@ spec:RegisterAbilities( {
         school = "nature",
         texture = 136048,
         range = 30,
-        spend = 15,
+        spend = function () return buff.clearcasting.up and ( 15 * 0.6 ) or 15 end,
         spendType = "Mana",
         max_stack = 1,
         copy = { 403, 529, 548, 915, 943, 6041, 10391, 10392, 15207, 15208, 25448, 25449 },
@@ -1482,7 +1477,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
-            consume_elemental_focus_stack()
+            if buff.clearcasting.up then removeStack( "clearcasting", 1 ) end
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "lightning_bolt" ) end
         end,
 

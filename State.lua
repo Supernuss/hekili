@@ -2087,7 +2087,7 @@ do
             elseif k == "mounted" or k == "is_mounted" then t[k] = IsMounted()
             elseif k == "moving" then t[k] = ( GetUnitSpeed("player") > 0 )
             elseif k == "raid" then t[k] = IsInRaid() and t.group_members > 5
-            elseif k == "solo" then t[k] = t.group_members == 0
+            elseif k == "solo" then t[k] = t.group_members <= 1
             elseif k == "tanking" then t[k] = t.role.tank and t.aggro
 
             -- Enemy counting.
@@ -3463,7 +3463,24 @@ function state:TimeToResource( t, amount )
     if not amount or amount > t.max then return 3600
     elseif t.current >= amount then return 0 end
 
-    local pad, lastTick = 0
+    local pad, lastTick = 0, nil
+    local tickRate = ( t.tick_rate and t.tick_rate > 0 ) and t.tick_rate or 0.1
+    local tickPad = function( atTime )
+        if not lastTick or tickRate <= 0 then return 0 end
+
+        local elapsed = atTime - lastTick
+        if elapsed <= 0 then return 0 end
+
+        local remainder = elapsed % tickRate
+        local epsilon = max( 0.001, tickRate * 0.01 )
+
+        if remainder <= epsilon or ( tickRate - remainder ) <= epsilon then
+            return 0
+        end
+
+        return tickRate - remainder
+    end
+
     if t.resource == "energy" or t.resource == "focus" then
         -- Round any result requiring ticks to the next tick.
         lastTick = t.last_tick
@@ -3495,8 +3512,7 @@ function state:TimeToResource( t, amount )
                 t.times[ amount ] = slice.t
 
                 if lastTick then
-                    pad = ( slice.t - lastTick ) % 0.1
-                    pad = 0.1 - pad
+                    pad = tickPad( slice.t )
                 end
 
                 return max( 0, pad + t.times[ amount ] - q )
@@ -3506,10 +3522,10 @@ function state:TimeToResource( t, amount )
                 local time_diff = after.t - slice.t
                 local deficit = amount - slice.v
                 local regen_time = deficit / t.regen
+                local predicted_time = slice.t + regen_time
 
                 if lastTick then
-                    pad = ( slice.t - lastTick ) % 0.1
-                    pad = 0.1 - pad
+                    pad = tickPad( predicted_time )
                 end
 
                 if regen_time < time_diff then
@@ -3527,8 +3543,11 @@ function state:TimeToResource( t, amount )
 
     -- This wasn't a modeled resource,, just look at regen time.
     if lastTick then
-        pad = ( slice.t - lastTick ) % 0.1
-        pad = 0.1 - pad
+        local predicted_time = state.query_time
+        if t.regen > 0 then
+            predicted_time = predicted_time + ( ( amount - t.current ) / t.regen )
+        end
+        pad = tickPad( predicted_time )
     end
 
     if t.regen <= 0 then return 3600 end
@@ -6339,7 +6358,8 @@ do
                 end
 
                 res.last_tick = rawget( res, "last_tick" ) or 0
-                res.tick_rate = rawget( res, "tick_rate" ) or 0.1
+                local default_tick_rate = ( ( k == "energy" or k == "focus" ) and Hekili.IsClassic() ) and 2.02 or 0.1
+                res.tick_rate = rawget( res, "tick_rate" ) or default_tick_rate
 
                 if power.type == Enum.PowerType.Mana then
                     local inactive, active = GetManaRegen()
@@ -6349,9 +6369,16 @@ do
                     res.regen = nil
                 else
                     if ResourceRegenerates( k ) then
-                        local inactive, active = GetPowerRegenForPowerType( power.type )
-                        res.active_regen = active or 0
-                        res.inactive_regen = inactive or 0
+                        if k == "energy" and Hekili.IsClassic() then
+                            local fixed_energy_regen = 20.2 / 2.02
+                            res.tick_rate = 2.02
+                            res.active_regen = fixed_energy_regen
+                            res.inactive_regen = fixed_energy_regen
+                        else
+                            local inactive, active = GetPowerRegenForPowerType( power.type )
+                            res.active_regen = active or 0
+                            res.inactive_regen = inactive or 0
+                        end
                         res.regen = nil
                     else
                         res.regen = 0

@@ -15,16 +15,6 @@ spec:RegisterGear( "tier5", 30206, 30205, 30207, 30210, 30196 )
 spec:RegisterGear( "tier6", 31056, 31055, 31058, 31059, 31057 )
 spec:RegisterGear( "sunwell", 34557, 34574, 34447 )
 
-local function has_arcane_concentration()
-    return class.auras.arcane_concentration and buff.arcane_concentration and buff.arcane_concentration.up
-end
-
-local function consume_arcane_concentration()
-    if has_arcane_concentration() then
-        removeBuff( "arcane_concentration" )
-    end
-end
-
 local function apply_ignite_stack()
     if not talent.ignite.enabled then return end
     if not class.auras.ignite or not debuff.ignite then return end
@@ -143,6 +133,14 @@ spec:RegisterAuras( {
         duration = 8,
         max_stack = 3,
         -- Aura effects: ADD_PCT_MODIFIER, MOD_DECREASE_SPEED
+        -- Aura targets: TARGET_UNIT_CASTER
+    },
+
+    clearcasting = {
+        id = 12536,
+        duration = 15,
+        max_stack = 1,
+        -- Aura effects: ADD_PCT_MODIFIER
         -- Aura targets: TARGET_UNIT_CASTER
     },
 
@@ -576,7 +574,7 @@ spec:RegisterAbilities( {
         texture = 136096,
         range = 30,
         spend = function ()
-            if has_arcane_concentration() then return 0 end
+            if buff.clearcasting.up then return 0 end
             return 195 * ( 1 + 0.75 * ( buff.arcane_blast.stack or 0 ) )
         end,
         spendType = "Mana",
@@ -593,7 +591,7 @@ spec:RegisterAbilities( {
             else
                 applyBuff( "arcane_blast", nil, 1 )
             end
-            consume_arcane_concentration()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "arcane_blast" ) end
         end,
 
@@ -607,7 +605,7 @@ spec:RegisterAbilities( {
         gcd = "spell",
         school = "arcane",
         texture = 136116,
-        spend = function () return has_arcane_concentration() and 0 or 75 end,
+        spend = function () return buff.clearcasting.up and 0 or 75 end,
         spendType = "Mana",
         max_stack = 1,
         copy = { 1449, 8437, 8438, 8439, 10201, 10202, 27080, 27082 },
@@ -625,7 +623,7 @@ spec:RegisterAbilities( {
         radius = 10,
 
         handler = function ()
-            consume_arcane_concentration()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "arcane_explosion" ) end
         end,
 
@@ -669,7 +667,7 @@ spec:RegisterAbilities( {
         texture = 136096,
         range = 30,
         spend = function ()
-            if has_arcane_concentration() then return 0 end
+            if buff.clearcasting.up then return 0 end
             return max( 0, 85 * ( 1 + 0.02 * ( talent.empowered_arcane_missiles.rank or 0 ) ) )
         end,
         -- Talent spend scaling: empowered_arcane_missiles (2% per rank)
@@ -706,7 +704,7 @@ spec:RegisterAbilities( {
         handler = function ()
             applyDebuff( "target", "arcane_missiles" )
             applyBuff( "arcane_missiles" )
-            consume_arcane_concentration()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
         end,
 
         proc_chance = 100,
@@ -1293,7 +1291,7 @@ spec:RegisterAbilities( {
         cooldown_category_id = 19,
         cooldown_category = "Quick Damage - Spell",
         range = 20,
-        spend = function () return has_arcane_concentration() and 0 or 40 end,
+        spend = function () return buff.clearcasting.up and 0 or 40 end,
         -- Talent cooldown scaling (category source): improved_fire_blast (-0.5s per rank)
         spendType = "Mana",
         max_stack = 1,
@@ -1313,7 +1311,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             apply_ignite_stack()
-            consume_arcane_concentration()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "fire_blast" ) end
         end,
 
@@ -1391,7 +1389,7 @@ spec:RegisterAbilities( {
         school = "fire",
         texture = 135812,
         range = 35,
-        spend = function () return has_arcane_concentration() and 0 or 30 end,
+        spend = function () return buff.clearcasting.up and 0 or 30 end,
         -- Talent cast scaling: improved_fireball (-0.1s per rank)
         spendType = "Mana",
         max_stack = 1,
@@ -1431,7 +1429,7 @@ spec:RegisterAbilities( {
         handler = function ()
             applyDebuff( "target", "fireball" )
             apply_ignite_stack()
-            consume_arcane_concentration()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "fireball" ) end
         end,
 
@@ -1626,7 +1624,7 @@ spec:RegisterAbilities( {
         texture = 135846,
         range = 30,
         spend = function ()
-            if has_arcane_concentration() then return 0 end
+            if buff.clearcasting.up then return 0 end
             return max( 0, 25 * ( 1 + -0.05 * ( talent.frost_channeling.rank or 0 ) ) )
         end,
         -- Talent cast scaling: improved_frostbolt (-0.1s per rank)
@@ -1675,7 +1673,7 @@ spec:RegisterAbilities( {
                     applyDebuff( "target", "winters_chill", nil, 1 )
                 end
             end
-            consume_arcane_concentration()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "frostbolt" ) end
         end,
 
@@ -2298,7 +2296,7 @@ spec:RegisterAbilities( {
         school = "fire",
         texture = 135808,
         range = 35,
-        spend = function () return has_arcane_concentration() and 0 or 125 end,
+        spend = function () return buff.clearcasting.up and 0 or 125 end,
         spendType = "Mana",
         max_stack = 1,
         copy = { 11366, 12505, 12522, 12523, 12524, 12525, 12526, 18809, 27132, 33938 },
@@ -2329,7 +2327,7 @@ spec:RegisterAbilities( {
         handler = function ()
             applyDebuff( "target", "pyroblast" )
             apply_ignite_stack()
-            consume_arcane_concentration()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "pyroblast" ) end
         end,
 
@@ -2387,7 +2385,7 @@ spec:RegisterAbilities( {
         school = "fire",
         texture = 135827,
         range = 30,
-        spend = function () return has_arcane_concentration() and 0 or 50 end,
+        spend = function () return buff.clearcasting.up and 0 or 50 end,
         spendType = "Mana",
         max_stack = 1,
         copy = { 2948, 8444, 8445, 8446, 10205, 10206, 10207, 27073, 27074 },
@@ -2406,7 +2404,7 @@ spec:RegisterAbilities( {
 
         handler = function ()
             apply_ignite_stack()
-            consume_arcane_concentration()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "scorch" ) end
         end,
 

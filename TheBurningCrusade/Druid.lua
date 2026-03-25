@@ -36,24 +36,16 @@ spec:RegisterGear( "sunwell",
 
 spec:RegisterGear( "wolfshead_helm", 8345 )
 
-local function remove_druid_buff( auraKey )
-    if type( state.removeBuff ) == "function" then
-        state.removeBuff( auraKey )
-    elseif type( removeBuff ) == "function" then
-        removeBuff( auraKey )
-    end
-end
-
 local function clear_druid_forms()
-    remove_druid_buff( "aquatic_form" )
-    remove_druid_buff( "bear_form" )
-    remove_druid_buff( "cat_form" )
-    remove_druid_buff( "dire_bear_form" )
-    remove_druid_buff( "flight_form" )
-    remove_druid_buff( "moonkin_form" )
-    remove_druid_buff( "swift_flight_form" )
-    remove_druid_buff( "travel_form" )
-    remove_druid_buff( "tree_of_life" )
+    removeBuff( "aquatic_form" )
+    removeBuff( "bear_form" )
+    removeBuff( "cat_form" )
+    removeBuff( "dire_bear_form" )
+    removeBuff( "flight_form" )
+    removeBuff( "moonkin_form" )
+    removeBuff( "swift_flight_form" )
+    removeBuff( "travel_form" )
+    removeBuff( "tree_of_life" )
 end
 
 local function spend_cat_combo_points()
@@ -621,6 +613,14 @@ spec:RegisterAuras( {
         -- Aura targets: TARGET_UNIT_CASTER
     },
 
+    clearcasting = {
+        id = 16870,
+        duration = 15,
+        max_stack = 1,
+        -- Aura effects: ADD_PCT_MODIFIER
+        -- Aura targets: TARGET_UNIT_CASTER
+    },
+
     pounce = {
         id = 9005,
         duration = 3,
@@ -996,7 +996,10 @@ spec:RegisterAbilities( {
         school = "physical",
         texture = 132140,
         range = 5,
-        spend = 45,
+        spend = function ()
+            if buff.clearcasting.up then return 0 end
+            return max( 0, 45 - ( talent.ferocity.rank or 0 ) )
+        end,
         spendType = "Energy",
         max_stack = 1,
         copy = { 1082, 3029, 5201, 9849, 9850, 27000 },
@@ -1015,6 +1018,11 @@ spec:RegisterAbilities( {
         -- [ ] Rank 27000 #0 -- effect: WEAPON_DAMAGE, aura: NONE, points: 189, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         -- [ ] Rank 27000 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         startsCombat = true,
+
+        handler = function ()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
+            gain( 1, "combo_points" )
+        end,
 
         proc_chance = 40,
         proc_type_mask = { 20, 0 },
@@ -1868,7 +1876,10 @@ spec:RegisterAbilities( {
         cooldown_category_id = 971,
         cooldown_category = "Mortal Strike",
         range = 5,
-        spend = 20,
+        spend = function ()
+            if buff.clearcasting.up then return 0 end
+            return max( 0, 20 - ( talent.ferocity.rank or 0 ) )
+        end,
         spendType = "Rage",
         max_stack = 1,
         copy = { 33878, 33986, 33987 },
@@ -1886,6 +1897,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
             applyDebuff( "target", "mangle_bear" )
         end,
 
@@ -1901,7 +1913,10 @@ spec:RegisterAbilities( {
         school = "physical",
         texture = 132135,
         range = 5,
-        spend = 45,
+        spend = function ()
+            if buff.clearcasting.up then return 0 end
+            return max( 0, 45 - ( talent.ferocity.rank or 0 ) )
+        end,
         spendType = "Energy",
         max_stack = 1,
         copy = { 33876, 33982, 33983 },
@@ -1919,6 +1934,8 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
+            gain( 1, "combo_points" )
             applyDebuff( "target", "mangle_cat" )
         end,
 
@@ -1978,7 +1995,10 @@ spec:RegisterAbilities( {
         school = "physical",
         texture = 132136,
         range = 5,
-        spend = 15,
+        spend = function ()
+            if buff.clearcasting.up then return 0 end
+            return max( 0, 15 - ( talent.ferocity.rank or 0 ) )
+        end,
         spendType = "Rage",
         max_stack = 1,
         copy = { 6807, 6808, 6809, 8972, 9745, 9880, 9881, 26996 },
@@ -1995,6 +2015,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
             applyBuff( "maul_queue", swings and swings.time_to_next_mainhand or nil )
         end,
 
@@ -2211,6 +2232,8 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
+            gain( 1, "combo_points" )
             applyDebuff( "target", "pounce" )
         end,
 
@@ -2317,7 +2340,10 @@ spec:RegisterAbilities( {
         school = "physical",
         texture = 132122,
         range = 5,
-        spend = 40,
+        spend = function ()
+            if buff.clearcasting.up then return 0 end
+            return max( 0, 40 - ( talent.ferocity.rank or 0 ) )
+        end,
         spendType = "Energy",
         max_stack = 1,
         copy = { 1822, 1823, 1824, 9904, 27003 },
@@ -2341,6 +2367,8 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
+            gain( 1, "combo_points" )
             applyDebuff( "target", "rake" )
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "rake" ) end
         end,
@@ -2378,6 +2406,11 @@ spec:RegisterAbilities( {
         -- [ ] Rank 27005 #1 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 384, addl_points: 1, points_per_level: 0, sp_bonus: 1, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         -- [ ] Rank 27005 #2 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         startsCombat = true,
+
+        handler = function ()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
+            gain( 1, "combo_points" )
+        end,
 
         proc_chance = 100,
     },
@@ -2579,6 +2612,11 @@ spec:RegisterAbilities( {
         -- [ ] Rank 27002 #1 -- effect: 328, aura: NONE, points: 0, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
         -- [ ] Rank 27002 #2 -- effect: WEAPON_PERCENT_DAMAGE, aura: NONE, points: 224, addl_points: 1, points_per_level: 0, sp_bonus: 0, radius_idx: 0, target: TARGET_UNIT_TARGET_ENEMY, target2: NONE, mechanic: 0
 
+        handler = function ()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
+            gain( 1, "combo_points" )
+        end,
+
         proc_chance = 100,
     },
 
@@ -2697,7 +2735,10 @@ spec:RegisterAbilities( {
         cooldown_category_id = 85,
         cooldown_category = "Direct Damage (AE-Chain) - Ability",
         range = 5,
-        spend = 20,
+        spend = function ()
+            if buff.clearcasting.up then return 0 end
+            return max( 0, 20 - ( talent.ferocity.rank or 0 ) )
+        end,
         spendType = "Rage",
         max_stack = 1,
         copy = { 769, 779, 780, 9754, 9908, 26997 },
@@ -2712,6 +2753,7 @@ spec:RegisterAbilities( {
         startsCombat = true,
 
         handler = function ()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
             if type( trackSchoolDamage ) == "function" then trackSchoolDamage( "swipe" ) end
         end,
 
@@ -2964,7 +3006,7 @@ spec:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED", function()
             local maul_queued = state.buff.maul_queue.up
 
             if maul_queued then
-                remove_druid_buff( "maul_queue" )
+                removeBuff( "maul_queue" )
                 return
             end
 
@@ -2973,12 +3015,12 @@ spec:RegisterEvent( "COMBAT_LOG_EVENT_UNFILTERED", function()
         end
 
         if subtype == "SWING_MISSED" and state.buff.maul_queue.up then
-            remove_druid_buff( "maul_queue" )
+            removeBuff( "maul_queue" )
             return
         end
 
         if ( subtype == "SPELL_DAMAGE" or subtype == "SPELL_MISSED" ) and MAUL_SPELL_IDS[ a1 or 0 ] then
-            remove_druid_buff( "maul_queue" )
+            removeBuff( "maul_queue" )
             return
         end
     end
@@ -3069,6 +3111,13 @@ spec:RegisterSetting( "passive_rage_prediction", false, {
     type = "toggle",
     name = "|T132276:0|t Passive Rage Prediction",
     desc = "When enabled, rage forecasting includes average incoming damage over the last 10 seconds.",
+    width = "full",
+} )
+
+spec:RegisterSetting( "show_energy_ticks", false, {
+    type = "toggle",
+    name = "|T136018:0|t Show Energy Ticks",
+    desc = "Print detected passive energy ticks in chat for debugging.",
     width = "full",
 } )
 

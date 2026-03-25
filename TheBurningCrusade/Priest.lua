@@ -643,13 +643,17 @@ spec:RegisterAbilities( {
         school = "holy",
         texture = 135883,
         range = 40,
-        spend = 705,
+        spend = function () return buff.clearcasting.up and 0 or 705 end,
         spendType = "Mana",
         max_stack = 1,
 
         -- Effects:
         -- [ ] Rank 32546 #0 -- effect: HEAL, aura: NONE, points: 1041, addl_points: 297, points_per_level: 1.9, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
         -- [ ] Rank 32546 #1 -- effect: HEAL, aura: NONE, points: 1041, addl_points: 297, points_per_level: 1.9, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_CASTER, target2: NONE, mechanic: 0
+
+        handler = function ()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
+        end,
     },
 
 -- Blessed Recovery - After being struck by a melee or ranged critical hit, heal 1/8/16/25% of the damage taken over $27813d.
@@ -1085,7 +1089,7 @@ spec:RegisterAbilities( {
         school = "holy",
         texture = 135907,
         range = 40,
-        spend = 125,
+        spend = function () return buff.clearcasting.up and 0 or 125 end,
         spendType = "Mana",
         max_stack = 1,
         copy = { 2061, 9472, 9473, 9474, 10915, 10916, 10917, 25233, 25235 },
@@ -1100,6 +1104,10 @@ spec:RegisterAbilities( {
         -- [ ] Rank 10917 #0 -- effect: HEAL, aura: NONE, points: 811, addl_points: 147, points_per_level: 4.2, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
         -- [ ] Rank 25233 #0 -- effect: HEAL, aura: NONE, points: 912, addl_points: 147, points_per_level: 4.7, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
         -- [ ] Rank 25235 #0 -- effect: HEAL, aura: NONE, points: 1100, addl_points: 179, points_per_level: 5.2, sp_bonus: 0.429, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+
+        handler = function ()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
+        end,
     },
 
 -- Focused Casting - When cast, you no longer lose casting time due to taking damage. Lasts 6 sec.
@@ -1167,7 +1175,7 @@ spec:RegisterAbilities( {
         school = "holy",
         texture = 135913,
         range = 40,
-        spend = 370,
+        spend = function () return buff.clearcasting.up and 0 or 370 end,
         spendType = "Mana",
         max_stack = 1,
         copy = { 2060, 10963, 10964, 10965, 25210, 25213, 25314 },
@@ -1180,6 +1188,10 @@ spec:RegisterAbilities( {
         -- [ ] Rank 25210 #0 -- effect: HEAL, aura: NONE, points: 2073, addl_points: 337, points_per_level: 8.4, sp_bonus: 0.857, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
         -- [ ] Rank 25213 #0 -- effect: HEAL, aura: NONE, points: 2395, addl_points: 389, points_per_level: 9.3, sp_bonus: 0.857, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
         -- [ ] Rank 25314 #0 -- effect: HEAL, aura: NONE, points: 1965, addl_points: 229, points_per_level: 8.1, sp_bonus: 0.857, radius_idx: 0, target: TARGET_UNIT_TARGET_ALLY, target2: NONE, mechanic: 0
+
+        handler = function ()
+            if buff.clearcasting.up then removeBuff( "clearcasting" ) end
+        end,
     },
 
 -- Heal - Heal your target for 295/429/566/712.

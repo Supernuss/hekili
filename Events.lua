@@ -10,6 +10,7 @@ local PTR = ns.PTR
 local TTD = ns.TTD
 
 local formatKey = ns.formatKey
+local format = string.format
 
 local abs = math.abs
 local lower = string.lower
@@ -1338,8 +1339,10 @@ local power_tick_data = {
     focus_avg = 0.10,
     focus_ticks = 1,
 
-    energy_avg = 0.10,
+    energy_avg = Hekili.IsClassic() and 2.02 or 0.10,
     energy_ticks = 1,
+    energy_prev = nil,
+    energy_last_print = 0,
 }
 
 
@@ -1352,6 +1355,10 @@ local spell_names = setmetatable( {}, {
 
 
 local lastPowerUpdate = 0
+
+local CLASSIC_ENERGY_TICK_INTERVAL = 2.02
+local CLASSIC_ENERGY_TICK_GAIN_MIN = 20
+local CLASSIC_ENERGY_TICK_GAIN_MAX = 21
 
 local function UNIT_POWER_FREQUENT( event, unit, power )
     if power == "FOCUS" and rawget( state, "focus" ) then
@@ -1368,14 +1375,41 @@ local function UNIT_POWER_FREQUENT( event, unit, power )
 
     elseif power == "ENERGY" and rawget( state, "energy" ) then
         local now = GetTime()
-        local elapsed = min( 0.12, now - ( state.energy.last_tick or 0 ) )
+        if Hekili.IsClassic() then
+            local current = UnitPower( "player", Enum.PowerType.Energy ) or 0
+            local previous = power_tick_data.energy_prev
+            power_tick_data.energy_prev = current
 
-        elapsed = elapsed > power_tick_data.energy_avg * 1.5 and power_tick_data.energy_avg or elapsed
+            if previous then
+                local gain = current - previous
+                local elapsed = now - ( state.energy.last_tick or 0 )
 
-        if elapsed > 0.075 then
-            power_tick_data.energy_avg = ( elapsed + ( power_tick_data.energy_avg * power_tick_data.energy_ticks ) ) / ( power_tick_data.energy_ticks + 1 )
-            power_tick_data.energy_ticks = power_tick_data.energy_ticks + 1
-            state.energy.last_tick = now
+                if gain >= CLASSIC_ENERGY_TICK_GAIN_MIN and gain <= CLASSIC_ENERGY_TICK_GAIN_MAX then
+                    power_tick_data.energy_avg = CLASSIC_ENERGY_TICK_INTERVAL
+                    state.energy.last_tick = now
+                    state.energy.tick_rate = CLASSIC_ENERGY_TICK_INTERVAL
+
+                    if state.settings and state.settings.show_energy_ticks and now - power_tick_data.energy_last_print > 0.15 then
+                        local t30 = state:TimeToResource( state.energy, 30 )
+                        local t40 = state:TimeToResource( state.energy, 40 )
+                        local t60 = state:TimeToResource( state.energy, 60 )
+
+                        Hekili:Print( format( "Energy tick: +%d (%.2fs), now %d, next ~%.2fs, t30=%.2f, t40=%.2f, t60=%.2f.", gain, elapsed, current, CLASSIC_ENERGY_TICK_INTERVAL, t30, t40, t60 ) )
+                        power_tick_data.energy_last_print = now
+                    end
+                end
+            end
+        else
+            local elapsed = min( 0.12, now - ( state.energy.last_tick or 0 ) )
+
+            elapsed = elapsed > power_tick_data.energy_avg * 1.5 and power_tick_data.energy_avg or elapsed
+
+            if elapsed > 0.075 then
+                power_tick_data.energy_avg = ( elapsed + ( power_tick_data.energy_avg * power_tick_data.energy_ticks ) ) / ( power_tick_data.energy_ticks + 1 )
+                power_tick_data.energy_ticks = power_tick_data.energy_ticks + 1
+                state.energy.last_tick = now
+                state.energy.tick_rate = power_tick_data.energy_avg
+            end
         end
 
     end
