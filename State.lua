@@ -3431,29 +3431,6 @@ function state:TimeToResource( t, amount )
     if not amount or amount > t.max then return 3600
     elseif t.current >= amount then return 0 end
 
-    local pad, lastTick = 0, nil
-    local tickRate = ( t.tick_rate and t.tick_rate > 0 ) and t.tick_rate or 0.1
-    local tickPad = function( atTime )
-        if not lastTick or tickRate <= 0 then return 0 end
-
-        local elapsed = atTime - lastTick
-        if elapsed <= 0 then return 0 end
-
-        local remainder = elapsed % tickRate
-        local epsilon = max( 0.001, tickRate * 0.01 )
-
-        if remainder <= epsilon or ( tickRate - remainder ) <= epsilon then
-            return 0
-        end
-
-        return tickRate - remainder
-    end
-
-    if t.resource == "energy" or t.resource == "focus" then
-        -- Round any result requiring ticks to the next tick.
-        lastTick = t.last_tick
-    end
-
     if t.forecast and t.fcount > 0 then
         local q = state.query_time
 
@@ -3477,26 +3454,16 @@ function state:TimeToResource( t, amount )
 
             if slice.v >= amount then
                 t.times[ amount ] = slice.t
-
-                if lastTick then
-                    pad = tickPad( slice.t )
-                end
-
-                return max( 0, pad + t.times[ amount ] - q )
+                return max( 0, t.times[ amount ] - q )
 
             elseif after and after.v >= amount then
                 -- Our next slice will have enough resources.  Check to see if we'd regen enough in-between.
                 local time_diff = after.t - slice.t
                 local deficit = amount - slice.v
                 local regen_time = deficit / t.regen
-                local predicted_time = slice.t + regen_time
-
-                if lastTick then
-                    pad = tickPad( predicted_time )
-                end
 
                 if regen_time < time_diff then
-                    t.times[ amount ] = ( pad + slice.t + regen_time )
+                    t.times[ amount ] = ( slice.t + regen_time )
                 else
                     t.times[ amount ] = after.t
                 end
@@ -3508,17 +3475,8 @@ function state:TimeToResource( t, amount )
         return max( 0, t.times[ amount ] - q )
     end
 
-    -- This wasn't a modeled resource, just look at regen time.
-    if lastTick then
-        local predicted_time = state.query_time
-        if t.regen > 0 then
-            predicted_time = predicted_time + ( ( amount - t.current ) / t.regen )
-        end
-        pad = tickPad( predicted_time )
-    end
-
     if t.regen <= 0 then return 3600 end
-    return max( 0, pad + ( ( amount - t.current ) / t.regen ) )
+    return max( 0, ( ( amount - t.current ) / t.regen ) )
 end
 
 
