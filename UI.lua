@@ -2,7 +2,7 @@
 -- Dynamic UI Elements
 
 local addon, ns = ...
-local Hekili = _G[addon]
+local Hekili = _G.Hekili or _G[addon]
 
 local class = Hekili.Class
 local state = Hekili.State
@@ -26,7 +26,7 @@ local GetSpecializationInfo = _G.GetSpecializationInfo or function()
     return id, baseName, name
 end
 local HasVehicleActionBar, HasOverrideActionBar, UnitHasVehicleUI, UnitOnTaxi = HasVehicleActionBar, HasOverrideActionBar, UnitHasVehicleUI, UnitOnTaxi
-local IsInPetBattle = Hekili.IsClassic() and function() return false end or C_PetBattles.IsInBattle
+local IsInPetBattle = (Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC()) and function() return false end or C_PetBattles.IsInBattle
 local IsSpellOverlayed = _G.IsSpellOverlayed or function() return false end
 
 local Masque, MasqueGroup
@@ -849,7 +849,7 @@ do
 
         -- These re-register flash frames in SpellFlash (after 0.5 - 1.0s).
         ACTIONBAR_HIDEGRID = 1,
-        LEARNED_SPELL_IN_TAB = 1,
+        --LEARNED_SPELL_IN_TAB = 1,
         CHARACTER_POINTS_CHANGED = 1,
         ACTIVE_TALENT_GROUP_CHANGED = 1,
         UPDATE_MACROS = 1,
@@ -880,7 +880,7 @@ do
         Cooldowns = 0.25
     }
 
-    local LRC = LibStub("LibRangeCheck-3.0")
+    local LRC = LibStub("LibRangeCheck-2.0")
     local LSF = SpellFlashCore
     local catchFlash, lastFramesFlashed = nil, {}
 
@@ -1164,6 +1164,17 @@ do
                                 b.Keybinding:SetText(nil)
                             end
 
+                            local rec = b.Recommendation
+                            if b.Label then
+                                if rec.label and rec.labelVisible then
+                                    b.Label:SetText( rec.label )
+                                    b.Label:Show()
+                                else
+                                    b.Label:SetText( nil )
+                                    b.Label:Hide()
+                                end
+                            end
+
                             if conf.glow.enabled and ( i == 1 or conf.glow.queued ) and IsSpellOverlayed( ability.id ) then
                                 b.glowColor = b.glowColor or {}
 
@@ -1319,7 +1330,7 @@ do
                                     local init, duration = 0, 0
 
                                     if a.gcd ~= "off" then
-                                        start, duration = GetSpellCooldown( 61304 )
+                                        start, duration = GetSpellCooldown( Hekili.IsClassic() and 29515 or 61304 )
                                         if start > 0 then moment = start + duration - now end
                                     end
 
@@ -1517,7 +1528,7 @@ do
                         local start, duration = 0, 0
 
                         if a.gcd ~= "off" then
-                            start, duration = GetSpellCooldown( 61304 )
+                            start, duration = GetSpellCooldown( Hekili.IsClassic() and 29515 or 61304 )
                             if start > 0 then moment = start + duration - now end
                         end
 
@@ -1647,7 +1658,7 @@ do
         end
 
         function d:RefreshCooldowns( event )
-            local gStart = GetSpellCooldown( 61304 )
+            local gStart = GetSpellCooldown( Hekili.IsClassic() and 29515 or 61304 )
             local cStart = ( select( 4, UnitCastingInfo( "player" ) ) or select( 4, UnitCastingInfo( "player" ) ) or 0 ) / 1000
 
             local now = GetTime()
@@ -1860,7 +1871,7 @@ do
                     end
 
                     for k in pairs( flashEvents ) do
-                        pcall( self.RegisterEvent, self, k )
+                        self:RegisterEvent( k )
                     end
 
                     self.Initialized = true
@@ -2494,7 +2505,7 @@ do
         b.Caption:ClearAllPoints()
         b.Caption:SetPoint( capAnchor, b, capAnchor, conf.captions.x or 0, conf.captions.y or 0 )
         b.Caption:SetHeight( b:GetHeight() / 2 )
-        b.Caption:SetJustifyV( capAnchor:match("TOP") and "TOP" or ( capAnchor:match( "BOTTOM" ) and "BOTTOM" or "MIDDLE" ) )
+        b.Caption:SetJustifyV( capAnchor:match("RIGHT") and "RIGHT" or ( capAnchor:match( "LEFT" ) and "LEFT" or "MIDDLE" ) )
         b.Caption:SetJustifyH( conf.captions.align or "CENTER" )
         b.Caption:SetTextColor( unpack( conf.captions.color ) )
         b.Caption:SetWordWrap( false )
@@ -2524,6 +2535,17 @@ do
         local kbText = b.Keybinding:GetText()
         b.Keybinding:SetText( nil )
         b.Keybinding:SetText( kbText )
+
+        b.Label = b.Label or b:CreateFontString( bName .. "_Label", "OVERLAY" )
+        local lc = id == 1 and conf or conf.queue
+        b.Label:SetFont( LSM:Fetch( "font", lc.labelFont or conf.font ), lc.labelFontSize or 12, lc.labelFontStyle or "OUTLINE" )
+        b.Label:ClearAllPoints()
+        local labelAnchor = lc.labelAnchor or "TOP"
+        b.Label:SetPoint( labelAnchor, b, labelAnchor, lc.labelX or 0, lc.labelY or -2 )
+        b.Label:SetHeight( b:GetHeight() / 3 )
+        b.Label:SetJustifyH( lc.labelAlign or "CENTER" )
+        b.Label:SetTextColor( unpack( lc.labelColor or { 1, 1, 0, 1 } ) )
+        b.Label:SetWordWrap( false )
 
 
         -- Cooldown Wheel

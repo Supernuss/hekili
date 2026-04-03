@@ -2,7 +2,7 @@
 -- April 2014
 
 local addon, ns = ...
-local Hekili = _G[ addon ]
+local Hekili = _G.Hekili or _G[ addon ]
 
 local class = Hekili.Class
 local state = Hekili.State
@@ -49,25 +49,15 @@ local function EmbedBlizOptions()
     open:SetText( "Open Hekili Options Panel" )
 
     open:SetScript( "OnClick", function ()
-        if InterfaceOptionsFrameOkay and InterfaceOptionsFrameOkay.Click then
-            InterfaceOptionsFrameOkay:Click()
-        end
-        if GameMenuButtonContinue and GameMenuButtonContinue.Click then
-            GameMenuButtonContinue:Click()
-        end
+        InterfaceOptionsFrameOkay:Click()
+        GameMenuButtonContinue:Click()
 
         ns.StartConfiguration()
     end )
 
     Hekili:ProfileFrame( "OptionsEmbedFrame", open )
 
-    if InterfaceOptions_AddCategory then
-        InterfaceOptions_AddCategory( panel )
-    elseif Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory then
-        local category = Settings.RegisterCanvasLayoutCategory( panel, "Hekili" )
-        category.ID = "Hekili"
-        Settings.RegisterAddOnCategory( category )
-    end
+    --InterfaceOptions_AddCategory( panel )
 end
 
 
@@ -80,11 +70,12 @@ function Hekili:OnInitialize()
     self.Options.args.profiles = LibStub( "AceDBOptions-3.0" ):GetOptionsTable( self.DB )
 
     -- Reimplement LibDualSpec; some folks want different layouts w/ specs of the same class.
-    -- Optional for TBC flavors where dual spec does not exist.
-    local LDS = LibStub( "LibDualSpec-1.0", true )
-    if LDS then
-        LDS:EnhanceDatabase( self.DB, "Hekili" )
-        LDS:EnhanceOptions( self.Options.args.profiles, self.DB )
+    if not Hekili.IsClassic() and not Hekili.IsTBC() then
+        local ok, LDS = pcall(LibStub, "LibDualSpec-1.0")
+        if ok and LDS then
+            LDS:EnhanceDatabase( self.DB, "Hekili" )
+            LDS:EnhanceOptions( self.Options.args.profiles, self.DB )
+        end
     end
 
     self.DB.RegisterCallback( self, "OnProfileChanged", "TotalRefresh" )
@@ -1140,6 +1131,24 @@ function Hekili:GetPredictionFromAPL( dispName, packName, listName, slot, action
                                                             slot.wait = state.delay
                                                             slot.resource = state.GetResourceType( rAction )
 
+                                                            if script.Modifiers and script.Modifiers[ 'label' ] then
+                                                                local ok, labelText = pcall( script.Modifiers[ 'label' ] )
+                                                                slot.label = ok and labelText or nil
+                                                            else
+                                                                slot.label = nil
+                                                            end
+
+                                                            if slot.label then
+                                                                if script.Modifiers[ 'label_if' ] then
+                                                                    local ok, result = pcall( script.Modifiers[ 'label_if' ] )
+                                                                    slot.labelVisible = ok and result or false
+                                                                else
+                                                                    slot.labelVisible = true
+                                                                end
+                                                            else
+                                                                slot.labelVisible = false
+                                                            end
+
                                                             rAction = state.this_action
                                                             rWait = state.delay
 
@@ -1205,6 +1214,24 @@ function Hekili:GetPredictionFromAPL( dispName, packName, listName, slot, action
                                                             slot.waitSec = sec
 
                                                             slot.resource = state.GetResourceType( rAction )
+
+                                                            if script.Modifiers and script.Modifiers[ 'label' ] then
+                                                                local ok, labelText = pcall( script.Modifiers[ 'label' ] )
+                                                                slot.label = ok and labelText or nil
+                                                            else
+                                                                slot.label = nil
+                                                            end
+
+                                                            if slot.label then
+                                                                if script.Modifiers[ 'label_if' ] then
+                                                                    local ok, result = pcall( script.Modifiers[ 'label_if' ] )
+                                                                    slot.labelVisible = ok and result or false
+                                                                else
+                                                                    slot.labelVisible = true
+                                                                end
+                                                            else
+                                                                slot.labelVisible = false
+                                                            end
 
                                                             rAction = state.this_action
                                                             rWait = state.delay
@@ -1325,6 +1352,24 @@ function Hekili:GetPredictionFromAPL( dispName, packName, listName, slot, action
                                                         slot.waitSec = nil
 
                                                         slot.resource = state.GetResourceType( rAction )
+
+                                                        if script.Modifiers and script.Modifiers[ 'label' ] then
+                                                            local ok, labelText = pcall( script.Modifiers[ 'label' ] )
+                                                            slot.label = ok and labelText or nil
+                                                        else
+                                                            slot.label = nil
+                                                        end
+
+                                                        if slot.label then
+                                                            if script.Modifiers[ 'label_if' ] then
+                                                                local ok, result = pcall( script.Modifiers[ 'label_if' ] )
+                                                                slot.labelVisible = ok and result or false
+                                                            else
+                                                                slot.labelVisible = true
+                                                            end
+                                                        else
+                                                            slot.labelVisible = false
+                                                        end
 
                                                         rAction = state.this_action
                                                         rWait = state.delay

@@ -5,7 +5,34 @@ local addon, ns = ...
 local GetAddOnMetadata = GetAddOnMetadata or C_AddOns.GetAddOnMetadata
 Hekili = LibStub("AceAddon-3.0"):NewAddon( "Hekili", "AceConsole-3.0", "AceSerializer-3.0" )
 Hekili.Version = GetAddOnMetadata( "Hekili", "Version" )
-Hekili.Flavor = GetAddOnMetadata( "Hekili", "X-Flavor" ) or "Retail"
+
+local interfaceVersion = select(4, GetBuildInfo())
+
+if _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE then
+    Hekili.Flavor = "Retail"
+elseif _G.WOW_PROJECT_ID == _G.WOW_PROJECT_WRATH_CLASSIC then
+    Hekili.Flavor = "Wrath"
+elseif _G.WOW_PROJECT_ID == _G.WOW_PROJECT_BURNING_CRUSADE_CLASSIC then
+    Hekili.Flavor = "TBC"
+elseif _G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC then
+    if interfaceVersion >= 20000 and interfaceVersion < 30000 then
+        Hekili.Flavor = "TBC"
+    else
+        Hekili.Flavor = "Classic"
+    end
+else
+    if interfaceVersion >= 100000 then
+        Hekili.Flavor = "Retail"
+    elseif interfaceVersion >= 30000 and interfaceVersion < 40000 then
+        Hekili.Flavor = "Wrath"
+    elseif interfaceVersion >= 20000 and interfaceVersion < 30000 then
+        Hekili.Flavor = "TBC"
+    elseif interfaceVersion >= 10000 and interfaceVersion < 20000 then
+        Hekili.Flavor = "Classic"
+    else
+        Hekili.Flavor = GetAddOnMetadata( "Hekili", "X-Flavor" ) or "Retail"
+    end
+end
 
 local format = string.format
 local insert, concat = table.insert, table.concat
@@ -19,30 +46,23 @@ Hekili.AllowSimCImports = true
 Hekili.IsRetail = function()
     return Hekili.Flavor == "Retail"
 end
-Hekili.IsTBC = function()
-    local interfaceVersion = select( 4, GetBuildInfo() )
-
-    return Hekili.Flavor == "TBC" or Hekili.Flavor == "BurningCrusade"
-        or ( interfaceVersion >= 20500 and interfaceVersion < 30000 )
-end
 Hekili.IsWrath = function()
     return Hekili.Flavor == "Wrath"
 end
 Hekili.IsClassic = function()
-    return Hekili.IsWrath() or Hekili.IsTBC()
+    return Hekili.Flavor == "Classic"
+end
+Hekili.IsTBC = function()
+    return Hekili.Flavor == "TBC"
 end
 Hekili.IsDragonflight = function()
     return select( 4, GetBuildInfo() ) >= 100000
 end
 
-ns.callHook = ns.callHook or function( _, ... )
-    return ...
-end
-
 ns.PTR = false
 
 
-ns.Patrons = "You'n me both, baby. You'n me both."
+ns.Patrons = "Abom, Abra, Abuna, Aern, Aggronaught, akh270, Alasha, alcaras, Amera, ApexPlatypus, aphoenix, Archxlock, Aristocles, aro725, Artoo, Ash, av8ordoc, Battle Hermit VIA, Belatar, Borelia, Brangeddon, Bsirk/Kris, Cele, Chimmi, Coan, Cortland, Daz, DB, Der Baron, Dez, Drako, Enemy, Eryx, fuon, Garumako, Graemec, Grayscale, guhbjs, Hambrick, Hexel, Himea, Hollaputt, Hungrypilot, Ifor, Ingrathis, intheyear, Jacii, jawj, Jenkz, Katurn, Kingreboot, Kittykiller, Lagertha, Leorus, Loraniden, Lord Corn, Lovien, Manni, Mirando, mr. jing0, Mr_Hunter, MrBean73, mrminus, Muffin, Mumrikk, Nelix, neurolawl, Nighteyez, nomiss, nqrse, Orcodamus, Parameshvar, Rage, Ramen, Ramirez (Jon), Rebdull, Ridikulus0510, rockschtar, Roodie, Rusah, Samuraiwillz501, sarrge, Sarthol, Scerick, Sebstar, Seniroth, seriallos, Shakeykev, Shuck, Skeletor, Slem, Spaten, Spy, Srata, Stevi, Strozzy, Tekfire, Tevka, Theda99, Thordros, Tic[Ã ]sentence, Tobi, todd, Torsti, tsukari, Tyazrael, Ulti.DTY, Val (Valdrath), Vaxum, Vsmit, Wargus (Shagus), Weedwalker, WhoaIsJustin, Wonder, zab, Zarggg, and zarrin-zuljin"
 
 
 do
@@ -226,20 +246,9 @@ function Hekili:Debug( ... )
 	end
 
 	local prepend = format( indent > 0 and ( "%" .. ( indent * 4 ) .. "s" ) or "%s", "" )
-    text = tostring( text or "" )
-    text = text:gsub("\n", "\n" .. prepend )
+	text = text:gsub("\n", "\n" .. prepend )
 
-    local debugFormat = "%" .. ( indent > 0 and ( 4 * indent ) or "" ) .. "s" .. text
-    local debugArgs = { "", select( start, ... ) }
-
-    for i = 2, #debugArgs do
-        if debugArgs[ i ] == nil then
-            debugArgs[ i ] = "nil"
-        end
-    end
-
-    local ok, output = pcall( format, debugFormat, unpack( debugArgs ) )
-    active_debug.log[ active_debug.index ] = ok and output or ( prepend .. text )
+	active_debug.log[ active_debug.index ] = format( "%" .. ( indent > 0 and ( 4 * indent ) or "" ) .. "s" .. text, "", select( start, ... ) )
     active_debug.index = active_debug.index + 1
 end
 
@@ -337,10 +346,8 @@ function Hekili:SaveDebugSnapshot( dispName )
                 custom = format( " |cFFFFA700(Custom: %s[%d])|r", state.spec.name, state.spec.id )
             end
 
-            local displayName = dispName or k or "Unknown"
-            local overview = format( "%s%s; %s|r", state.system.packName, custom, displayName )
-            local displayPool = Hekili.DisplayPool[ displayName ]
-            local recs = displayPool and displayPool.Recommendations or {}
+            local overview = format( "%s%s; %s|r", state.system.packName, custom, dispName )
+            local recs = Hekili.DisplayPool[ dispName ].Recommendations
 
             for i, rec in ipairs( recs ) do
                 if not rec.actionName then
@@ -349,8 +356,7 @@ function Hekili:SaveDebugSnapshot( dispName )
                     end
                     break
                 end
-                local ability = class.abilities[ rec.actionName ]
-                overview = format( "%s%s%s|cFFFFD100(%0.2f)|r", overview, ( i == 1 and " - " or ", " ), ( ability and ability.name ) or rec.actionName or "unknown", rec.time )
+                overview = format( "%s%s%s|cFFFFD100(%0.2f)|r", overview, ( i == 1 and " - " or ", " ), class.abilities[ rec.actionName ].name, rec.time )
             end
 
             insert( v.log, 1, overview )

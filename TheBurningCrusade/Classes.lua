@@ -1,7 +1,7 @@
 local addon, ns = ...
-local Hekili = _G[ addon ]
+local Hekili = _G.Hekili or _G[ addon ]
 
-if not Hekili.IsClassic() then return end
+if not Hekili.IsTBC() then return end
 
 local class, state = Hekili.Class, Hekili.State
 
@@ -46,13 +46,9 @@ function ns.updateTalents()
     if not Hekili.DB.profile.specs[ spec ].usePackSelector then return end
 
     -- Swap priorities if needed.
-    local _, _, tab1v = GetTalentTabInfo( 1 )
-    local _, _, tab2v = GetTalentTabInfo( 2 )
-    local _, _, tab3v = GetTalentTabInfo( 3 )
-
-    local tab1 = tonumber( tab1v ) or 0
-    local tab2 = tonumber( tab2v ) or 0
-    local tab3 = tonumber( tab3v ) or 0
+    local tab1 = select( 5, GetTalentTabInfo(1) )
+    local tab2 = select( 5, GetTalentTabInfo(2) )
+    local tab3 = select( 5, GetTalentTabInfo(3) )
 
     local fromPackage = Hekili.DB.profile.specs[ spec ].package
 
@@ -80,8 +76,6 @@ end
 local HekiliSpecMixin = ns.HekiliSpecMixin
 
 function HekiliSpecMixin:RegisterGlyphs( glyphs )
-    if not Hekili.IsWrath() then return end
-
     for id, name in pairs( glyphs ) do
         self.glyphs[ id ] = name
     end
@@ -89,8 +83,8 @@ end
 
 
 function ns.updateGlyphs()
-    if not Hekili.IsWrath() or not GetGlyphSocketInfo then return end
-
+    if Hekili.IsClassic() or Hekili.IsTBC() then return end
+    
     for _, glyph in pairs( state.glyph ) do
         glyph.rank = 0
     end
@@ -110,7 +104,7 @@ function ns.updateGlyphs()
     end
 end
 
-if Hekili.IsWrath() then
+if not Hekili.IsClassic() and not Hekili.IsTBC() then
     RegisterEvent( "GLYPH_ADDED", ns.updateGlyphs )
     RegisterEvent( "GLYPH_REMOVED", ns.updateGlyphs )
     RegisterEvent( "GLYPH_UPDATED", ns.updateGlyphs )

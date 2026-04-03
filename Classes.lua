@@ -2,7 +2,7 @@
 -- July 2014
 
 local addon, ns = ...
-local Hekili = _G[ addon ]
+local Hekili = _G.Hekili or _G[ addon ]
 
 local class = Hekili.Class
 local state = Hekili.State
@@ -11,7 +11,7 @@ local state = Hekili.State
 local CommitKey = ns.commitKey
 local FindUnitBuffByID, FindUnitDebuffByID = ns.FindUnitBuffByID, ns.FindUnitDebuffByID
 local GetItemInfo = ns.CachedGetItemInfo
-local GetResourceInfo, GetResourceKey, GetResourceID = ns.GetResourceInfo, ns.GetResourceKey, ns.GetResourceID
+local GetResourceInfo, GetResourceKey = ns.GetResourceInfo, ns.GetResourceKey
 local RegisterEvent = ns.RegisterEvent
 local RegisterUnitEvent = ns.RegisterUnitEvent
 
@@ -20,7 +20,6 @@ local getSpecializationKey = ns.getSpecializationKey
 local tableCopy = ns.tableCopy
 
 local strformat = string.format
-local strfind = string.find
 local insert, wipe = table.insert, table.wipe
 
 local mt_resource = ns.metatables.mt_resource
@@ -150,40 +149,11 @@ local protectedFunctions = {
 }
 
 
-local ignored_imported_abilities = {
-    activate_primary_spec = true,
-    activate_secondary_spec = true,
-
-    ancestral_spirit = true,
-    mass_resurrection = true,
-    redemption = true,
-    resurrection = true,
-    revive = true,
-    revive_pet = true,
-
-    conjure_food = true,
-    conjure_water = true,
-    ritual_of_refreshment = true,
-    ritual_of_souls = true,
-}
-
-local function ShouldFilterImportedAbility( ability )
-    if ignored_imported_abilities[ ability ] then return true end
-
-    if strfind( ability, "_goggles", 1, true ) then return true end
-    if strfind( ability, "_lens", 1, true ) then return true end
-    if strfind( ability, "conjure_", 1, true ) then return true end
-
-    return false
-end
-
-
 local HekiliSpecMixin = {
     RegisterResource = function( self, resourceID, regen, model, meta )
         local resource = GetResourceKey( resourceID )
-        local resourceType = type( resourceID ) == "string" and GetResourceID( resource ) or resourceID
 
-        if not resource or resourceType == nil then
+        if not resource then
             Hekili:Error( "Unable to identify resource with PowerType " .. resourceID .. "." )
             return
         end
@@ -191,10 +161,10 @@ local HekiliSpecMixin = {
         local r = self.resources[ resource ] or {}
 
         r.resource = resource
-        r.type = resourceType
+        r.type = resourceID
         r.state = model or setmetatable( {
             resource = resource,
-            type = resourceType,
+            type = resourceID,
 
             forecast = {},
             fcount = 0,
@@ -204,6 +174,7 @@ local HekiliSpecMixin = {
             active_regen = 0,
             inactive_regen = 0,
             last_tick = 0,
+            tick_time_avg = resourceID == Enum.PowerType.Energy and 2 or nil,
 
             swingGen = false,
 
@@ -510,21 +481,17 @@ local HekiliSpecMixin = {
             end
         end
 
-        local itemID = tonumber( data.item )
+        local potionItem = Item:CreateFromItemID( data.item )
 
-        if itemID and itemID > 0 then
-            local knownItemID = GetItemInfoInstant and select( 1, GetItemInfoInstant( itemID ) )
+        if not potionItem:IsItemEmpty() then
+            potionItem:ContinueOnItemLoad( function()
+                if not data.name then data.name = potionItem:GetItemName() end
+                if not data.link then data.link = potionItem:GetItemLink() end
 
-            if knownItemID then
-                local name, link = CGetItemInfo( itemID )
-
-                if name then
-                    if not data.name then data.name = name end
-                    if not data.link then data.link = link end
-
-                    class.potionList[ potion ] = data.link
-                end
-            end
+                local icon = GetItemIcon( data.item )
+                class.potionList[ potion ] = icon and ( "|T" .. icon .. ":0|t " .. data.link ) or data.link
+                return true
+            end )
         end
 
         if data.buff and data.aura then
@@ -558,10 +525,6 @@ local HekiliSpecMixin = {
     end,
 
     RegisterAbility = function( self, ability, data )
-        if Hekili.IsTBC() and ShouldFilterImportedAbility( ability ) then
-            return
-        end
-
         CommitKey( ability )
 
         local a = setmetatable( {
@@ -648,7 +611,7 @@ local HekiliSpecMixin = {
             a.name = name or ability
             a.link = link or ability ]]
 
-            if a.key == "best_mana_potion" then
+            if a.key == "best_mana_potion" or a.key == "best_mana_rune" then
                 if ability then class.abilities[ ability ] = a end
                 if a.name  then class.abilities[ a.name ]  = a end
                 if a.link  then class.abilities[ a.link ]  = a end
@@ -819,7 +782,7 @@ local HekiliSpecMixin = {
         if a.id and a.id > 0 then
             -- Hekili:ContinueOnSpellLoad( a.id, function( success )
             a.onLoad = function()
-                a.name = GetSpellInfo( a.id )
+                a.name = a.name or GetSpellInfo( a.id )
 
                 if not a.name then
                     for k, v in pairs( class.abilityList ) do
@@ -1628,13 +1591,6 @@ all:RegisterAuras( {
         alias = { "frost_fever", "infected_wounds", "judgements_of_the_just", "thunder_clap" },
         aliasType = "debuff",
         aliasMode = "longest"
-    },
-
-    rampage = {
-        id = 29801,
-        duration = 3600,
-        max_stack = 1,
-        shared = "player",
     },
 
     -- Increases your total Strength and Agility by $s1.
@@ -2510,115 +2466,6 @@ all:RegisterAuras( {
 } )
 
 
-all:RegisterPotions( {
-    speed = {
-        item = 40211,
-        buff = "speed",
-        aura = {
-            id = 53908,
-            duration = 15,
-            max_stack = 1
-        }
-    },
-    runic_mana_injector = {
-        item = 42545
-    },
-    wild_magic = {
-        item = 40212,
-        buff = "wild_magic",
-        aura = {
-            id = 53908,
-            duration = 15,
-            max_stack = 1
-        }
-    },
-    runic_mana_potion = {
-        item = 33448
-    },
-    indestructible_potion = {
-        item = 40093,
-        buff = "indestructible",
-        aura = {
-            id = 53762,
-            duration = 120,
-            max_stack = 1
-        }
-    },
-    endless_mana_potion = {
-        item = 43570
-    },
-    runic_healing_potion = {
-        item = 33447
-    },
-    runic_healing_injector = {
-        item = 41166
-    },
-    crazy_alchemists_potion = {
-        item = 40077
-    },
-    nightmares = {
-        item = 40081,
-        buff = "nightmare_slumber",
-        aura = {
-            id = 53753,
-            duration = 6,
-            max_stack = 1
-        },
-    },
-    endless_healing_potion = {
-        item = 43569
-    },
-    powerful_rejuvenation_potion = {
-        item = 40087
-    },
-    mighty_fire_protection_potion = {
-        item = 40214,
-        buff = "fire_protection",
-        aura = {
-            id = 53911,
-            duration = 120,
-            max_stack = 1
-        },
-    },
-    mighty_frost_protection_potion = {
-        item = 40215,
-        buff = "frost_protection",
-        aura = {
-            id = 53913,
-            duration = 120,
-            max_stack = 1
-        }
-    },
-    mighty_nature_protection_potion = {
-        item = 40216,
-        buff = "nature_protection",
-        aura = {
-            id = 53914,
-            duration = 120,
-            max_stack = 1,
-        },
-    },
-    mighty_shadow_protection_potion = {
-        item = 40217,
-        buff = "shadow_protection",
-        aura = {
-            id = 53915,
-            duration = 120,
-            max_stack = 1,
-        }
-    },
-    mighty_arcane_protection_potion = {
-        item = 40213,
-        buff = "arcane_protection",
-        aura = {
-            id = 53910,
-            duration = 120,
-            max_stack = 1,
-        }
-    },
-} )
-
-
 all:RegisterAuras( {
     -- 9.0
     potion_of_spectral_strength = {
@@ -2776,39 +2623,29 @@ local gotn_classes = {
     PALADIN = 59542
 }
 
-all:RegisterAura( "gift_of_the_naaru", {
-    id = gotn_classes[ UnitClassBase( "player" ) or "WARRIOR" ],
-    duration = 5,
-    max_stack = 1,
-    copy = { 28800, 121093, 59545, 59547, 59543, 59544, 59548, 59542 }
-} )
-
-all:RegisterAbility( "gift_of_the_naaru", {
-    id = 59544,
-    cast = 0,
-    cooldown = 180,
-    gcd = "off",
-
-    handler = function ()
-        applyBuff( "gift_of_the_naaru" )
-    end,
-} )
-
 
 all:RegisterAbilities( {
-    global_cooldown = {
-        id = 61304,
+    global_cooldown = Hekili.IsClassic() and {
+        id = 29515,
+        name = "Global Cooldown",
         cast = 0,
         cooldown = 0,
         gcd = "spell",
 
         unlisted = true,
         known = function () return true end,
+    } or {
+        id = 61304,
+        name = "Global Cooldown",
+        cast = 0,
+        cooldown = 0,
+        gcd = "spell",
 
-        copy = 61304
+        unlisted = true,
+        known = function () return true end,
     },
 
-    ancestral_call = not Hekili.IsClassic() and {
+    ancestral_call = not Hekili.IsWrath() and not Hekili.IsClassic() and not Hekili.IsTBC() and {
         id = 274738,
         cast = 0,
         cooldown = 120,
@@ -2822,7 +2659,7 @@ all:RegisterAbilities( {
         end,
     } or nil,
 
-    arcane_pulse = not Hekili.IsClassic() and {
+    arcane_pulse = not Hekili.IsWrath() and not Hekili.IsClassic() and not Hekili.IsTBC() and {
         id = 260364,
         cast = 0,
         cooldown = 180,
@@ -2850,7 +2687,7 @@ all:RegisterAbilities( {
         end,
     },
 
-    hyper_organic_light_originator = not Hekili.IsClassic() and {
+    hyper_organic_light_originator = not Hekili.IsWrath() and not Hekili.IsClassic() and not Hekili.IsTBC() and {
         id = 312924,
         cast = 0,
         cooldown = 180,
@@ -2863,7 +2700,7 @@ all:RegisterAbilities( {
         end
     } or nil,
 
-    bag_of_tricks = not Hekili.IsClassic() and {
+    bag_of_tricks = not Hekili.IsWrath() and not Hekili.IsClassic() and not Hekili.IsTBC() and {
         id = 312411,
         cast = 0,
         cooldown = 90,
@@ -2872,7 +2709,7 @@ all:RegisterAbilities( {
         toggle = "cooldowns",
     } or nil,
 
-    haymaker = not Hekili.IsClassic() and {
+    haymaker = not Hekili.IsWrath() and not Hekili.IsClassic() and not Hekili.IsTBC() and {
         id = 287712,
         cast = 1,
         cooldown = 150,
@@ -2903,6 +2740,40 @@ local bf_classes = {
     SHAMAN = 33697,
     WARLOCK = 33702,
     WARRIOR = 20572,
+}
+
+-- Mana runes: ordered by preference (dark_rune preferred over demonic_rune as it's the upgraded version).
+-- Both restore 900-1500 mana and drain 600-1000 health. They share a 2-minute cooldown category.
+local manaRuneData = {
+    { id = 20520, key = "dark_rune",    min = 900, max = 1500, minHealth = 600, maxHealth = 1000 }, -- Classic (Scholomance)
+    { id = 12662, key = "demonic_rune", min = 900, max = 1500, minHealth = 600, maxHealth = 1000 }, -- Classic (BRD)
+}
+
+-- Ordered by min_mana_restored descending, then max_mana_restored descending.
+-- This ordering ensures best_mana_potion selects the highest-tier appropriate potion first.
+-- cooldown defaults to 120 if omitted.
+-- consumedItem: optional item ID used for GetItemCount/GetItemCooldown when it differs from id (e.g. crafted injectors).
+local manaPotionData = {
+    { id = 42545, key = "runic_mana_injector",        min = 4200, max = 4400, cooldown = 60, consumedItem = 67490 }, -- Wrath
+    { id = 33448, key = "runic_mana_potion",          min = 4200, max = 4400, cooldown = 60 }, -- Wrath
+    { id = 45276, key = "jillians_genius_juice",      min = 4200, max = 4400, cooldown = 60 }, -- Wrath
+    { id = 31677, key = "fel_mana_potion",            min = 3200, max = 3200 },                -- TBC
+    { id = 22832, key = "super_mana_potion",          min = 1800, max = 3000 },                -- TBC
+    { id = 32948, key = "auchenai_mana_potion",       min = 1800, max = 3000 },                -- TBC
+    { id = 33935, key = "crystal_mana_potion",        min = 1800, max = 3000 },                -- TBC
+    { id = 32902, key = "bottled_nethergon_energy",   min = 1800, max = 3000 },                -- TBC
+    { id = 43530, key = "argent_mana_potion",         min = 1800, max = 3000, cooldown = 60 }, -- Wrath
+    { id = 40067, key = "icy_mana_potion",            min = 1800, max = 3000, cooldown = 60 }, -- Wrath
+    { id = 43570, key = "endless_mana_potion",        min = 1800, max = 3000, cooldown = 60 }, -- Wrath
+    { id = 13444, key = "major_mana_potion",          min = 1800, max = 2250 },                -- Classic
+    { id = 18253, key = "major_rejuvenation_potion",  min = 1600, max = 1760 },                -- Classic
+    { id = 13443, key = "superior_mana_potion",       min = 1200, max = 1500 },                -- Classic
+    { id = 6149,  key = "greater_mana_potion",        min = 800,  max = 900  },                -- Classic
+    { id = 9144,  key = "wildvine_potion",            min = 750,  max = 1500 },                -- Classic
+    { id = 3827,  key = "mana_potion",                min = 520,  max = 585  },                -- Classic
+    { id = 3385,  key = "lesser_mana_potion",         min = 320,  max = 360  },                -- Classic
+    { id = 2455,  key = "minor_mana_potion",          min = 160,  max = 180  },                -- Classic
+    { id = 2456,  key = "minor_rejuvenation_potion",  min = 120,  max = 150  },                -- Classic
 }
 
 all:RegisterAbilities( {
@@ -2956,42 +2827,7 @@ all:RegisterAbilities( {
         end,
     }, ]]
 
-    -- Removes all movement impairing effects and all effects which cause loss of control of your character.  This effect shares a cooldown with other similar effects.
-    will_to_survive = {
-        id = 59752,
-        cast = 0,
-        cooldown = 120,
-        gcd = "off",
-
-        startsCombat = false,
-        texture = 136129,
-
-        toggle = "defensives",
-
-        -- TODO: Detect loss of control effects.
-        handler = function ()
-        end,
-    },
-
-    shadowmeld = {
-        id = 58984,
-        cast = 0,
-        cooldown = 120,
-        gcd = "off",
-
-        usable = function ()
-            if not boss or solo then return false, "requires boss fight or group (to avoid resetting)" end
-            if moving then return false, "can't shadowmeld while moving" end
-            return true
-        end,
-
-        handler = function ()
-            applyBuff( "shadowmeld" )
-        end,
-    },
-
-
-    lights_judgment = not Hekili.IsClassic() and {
+    lights_judgment = not Hekili.IsWrath() and not Hekili.IsClassic() and not Hekili.IsTBC() and {
         id = 255647,
         cast = 0,
         cooldown = 150,
@@ -3029,7 +2865,7 @@ all:RegisterAbilities( {
     },
 
 
-    fireblood = not Hekili.IsClassic() and {
+    fireblood = not Hekili.IsWrath() and not Hekili.IsClassic() and not Hekili.IsTBC() and {
         id = 265221,
         cast = 0,
         cooldown = 120,
@@ -3097,6 +2933,7 @@ all:RegisterAbilities( {
 
         startsCombat = false,
         toggle = "potions",
+        configurable = true,
 
         item = function ()
             local potion = args.potion or args.name
@@ -3127,6 +2964,7 @@ all:RegisterAbilities( {
 
             if potion then
                 applyBuff( potion.buff, potion.duration or 25 )
+                removeBuff("form")
             end
         end,
 
@@ -3141,185 +2979,82 @@ all:RegisterAbilities( {
         end,
     },
 
-    runic_mana_injector = {
-        name = function() return GetItemInfo( 42545 ) end,
+    best_mana_rune = {
+        name = strformat( '|cff00ccff[%s Rune]|r', BEST ),
+        link = strformat( '|cff00ccff[%s Rune]|r', BEST ),
         cast = 0,
-        cooldown = 60,
-        gcd = "off",
+        cooldown = 120,
+        gcd = 'off',
 
         startsCombat = false,
+        toggle = "potions",
+        configurable = true,
+        texture = function()
+            local item = action.best_mana_rune.item
+            return GetItemIcon( item )
+        end,
 
-        item = 42545,
+        isItem = true,
+        item = function()
+            if not Hekili.PLAYER_ENTERING_WORLD or not rawget( state, "mana" ) then return manaRuneData[ #manaRuneData ].id end
+            for _, r in ipairs( manaRuneData ) do
+                if GetItemCount( r.id ) > 0 then return r.id end
+            end
+            return manaRuneData[ #manaRuneData ].id
+        end,
         bagItem = true,
 
+        health_cost = function()
+            local item = action.best_mana_rune.item
+            for _, r in ipairs( manaRuneData ) do
+                if r.id == item then return r.minHealth end
+            end
+            return manaRuneData[ #manaRuneData ].minHealth
+        end,
+        avg_health_cost = function()
+            local item = action.best_mana_rune.item
+            for _, r in ipairs( manaRuneData ) do
+                if r.id == item then return ( r.minHealth + r.maxHealth ) / 2 end
+            end
+            return ( manaRuneData[ #manaRuneData ].minHealth + manaRuneData[ #manaRuneData ].maxHealth ) / 2
+        end,
+        max_health_cost = function()
+            local item = action.best_mana_rune.item
+            for _, r in ipairs( manaRuneData ) do
+                if r.id == item then return r.maxHealth end
+            end
+            return manaRuneData[ #manaRuneData ].maxHealth
+        end,
+
         usable = function ()
-            return GetItemCount( 67490 ) > 0, "requires runic_mana_injector in bags"
+            local item = action.best_mana_rune.item
+            return health.current > action.best_mana_rune.max_health_cost and GetItemCount( item ) > 0, "requires >" .. action.best_mana_rune.max_health_cost .. " health and best_mana_rune in bags"
         end,
 
         readyTime = function ()
-            local start, duration = GetItemCooldown( 67490 )
-            return max( 0, start + duration - query_time )
+            local item = action.best_mana_rune.item
+            if item == 0 then return 3600 end
+            local start, dur = GetItemCooldown( item )
+            return max( 0, start + dur - query_time )
         end,
 
-        mana_restored = 4200,
-
-        handler = function()
-            gain( 4200, "mana" )
-        end,
-    },
-
-    runic_mana_potion = {
-        name = function() return GetItemInfo( 33448 ) end,
-        cast = 0,
-        cooldown = 60,
-        gcd = "off",
-
-        startsCombat = false,
-
-        item = 33448,
-        bagItem = true,
-
-        usable = function ()
-            return GetItemCount( 33448 ) > 0, "requires runic_mana_potion in bags"
+        handler = function ()
+            class.abilities[ class.itemMap[ action.best_mana_rune.item ] ].handler()
+            removeBuff("form")
         end,
 
-        readyTime = function ()
-            local start, duration = GetItemCooldown( 33448 )
-            return max( 0, start + duration - query_time )
-        end,
-
-        mana_restored = 4200,
-
-        handler = function()
-            gain( 4200, "mana" )
-        end,
-    },
-
-    potion_of_nightmares = {
-        id = 53753,
-        cast = 0,
-        cooldown = 60,
-        gcd = "off",
-
-        startsCombat = false,
-
-        item = 40081,
-        bagItem = true,
-
-        usable = function ()
-            return GetItemCount( 40081 ) > 0, "requires potion_of_nightmares in bags"
-        end,
-
-        readyTime = function ()
-            local start, duration = GetItemCooldown( 40081 )
-            return max( 0, start + duration - query_time )
-        end,
-
-        handler = function()
-            applyBuff( "nightmare_slumber" )
-            setCooldown( "global_cooldown", 6 )
-        end,
-
-        auras = {
-            nightmare_slumber = {
-                id = 53753,
-                duration = 6,
-                max_stack = 1
-            }
-        }
-    },
-
-    crazy_alchemists_potion = {
-        id = 53750,
-        cast = 0,
-        cooldown = 60,
-        gcd = "off",
-
-        startsCombat = false,
-
-        item = 40077,
-        bagItem = true,
-
-        usable = function ()
-            return GetItemCount( 40077 ) > 0, "requires crazy_alchemists_potion in bags"
-        end,
-
-        readyTime = function ()
-            local start, duration = GetItemCooldown( 40077 )
-            return max( 0, start + duration - query_time )
-        end,
-
-        mana_restored = 4200,
-
-        handler = function()
-            gain( 3100, "health" )
-            gain( 4200, "mana" )
-        end,
-    },
-
-    endless_mana_potion = {
-        name = function() return GetItemInfo( 43570 ) end,
-        cast = 0,
-        cooldown = 60,
-        gcd = "off",
-
-        startsCombat = false,
-
-        item = 43570,
-        bagItem = true,
-
-        usable = function ()
-            return GetItemCount( 43570 ) > 0, "requires endless_mana_potion in bags"
-        end,
-
-        readyTime = function ()
-            local start, duration = GetItemCooldown( 43570 )
-            return max( 0, start + duration - query_time )
-        end,
-
-        mana_restored = 1800,
-
-        handler = function()
-            gain( 1800, "mana" )
-        end,
-    },
-
-    icy_mana_potion = {
-        name = function() return GetItemInfo( 40067 ) end,
-        cast = 0,
-        cooldown = 60,
-        gcd = "off",
-
-        startsCombat = false,
-
-        item = 40067,
-        bagItem = true,
-
-        usable = function ()
-            return GetItemCount( 40067 ) > 0, "requires icy_mana_potion in bags"
-        end,
-
-        readyTime = function ()
-            local start, duration = GetItemCooldown( 40067 )
-            return max( 0, start + duration - query_time )
-        end,
-
-        mana_restored = 1800,
-
-        handler = function()
-            gain( 1800, "mana" )
-        end,
     },
 
     best_mana_potion = {
         name = strformat( '|cff00ccff[%s %s]|r', BEST, GetSpellInfo( 3452 ) ),
         link = strformat( '|cff00ccff[%s %s]|r', BEST, GetSpellInfo( 3452 ) ),
         cast = 0,
-        cooldown = 60,
+        cooldown = 120,
         gcd = 'off',
 
         startsCombat = false,
         toggle = "potions",
+        configurable = true,
         texture = function()
             local item = action.best_mana_potion.item
             return GetItemIcon( item )
@@ -3327,24 +3062,17 @@ all:RegisterAbilities( {
 
         isItem = true,
         item = function()
-            if not Hekili.PLAYER_ENTERING_WORLD or not rawget( state, "mana" ) then return 45276 end
+            if not Hekili.PLAYER_ENTERING_WORLD or not rawget( state, "mana" ) then return 13444 end
 
             local deficit = mana.deficit
 
-            if deficit > 4200 then
-                if GetItemCount( 45276 ) > 0 then return 45276 end
-                if GetItemCount( 42545 ) > 0 then return 42545 end
-                if GetItemCount( 33448 ) > 0 then return 33448 end
-                if GetItemCount( 40077 ) > 0 then return 40077 end
+            for _, p in ipairs( manaPotionData ) do
+                if deficit >= p.min and GetItemCount( p.id ) > 0 then
+                    return p.id
+                end
             end
 
-            if deficit > 1800 then
-                if GetItemCount( 40067 ) > 0 then return 40067 end
-                if GetItemCount( 43530 ) > 0 then return 43530 end
-                if GetItemCount( 43570 ) > 0 then return 43570 end
-            end
-
-            return 45276
+            return 13444
         end,
         bagItem = true,
 
@@ -3360,133 +3088,24 @@ all:RegisterAbilities( {
             return max( 0, start + dur - query_time )
         end,
 
+        mana_restored = function()
+            local ability = class.abilities[ class.itemMap[ action.best_mana_potion.item ] ]
+            return ability and ability.mana_restored or 0
+        end,
+        max_mana_restored = function()
+            local ability = class.abilities[ class.itemMap[ action.best_mana_potion.item ] ]
+            return ability and ability.max_mana_restored or 0
+        end,
+        avg_mana_restored = function()
+            local ability = class.abilities[ class.itemMap[ action.best_mana_potion.item ] ]
+            return ability and ability.avg_mana_restored or 0
+        end,
+
         handler = function ()
             class.abilities[ class.itemMap[ action.best_mana_potion.item ] ].handler()
+            removeBuff("form")
         end,
 
-    },
-
-    argent_mana_potion = {
-        name = function() return GetItemInfo( 43530 ) end,
-        cast = 0,
-        cooldown = 60,
-        gcd = "off",
-
-        startsCombat = false,
-
-        item = 43530,
-        bagItem = true,
-
-        usable = function ()
-            return GetItemCount( 43530 ) > 0, "requires argent_mana_potion in bags"
-        end,
-
-        readyTime = function ()
-            local start, duration = GetItemCooldown( 43530 )
-            return max( 0, start + duration - query_time )
-        end,
-
-        mana_restored = 1800,
-
-        handler = function()
-            gain( 1800, "mana" )
-        end,
-    },
-
-    jillians_genius_juice = {
-        name = function() return GetItemInfo( 45276 ) end,
-        cast = 0,
-        cooldown = 60,
-        gcd = "off",
-
-        startsCombat = false,
-
-        item = 45276,
-        bagItem = true,
-
-        usable = function ()
-            return GetItemCount( 45276 ) > 0, "requires jillians_genius_juice in bags"
-        end,
-
-        readyTime = function ()
-            local start, duration = GetItemCooldown( 45276 )
-            return max( 0, start + duration - query_time )
-        end,
-
-        mana_restored = 4200,
-
-        handler = function()
-            gain( 4200, "mana" )
-        end,
-    },
-
-    flame_cap = {
-        id = 28714,
-        cast = 0,
-        cooldown = 180,
-        gcd = "off",
-
-        item = 22788,
-        bagItem = true,
-
-        startsCombat = false,
-        texture = 134209,
-        toggle = "cooldowns",
-
-        usable = function ()
-            if GetItemCount( 22788 ) == 0 then return false, "requires flame cap in bags"
-            elseif not IsUsableItem( 22788 ) then return false, "on cooldown or unusable" end
-            return true
-        end,
-
-        readyTime = function ()
-            local start, duration = GetItemCooldown( 22788 )
-            return max( 0, start + duration - query_time )
-        end,
-
-        handler = function ()
-            applyBuff( "flame_cap" )
-        end,
-
-        auras = {
-            flame_cap = {
-                id = 28714,
-                duration = 60,
-                max_stack = 1
-            }
-        }
-    },
-
-    global_thermal_sapper_charge = {
-        id = 56488,
-        cast = 0,
-        cooldown = 300,
-        gcd = "off",
-
-        item = 56488,
-        bagItem = true,
-
-        startsCombat = true,
-        texture = 135826,
-        toggle = "cooldowns",
-
-        usable = function ()
-            if GetItemCount( 56488 ) == 0 then return false, "requires charge in bag"
-            elseif not IsUsableItem( 56488 ) then return false, "on cooldown or unusable" end
-            return true
-        end,
-
-        readyTime = function ()
-            local start, duration = GetItemCooldown( 56488 )
-            return max( 0, start + duration - query_time )
-        end,
-
-        handler = function ()
-            if class.file == "MAGE" then
-                -- Assume we're proccing Incanter's Absorption.
-                if talent.incanters_absorption.enabled and buff.fire_ward.up then applyBuff( "incanters_absorption" ) end
-            end
-        end,
     },
 
     healthstone = {
@@ -3580,6 +3199,75 @@ all:RegisterAbilities( {
 } )
 
 
+-- Register individual mana potion abilities from manaPotionData.
+do
+    for _, p in ipairs( manaPotionData ) do
+        all:RegisterAbility( p.key, {
+            name     = function() return GetItemInfo( p.id ) end,
+            cast     = 0,
+            cooldown = p.cooldown or 120,
+            gcd      = "off",
+
+            startsCombat = false,
+
+            item    = p.id,
+            bagItem = true,
+
+            usable = function()
+                return GetItemCount( p.consumedItem or p.id ) > 0, "requires " .. p.key .. " in bags"
+            end,
+
+            readyTime = function()
+                local start, duration = GetItemCooldown( p.consumedItem or p.id )
+                return max( 0, start + duration - query_time )
+            end,
+
+            mana_restored     = p.min,
+            max_mana_restored = p.max,
+            avg_mana_restored = ( p.min + p.max ) / 2,
+
+            handler = function()
+                gain( p.min, "mana" )
+            end,
+        } )
+    end
+end
+
+-- Register individual mana rune abilities from manaRuneData.
+do
+    for _, r in ipairs( manaRuneData ) do
+        all:RegisterAbility( r.key, {
+            name     = function() return GetItemInfo( r.id ) end,
+            cast     = 0,
+            cooldown = 120,
+            gcd      = "off",
+
+            startsCombat = false,
+
+            item    = r.id,
+            bagItem = true,
+
+            usable = function()
+                return health.current > r.maxHealth and GetItemCount( r.id ) > 0, "requires " .. r.key .. " in bags and >" .. r.maxHealth .. " health"
+            end,
+
+            readyTime = function()
+                local start, duration = GetItemCooldown( r.id )
+                return max( 0, start + duration - query_time )
+            end,
+
+            mana_restored     = r.min,
+            max_mana_restored = r.max,
+            avg_mana_restored = ( r.min + r.max ) / 2,
+
+            handler = function()
+                gain( r.min, "mana" )
+                spend( r.maxHealth, "health" )
+            end,
+        } )
+    end
+end
+
 -- Use Items
 do
     -- Should handle trinkets/items internally.
@@ -3606,83 +3294,6 @@ do
 
         usable = function () return false, "your equipped major essence is supported elsewhere in the priority or is not an active ability" end
     } )
-
-    if Hekili.IsTBC() then
-        local function register_tbc_trinket_use( key, item, buff_name, duration, cooldown, spellID )
-            all:RegisterAbility( key, {
-                cast = 0,
-                cooldown = cooldown,
-                gcd = "off",
-
-                item = item,
-                toggle = "cooldowns",
-
-                handler = function ()
-                    applyBuff( buff_name )
-                end,
-            } )
-
-            local aura = {
-                duration = duration,
-                max_stack = 1,
-            }
-
-            if spellID then
-                aura.id = spellID
-            end
-
-            all:RegisterAura( buff_name, aura )
-        end
-
-        local function register_tbc_trinket_proc( key, item, buff_name, duration, spellID )
-            all:RegisterAbility( key, {
-                cast = 0,
-                cooldown = 45,
-                gcd = "off",
-                unlisted = true,
-
-                item = item,
-                aura = buff_name,
-            } )
-
-            local aura = {
-                duration = duration,
-                max_stack = 1,
-            }
-
-            if spellID then
-                aura.id = spellID
-            end
-
-            all:RegisterAura( buff_name, aura )
-        end
-
-        register_tbc_trinket_use( "icon_of_the_silver_crescent", 29370, "icon_of_the_silver_crescent", 20, 120, 35163 )
-        register_tbc_trinket_use( "skull_of_guldan", 32483, "skull_of_guldan", 20, 120, 40396 )
-        register_tbc_trinket_use( "hex_shrunken_head", 33829, "hex_shrunken_head", 20, 120, 43712 )
-        register_tbc_trinket_use( "bloodlust_brooch", 29383, "bloodlust_brooch", 20, 120, 35166 )
-        register_tbc_trinket_use( "berserkers_call", 33831, "berserkers_call", 20, 120, 43716 )
-        register_tbc_trinket_use( "abacus_of_violent_odds", 28288, "abacus_of_violent_odds", 10, 120, 33807 )
-        register_tbc_trinket_use( "slayers_crest", 23041, "slayers_crest", 20, 120, 28777 )
-
-        register_tbc_trinket_proc( "quagmirrans_eye", 27683, "quagmirrans_eye", 6, 33297 )
-        register_tbc_trinket_proc( "sextant_of_unstable_currents", 30626, "sextant_of_unstable_currents", 15, 38347 )
-        register_tbc_trinket_proc( "dragonspine_trophy", 28830, "dragonspine_trophy", 10, 34774 )
-        register_tbc_trinket_proc( "tsunami_talisman", 30627, "tsunami_talisman", 10, 42083 )
-        register_tbc_trinket_proc( "hourglass_of_the_unraveller", 28034, "hourglass_of_the_unraveller", 10, 33648 )
-        register_tbc_trinket_proc( "madness_of_the_betrayer", 32505, "madness_of_the_betrayer", 10, 40475 )
-        register_tbc_trinket_proc( "shard_of_contempt", 34472, "shard_of_contempt", 20, 45354 )
-
-        register_tbc_trinket_proc( "ashtongue_talisman_of_valor", 32485, "ashtongue_talisman_of_valor", 12, 40458 )
-        register_tbc_trinket_proc( "ashtongue_talisman_of_equilibrium", 32486, "ashtongue_talisman_of_equilibrium", 8, 40442 )
-        register_tbc_trinket_proc( "ashtongue_talisman_of_swiftness", 32487, "ashtongue_talisman_of_swiftness", 8, 40485 )
-        register_tbc_trinket_proc( "ashtongue_talisman_of_insight", 32488, "ashtongue_talisman_of_insight", 5, 40482 )
-        register_tbc_trinket_proc( "ashtongue_talisman_of_zeal", 32489, "ashtongue_talisman_of_zeal", 8, 40470 )
-        register_tbc_trinket_proc( "ashtongue_talisman_of_acumen", 32490, "ashtongue_talisman_of_acumen", 10, 40438 )
-        register_tbc_trinket_proc( "ashtongue_talisman_of_vision", 32491, "ashtongue_talisman_of_vision", 5, 40463 )
-        register_tbc_trinket_proc( "ashtongue_talisman_of_lethality", 32492, "ashtongue_talisman_of_lethality", 10, 40460 )
-        register_tbc_trinket_proc( "ashtongue_talisman_of_insight_warlock", 32493, "ashtongue_talisman_of_insight_warlock", 5, 40478 )
-    end
 end
 
 all:RegisterAbility( "grim_toll", {
@@ -4334,7 +3945,7 @@ end
 
 -- Mechagon
 do
-    if not Hekili.IsClassic() then
+    if not Hekili.IsWrath() and not Hekili.IsClassic() and not Hekili.IsTBC() then
         all:RegisterGear( "pocketsized_computation_device", 167555 )
         all:RegisterGear( "cyclotronic_blast", 167672 )
         all:RegisterGear( "harmonic_dematerializer", 167677 )
@@ -6506,7 +6117,6 @@ all:RegisterAura( 'norgannons_command', {
     max_stack = 6
 } )
 
-
 -- Legion TW
 all:RegisterAbilities( {
     windscar_whetstone = {
@@ -6962,7 +6572,7 @@ Hekili.SpecChangeHistory = {}
 function Hekili:SpecializationChanged()
     local currentSpec, currentID, _, currentClass
 
-    if Hekili.IsClassic() then
+    if Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
         currentSpec = 1
         _, currentClass, currentID = UnitClass( "player" )
     else
@@ -7017,7 +6627,7 @@ function Hekili:SpecializationChanged()
 
     local specs = { 0 }
 
-    if Hekili.IsClassic() then
+    if Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
         specs[ 2 ] = currentID
         state.spec.id = currentID
         state.spec.name = currentClass
@@ -7301,7 +6911,7 @@ end
 do
     RegisterEvent( "PLAYER_ENTERING_WORLD", function( event, login, reload )
         if login or reload then
-            if Hekili.IsClassic() then
+            if Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
                 if state.spec.id ~= select( 3, UnitClass( "player" ) ) then Hekili:SpecializationChanged() end
             else
                 local currentSpec = GetSpecialization()

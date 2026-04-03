@@ -2,7 +2,7 @@
 -- Everything related to building/configuring options.
 
 local addon, ns = ...
-local Hekili = _G[ addon ]
+local Hekili = _G.Hekili or _G[ addon ]
 
 local class = Hekili.Class
 local scripts = Hekili.Scripts
@@ -33,7 +33,7 @@ local NewFeature = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0|
 local GreenPlus = "Interface\\AddOns\\Hekili\\Textures\\GreenPlus"
 local RedX = "Interface\\AddOns\\Hekili\\Textures\\RedX"
 local BlizzBlue = "|cFF00B4FF"
-local ClassColor = Hekili.IsClassic() and RAID_CLASS_COLORS[ class.file ] or C_ClassColor.GetClassColor( class.file )
+local ClassColor = (Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC()) and RAID_CLASS_COLORS[ class.file ] or C_ClassColor.GetClassColor( class.file )
 
 -- Simple bypass for Wrath-friendliness.
 local GetSpecialization = _G.GetSpecialization or function() return GetActiveTalentGroup() end
@@ -386,9 +386,14 @@ local displayTemplate = {
 
         elvuiCooldown = false,
 
-        --[[ font = ElvUI and 'PT Sans Narrow' or 'Arial Narrow',
-        fontSize = 12,
-        fontStyle = "OUTLINE" ]]
+        labelAnchor = "TOP",
+        labelX = 0,
+        labelY = -2,
+        labelAlign = "CENTER",
+        labelFont = ElvUI and 'PT Sans Narrow' or 'Arial Narrow',
+        labelFontStyle = "OUTLINE",
+        labelFontSize = 12,
+        labelColor = { 1, 1, 0, 1 },
     },
 
     visibility = {
@@ -466,6 +471,15 @@ local displayTemplate = {
 
         color = { 1, 1, 1, 1 },
     },
+
+    labelAnchor = "TOP",
+    labelX = 0,
+    labelY = -2,
+    labelAlign = "CENTER",
+    labelFont = ElvUI and 'PT Sans Narrow' or 'Arial Narrow',
+    labelFontStyle = "OUTLINE",
+    labelFontSize = 12,
+    labelColor = { 1, 1, 0, 1 },
 
     indicators = {
         enabled = true,
@@ -951,6 +965,7 @@ do
         end
 
         if option == "color" or option == "queuedColor" then return unpack( conf.color ) end
+        if option == "labelColor" then return unpack( conf.labelColor or { 1, 1, 0, 1 } ) end
         if option == "frameStrata" then return frameStratas[ conf.frameStrata ] or 3 end
         if option == "name" then return display end
 
@@ -985,7 +1000,7 @@ do
         local conf = self.DB.profile.displays[ display ]
         if category ~= option and category ~= 'main' then conf = conf[ category ] end
 
-        if option == 'color' or option == 'queuedColor' then
+        if option == 'color' or option == 'queuedColor' or option == 'labelColor' then
             conf[ option ] = { val, v2, v3, v4 }
             set = true
         elseif option == 'frameStrata' then
@@ -1767,6 +1782,102 @@ do
                                     }
                                 }
                             },
+
+                            labels = {
+                                type = "group",
+                                inline = true,
+                                name = "Labels",
+                                order = 17,
+                                args = {
+                                    labelAnchor = {
+                                        type = "select",
+                                        name = "Anchor Point",
+                                        order = 1,
+                                        width = 1,
+                                        values = {
+                                            TOP = "Top",
+                                            CENTER = "Center",
+                                            BOTTOM = "Bottom",
+                                        },
+                                    },
+
+                                    labelX = {
+                                        type = "range",
+                                        name = "X Offset",
+                                        order = 2,
+                                        width = 0.99,
+                                        step = 1,
+                                    },
+
+                                    labelY = {
+                                        type = "range",
+                                        name = "Y Offset",
+                                        order = 3,
+                                        width = 0.99,
+                                        step = 1,
+                                    },
+
+                                    break01 = {
+                                        type = "description",
+                                        name = " ",
+                                        order = 3.1,
+                                        width = "full",
+                                    },
+
+                                    labelAlign = {
+                                        type = "select",
+                                        name = "Alignment",
+                                        order = 4,
+                                        width = 1.49,
+                                        values = {
+                                            LEFT = "Left",
+                                            RIGHT = "Right",
+                                            CENTER = "Center",
+                                        },
+                                    },
+
+                                    labelFont = {
+                                        type = "select",
+                                        name = "Font",
+                                        order = 5,
+                                        width = 1.49,
+                                        dialogControl = 'LSM30_Font',
+                                        values = LSM:HashTable("font"),
+                                    },
+
+                                    labelFontStyle = {
+                                        type = "select",
+                                        name = "Style",
+                                        order = 6,
+                                        values = fontStyles,
+                                        width = 1.49,
+                                    },
+
+                                    break02 = {
+                                        type = "description",
+                                        name = " ",
+                                        order = 6.1,
+                                        width = "full",
+                                    },
+
+                                    labelFontSize = {
+                                        type = "range",
+                                        name = "Size",
+                                        order = 7,
+                                        min = 8,
+                                        max = 64,
+                                        step = 1,
+                                        width = 1.49,
+                                    },
+
+                                    labelColor = {
+                                        type = "color",
+                                        name = "Color",
+                                        order = 8,
+                                        width = 1.49,
+                                    },
+                                },
+                            },
                         },
                     },
 
@@ -1899,6 +2010,102 @@ do
                                         width = 2.98
                                     },
                                 }
+                            },
+
+                            labels = {
+                                type = "group",
+                                inline = true,
+                                name = "Labels",
+                                order = 4,
+                                args = {
+                                    labelAnchor = {
+                                        type = "select",
+                                        name = "Anchor Point",
+                                        order = 1,
+                                        width = 1,
+                                        values = {
+                                            TOP = "Top",
+                                            CENTER = "Center",
+                                            BOTTOM = "Bottom",
+                                        },
+                                    },
+
+                                    labelX = {
+                                        type = "range",
+                                        name = "X Offset",
+                                        order = 2,
+                                        width = 0.99,
+                                        step = 1,
+                                    },
+
+                                    labelY = {
+                                        type = "range",
+                                        name = "Y Offset",
+                                        order = 3,
+                                        width = 0.99,
+                                        step = 1,
+                                    },
+
+                                    break01 = {
+                                        type = "description",
+                                        name = " ",
+                                        order = 3.1,
+                                        width = "full",
+                                    },
+
+                                    labelAlign = {
+                                        type = "select",
+                                        name = "Alignment",
+                                        order = 4,
+                                        width = 1.49,
+                                        values = {
+                                            LEFT = "Left",
+                                            RIGHT = "Right",
+                                            CENTER = "Center",
+                                        },
+                                    },
+
+                                    labelFont = {
+                                        type = "select",
+                                        name = "Font",
+                                        order = 5,
+                                        width = 1.49,
+                                        dialogControl = 'LSM30_Font',
+                                        values = LSM:HashTable("font"),
+                                    },
+
+                                    labelFontStyle = {
+                                        type = "select",
+                                        name = "Style",
+                                        order = 6,
+                                        values = fontStyles,
+                                        width = 1.49,
+                                    },
+
+                                    break02 = {
+                                        type = "description",
+                                        name = " ",
+                                        order = 6.1,
+                                        width = "full",
+                                    },
+
+                                    labelFontSize = {
+                                        type = "range",
+                                        name = "Size",
+                                        order = 7,
+                                        min = 8,
+                                        max = 64,
+                                        step = 1,
+                                        width = 1.49,
+                                    },
+
+                                    labelColor = {
+                                        type = "color",
+                                        name = "Color",
+                                        order = 8,
+                                        width = 1.49,
+                                    },
+                                },
                             },
                         },
                     },
@@ -4269,18 +4476,6 @@ do
     end
 
 
-    function Hekili:GetActiveSpecOption( option, default )
-        local spec = state.spec.id or GetCurrentSpec() or select( 3, UnitClass( "player" ) )
-        if not spec then return default end
-
-        self.DB.profile.specs[ spec ] = self.DB.profile.specs[ spec ] or {}
-
-        local value = self.DB.profile.specs[ spec ][ option ]
-        if value == nil then return default end
-        return value
-    end
-
-
     function Hekili:SetSpecPref( info, val )
     end
 
@@ -4467,7 +4662,7 @@ do
 
         for k, v in pairs( class.abilityList ) do
             local a = class.abilities[ k ]
-            if a and ( a.id > 0 or a.id < -100 ) and a.id ~= state.cooldown.global_cooldown.id and not ( a.isItem or a.item ) then
+            if a and ( a.id > 0 or a.id < -100 ) and a.id ~= state.cooldown.global_cooldown.id and not ( a.isItem or a.item ) or a.configurable then
                 abilities[ v ] = k
             end
         end
@@ -4801,7 +4996,7 @@ do
         local toggles = {}
 
         for k, v in pairs( class.abilities ) do
-            if k == "potion" or ( v.item or v.isItem ) and not abilities[ v.itemKey or v.key ] then
+            if not v.configurable and ( k == "potion" or ( v.item or v.isItem ) and not abilities[ v.itemKey or v.key ] ) then
                 local name = class.itemList[ v.item ] or v.name
                 if name then abilities[ name ] = v.itemKey or v.key end
             end
@@ -4972,7 +5167,7 @@ do
         wipe( tAbilities )
         for k, v in pairs( class.abilityList ) do
             local a = class.abilities[ k ]
-            if a and ( a.id > 0 or a.id < -100 ) and a.id ~= state.cooldown.global_cooldown.id and not ( a.isItem or a.item ) then
+            if a and ( a.id > 0 or a.id < -100 ) and a.id ~= state.cooldown.global_cooldown.id and not ( a.isItem or a.item ) or a.configurable then
                 if settings.abilities[ k ].toggle == section or a.toggle == section and settings.abilities[ k ].toggle == 'default' then
                     tAbilities[ k ] = class.abilityList[ k ] or v
                 end
@@ -5151,7 +5346,7 @@ do
 
             for k, v in pairs( class.abilityList ) do
                 local a = class.abilities[ k ]
-                if a and ( a.id > 0 or a.id < -100 ) and a.id ~= state.cooldown.global_cooldown.id and not ( a.isItem or a.item ) then
+                if a and ( a.id > 0 or a.id < -100 ) and a.id ~= state.cooldown.global_cooldown.id and not ( a.isItem or a.item ) or a.configurable then
                     if settings.abilities[ k ].toggle == 'default' or settings.abilities[ k ].toggle == 'none' then
                         list[ k ] = class.abilityList[ k ] or v
                     end
@@ -5188,7 +5383,7 @@ do
         e.func = function ()
             for k, v in pairs( settings.abilities ) do
                 local a = class.abilities[ k ]
-                if a and not ( a.isItem or a.item ) and v.toggle == section or ( class.abilities[ k ].toggle == section ) then v.toggle = 'default' end
+                if a and not ( a.isItem or a.item ) or a.configurable and v.toggle == section or ( class.abilities[ k ].toggle == section ) then v.toggle = 'default' end
             end
             for k, v in pairs( settings.items ) do
                 local a = class.abilities[ k ]
@@ -5242,7 +5437,7 @@ do
         while( true ) do
             local id, name, description, texture, baseName, coords
 
-            if Hekili.IsClassic() then
+            if Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
                 if i > 1 then break end
                 name, baseName, id = UnitClass( "player" )
                 coords = CLASS_ICON_TCOORDS[ baseName ]
@@ -6907,7 +7102,7 @@ do
                                                 local action = entry.action
                                                 local desc
 
-                                                local warning, color = false, nil
+                                                local warning, color = false
 
                                                 if not action then
                                                     action = "Unassigned"
@@ -8418,7 +8613,7 @@ do
     Hekili.skeleTalents = talents
     Hekili.skeleAbilities = abilities
 
-    if Hekili.IsClassic() then
+    if Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
         listener:RegisterEvent( "ACTIVE_TALENT_GROUP_CHANGED" )
         listener:RegisterEvent( "PLAYER_TALENT_UPDATE" )
     else
@@ -8516,7 +8711,7 @@ do
             local selfbuff = SpellIsSelfBuff( spellID )
             local talent = talent or IsTalentSpell( spellID )
 
-            if Hekili.IsClassic() then
+            if Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
                 auras[ spellID ] = token
             else
                 if selfbuff or passive then
@@ -8595,9 +8790,8 @@ do
 
     local function skeletonHandler( self, event, ... )
         local unit = select( 1, ... )
-        local specChanged = not Hekili.IsClassic() and event == "PLAYER_SPECIALIZATION_CHANGED" and UnitIsUnit( unit, "player" )
 
-        if specChanged or event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_TALENT_UPDATE" or event == "ACTIVE_TALENT_GROUP_CHANGED" then
+        if not Hekili.IsWrath() and not Hekili.IsClassic() and not Hekili.IsTBC() and ( event == "PLAYER_SPECIALIZATION_CHANGED" and UnitIsUnit( unit, "player" ) ) or event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_TALENT_UPDATE" or event == "ACTIVE_TALENT_GROUP_CHANGED" then
             for k, i in pairs( Enum.PowerType ) do
                 if k ~= "NumPowerTypes" and i >= 0 then
                     if UnitPowerMax( "player", i ) > 0 then resources[ k ] = i end
@@ -8650,12 +8844,10 @@ do
                     insert( pvptalents, { name = name, talent = tID, spell = sID } )
                 end
 
-            elseif Hekili.IsClassic() then
+            elseif Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
                 wipe( resources )
                 wipe( auras )
                 wipe( abilities )
-
-                local talentToSpell = Hekili.IsTBC() and ns.TBCTalentToSpellID or ns.WrathTalentToSpellID
 
                 for i = 1, GetNumTalentTabs() do
                     for n = 1, GetNumTalents( i ) do
@@ -8665,10 +8857,12 @@ do
 
                         insert( talents, { name = key, talent = talentID, ranks = ranks } )
 
-                        local tToS = talentToSpell and talentToSpell[ talentID ] or {}
+                        local tToS = ns.WrathTalentToSpellID[ talentID ]
 
-                        for rank, spell in ipairs( tToS ) do
-                            EmbedSpellData( spell, key, true, rank )
+                        if tToS then
+                            for rank, spell in ipairs( tToS ) do
+                                EmbedSpellData( spell, key, true, rank )
+                            end
                         end
                     end
                 end
@@ -8842,7 +9036,7 @@ do
                             append( "" )
                             append( "local spec = Hekili:NewSpecialization( " .. specID .. " )\n" )
 
-                            if Hekili.IsClassic() then
+                            if Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
                                 for k, i in pairs( Enum.PowerType ) do
                                     if k ~= "NumPowerTypes" and i >= 0 then
                                         if UnitPowerMax( "player", i ) > 0 then resources[ k ] = i end
@@ -8864,9 +9058,8 @@ do
                                 for i, tal in ipairs( talents ) do
                                     append( tal.name .. " = { " .. ( tal.talent or "nil" ) .. ", " .. ( tal.spell or "nil" ) .. " }," )
                                 end
-                            elseif Hekili.IsClassic() then
+                            elseif Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
                                 local maxlength = 0
-                                local talentToSpell = Hekili.IsTBC() and ns.TBCTalentToSpellID or ns.WrathTalentToSpellID
                                 skeletonHandler( listener, "PLAYER_TALENT_UPDATE" )
                                 table.sort( talents, function( a, b )
                                     maxlength = max( maxlength, a.name:len(), b.name:len() )
@@ -8874,14 +9067,19 @@ do
                                 end )
 
                                 for i, tal in ipairs( talents ) do
-                                    local tToS = talentToSpell and talentToSpell[ tal.talent ] or {}
-                                    local fmt = "%-" .. maxlength .. "s = { %5d, %d"
-                                    for i = 1, #tToS do
-                                        fmt = fmt .. ", %5d"
-                                    end
-                                    fmt = fmt .. " },"
+                                    local tToS = ns.WrathTalentToSpellID[ tal.talent ]
+                                    if tToS then
+                                        local fmt = "%-" .. maxlength .. "s = { %5d, %d"
+                                        for i = 1, #tToS do
+                                            fmt = fmt .. ", %5d"
+                                        end
+                                        fmt = fmt .. " },"
 
-                                    append( format( fmt, tal.name, tal.talent, tal.ranks, unpack( tToS ) ) )
+                                        append( format( fmt, tal.name, tal.talent, tal.ranks, unpack( tToS ) ) )
+                                    else
+                                        -- TBC: No spell mapping available, just output talent ID and ranks
+                                        append( format( "%-" .. maxlength .. "s = { %5d, %d }, -- Spell IDs need to be added manually", tal.name, tal.talent, tal.ranks ) )
+                                    end
                                 end
                             else
 
@@ -8894,7 +9092,7 @@ do
                             decreaseIndent()
                             append( "} )\n\n" )
 
-                            if not Hekili.IsClassic() then
+                            if not Hekili.IsWrath() and not Hekili.IsClassic() and not Hekili.IsTBC() then
                                 append( "-- PvP Talents" )
                                 append( "spec:RegisterPvpTalents( { " )
                                 increaseIndent()
@@ -8912,7 +9110,7 @@ do
 
 
 
-                            if Hekili.IsWrath() then
+                            if Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
                                 local auraTokenToSpellIDs = {}
 
                                 for k, v in pairs( auras ) do
@@ -9041,7 +9239,7 @@ do
                         else
                             local aggregate = {}
 
-                            if Hekili.IsWrath() then
+                            if Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
                                 for k,v in pairs( auras ) do
                                     aggregate[v .. "_" .. k] = {
                                         id = k,
@@ -9172,7 +9370,7 @@ function Hekili:GenerateProfile()
     local conduits
     local soulbinds
 
-    if not Hekili.IsClassic() then
+    if not Hekili.IsWrath() and not Hekili.IsClassic() and not Hekili.IsTBC() then
         for i, v in ipairs( covenants ) do
             if state.covenant[ v ] then covenant = v; break end
         end

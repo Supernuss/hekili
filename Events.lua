@@ -2,7 +2,7 @@
 -- June 2014
 
 local addon, ns = ...
-local Hekili = _G[ addon ]
+local Hekili = _G.Hekili or _G[ addon ]
 
 local class = Hekili.Class
 local state = Hekili.State
@@ -10,14 +10,13 @@ local PTR = ns.PTR
 local TTD = ns.TTD
 
 local formatKey = ns.formatKey
-local format = string.format
 
 local abs = math.abs
 local lower = string.lower
 local insert, remove, sort, wipe = table.insert, table.remove, table.sort, table.wipe
 
 local CGetItemInfo = ns.CachedGetItemInfo
-local RC = LibStub( "LibRangeCheck-3.0" )
+local RC = LibStub( "LibRangeCheck-2.0" )
 
 -- Abandoning AceEvent in favor of darkend's solution from:
 -- http://andydote.co.uk/2014/11/23/good-design-in-warcraft-addons.html
@@ -54,7 +53,7 @@ local function SetZoneInfo()
     state.instanceDifficulty = (string.find(difficultyName, "Heroic") and "Heroic") or "Normal"
     state.bg = zone == "pvp"
     state.arena = zone == "arena"
-    state.torghast = not Hekili.IsClassic() and IsInJailersTower() or false
+    state.torghast = not Hekili.IsWrath() and not Hekili.IsClassic() and not Hekili.IsTBC() and IsInJailersTower() or false
 end
 
 local function GenericOnEvent( self, event, ... )
@@ -97,6 +96,40 @@ local function UnitSpecificOnEvent( self, event, unit, ... )
             eventData[ key ].total = ( eventData[ key ].total or 0 ) + ( finish - start )
         end
     end
+end
+
+local function GetBaseWeaponStats(slot)
+    ns.Tooltip:SetOwner( UIParent )
+    ns.Tooltip:SetInventoryItem("player", slot)
+    local minDmg, maxDmg, speed = nil, nil, nil
+    local i = 0
+    while( true ) do
+        i = i + 1
+        local ttLeftLine = _G[ "HekiliTooltipTextLeft" .. i ]
+        local ttRightLine = _G[ "HekiliTooltipTextRight" .. i ]
+        if not ttLeftLine and not ttRightLine then break end
+
+        local leftLine = ttLeftLine:GetText()
+        local rightLine = ttRightLine:GetText()
+        if leftLine then
+            if not minDmg and leftLine:find("Damage") then
+                minDmg, maxDmg = leftLine:match("(%d+)%s*-%s*(%d+)")
+                minDmg = tonumber(minDmg)
+                maxDmg = tonumber(maxDmg)
+            end
+        end
+        if rightLine then
+            if not speed then
+                speed = rightLine:match("Speed ([%d%.]+)")
+                speed = tonumber(speed)
+            end
+        end
+        if minDmg and maxDmg and speed then
+            break
+        end
+    end
+    ns.Tooltip:Hide()
+    return minDmg, maxDmg, speed
 end
 
 function ns.StartEventHandler()
@@ -292,11 +325,6 @@ do
     end
 
 function Hekili:ContinueOnSpellLoad( spellID, func )
-    if not C_Spell or not C_Spell.IsSpellDataCached or not C_Spell.RequestLoadSpellData then
-        func( true )
-        return
-    end
-
         if C_Spell.IsSpellDataCached( spellID ) then
         func( true )
         return
@@ -371,9 +399,7 @@ end
 RegisterEvent( "PLAYER_ENTERING_WORLD", function( event, login, reload )
     if login or reload then
         Hekili.PLAYER_ENTERING_WORLD = true
-        if type( Hekili.SpecializationChanged ) == "function" then
-            Hekili:SpecializationChanged()
-        end
+        Hekili:SpecializationChanged()
         Hekili:RestoreDefaults()
 
         ns.checkImports()
@@ -401,20 +427,16 @@ end)
 
 
 do
-    if Hekili.IsClassic() then
+    if Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
         RegisterEvent( "ACTIVE_TALENT_GROUP_CHANGED", function()
-            if type( Hekili.SpecializationChanged ) == "function" then
-                Hekili:SpecializationChanged()
-            end
+            Hekili:SpecializationChanged()
         end )
     else
         local lastChange = 0
         RegisterUnitEvent( "PLAYER_SPECIALIZATION_CHANGED", "player", nil, function()
             local now = GetTime()
             if now - lastChange > 1 then
-                if type( Hekili.SpecializationChanged ) == "function" then
-                    Hekili:SpecializationChanged()
-                end
+                Hekili:SpecializationChanged()
                 lastChange = now
             end
         end )
@@ -514,10 +536,6 @@ end )
 
 
 do
-    if not ItemLocation or not ItemLocation.CreateEmpty or not C_AzeriteEmpoweredItem or not C_AzeriteEssence then
-        function ns.updatePowers() end
-        function ns.updateEssences() end
-    else
     local loc = ItemLocation:CreateEmpty()
 
     local GetAllTierInfoByItemID = C_AzeriteEmpoweredItem.GetAllTierInfoByItemID
@@ -676,7 +694,6 @@ do
     end
 
     ns.updateEssences()
-    end
 end
 
 
@@ -736,7 +753,7 @@ do
 
     local wasWearing = {}
     local updateIsQueued = false
-    local maxItemSlot = Hekili.IsClassic() and INVSLOT_LAST_EQUIPPED or Enum.ItemSlotFilterTypeMeta.MaxValue
+    local maxItemSlot = (Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC()) and INVSLOT_LAST_EQUIPPED or Enum.ItemSlotFilterTypeMeta.MaxValue
 
     function ns.updateGear()
         if not Hekili.PLAYER_ENTERING_WORLD or GetTime() - lastUpdate < 1 then
@@ -913,7 +930,15 @@ do
         end
 
         state.main_hand.size = 0
+        state.main_hand.damage.min = 0
+        state.main_hand.damage.avg = 0
+        state.main_hand.damage.max = 0
+        state.main_hand.speed = 0
         state.off_hand.size = 0
+        state.off_hand.damage.min = 0
+        state.off_hand.damage.avg = 0
+        state.off_hand.damage.max = 0
+        state.off_hand.speed = 0
         state.off_hand.shield = false
 
         for i = 1, 19 do
@@ -937,6 +962,11 @@ do
                         state.main_hand.size = 1
                         state.set_bonus.mainhand = 1
                     end
+                    local minDmg, maxDmg, speed = GetBaseWeaponStats( i )
+                    state.main_hand.damage.min = minDmg or 0
+                    state.main_hand.damage.avg = minDmg and maxDmg and ( minDmg + maxDmg ) / 2 or 0
+                    state.main_hand.damage.max = maxDmg or 0
+                    state.main_hand.speed = speed or 0
                 elseif i == 17 then
                     if equipLoc == "INVTYPE_2HWEAPON" then
                         state.off_hand.size = 2
@@ -949,6 +979,11 @@ do
                         state.off_hand.shield = true
                         state.set_bonus.shield = 1
                     end
+                    local minDmg, maxDmg, speed = GetBaseWeaponStats( i )
+                    state.off_hand.damage.min = minDmg or 0
+                    state.off_hand.damage.avg = minDmg and maxDmg and ( minDmg + maxDmg ) / 2 or 0
+                    state.off_hand.damage.max = maxDmg or 0
+                    state.off_hand.speed = speed or 0
                 end
 
                 -- Fire any/all GearHooks (may be expansion-driven).
@@ -1339,10 +1374,8 @@ local power_tick_data = {
     focus_avg = 0.10,
     focus_ticks = 1,
 
-    energy_avg = Hekili.IsClassic() and 2.02 or 0.10,
+    energy_avg = 2,
     energy_ticks = 1,
-    energy_prev = nil,
-    energy_last_print = 0,
 }
 
 
@@ -1353,12 +1386,8 @@ local spell_names = setmetatable( {}, {
     end
 } )
 
-
 local lastPowerUpdate = 0
-
-local CLASSIC_ENERGY_TICK_INTERVAL = 2.02
-local CLASSIC_ENERGY_TICK_GAIN_MIN = 20
-local CLASSIC_ENERGY_TICK_GAIN_MAX = 21
+local lastObservedEnergy = UnitPower( "player", Enum.PowerType.Energy )
 
 local function UNIT_POWER_FREQUENT( event, unit, power )
     if power == "FOCUS" and rawget( state, "focus" ) then
@@ -1373,46 +1402,30 @@ local function UNIT_POWER_FREQUENT( event, unit, power )
             state.focus.last_tick = now
         end
 
-    elseif power == "ENERGY" and rawget( state, "energy" ) then
-        local now = GetTime()
-        if Hekili.IsClassic() then
-            local current = UnitPower( "player", Enum.PowerType.Energy ) or 0
-            local previous = power_tick_data.energy_prev
-            power_tick_data.energy_prev = current
-
-            if previous then
-                local gain = current - previous
-                local elapsed = now - ( state.energy.last_tick or 0 )
-
-                if gain >= CLASSIC_ENERGY_TICK_GAIN_MIN and gain <= CLASSIC_ENERGY_TICK_GAIN_MAX then
-                    power_tick_data.energy_avg = CLASSIC_ENERGY_TICK_INTERVAL
-                    state.energy.last_tick = now
-                    state.energy.tick_rate = CLASSIC_ENERGY_TICK_INTERVAL
-
-                    if state.settings and state.settings.show_energy_ticks and now - power_tick_data.energy_last_print > 0.15 then
-                        local t30 = state:TimeToResource( state.energy, 30 )
-                        local t40 = state:TimeToResource( state.energy, 40 )
-                        local t60 = state:TimeToResource( state.energy, 60 )
-
-                        Hekili:Print( format( "Energy tick: +%d (%.2fs), now %d, next ~%.2fs, t30=%.2f, t40=%.2f, t60=%.2f.", gain, elapsed, current, CLASSIC_ENERGY_TICK_INTERVAL, t30, t40, t60 ) )
-                        power_tick_data.energy_last_print = now
-                    end
-                end
-            end
-        else
-            local elapsed = min( 0.12, now - ( state.energy.last_tick or 0 ) )
-
-            elapsed = elapsed > power_tick_data.energy_avg * 1.5 and power_tick_data.energy_avg or elapsed
-
-            if elapsed > 0.075 then
-                power_tick_data.energy_avg = ( elapsed + ( power_tick_data.energy_avg * power_tick_data.energy_ticks ) ) / ( power_tick_data.energy_ticks + 1 )
-                power_tick_data.energy_ticks = power_tick_data.energy_ticks + 1
-                state.energy.last_tick = now
-                state.energy.tick_rate = power_tick_data.energy_avg
-            end
+   elseif power == "ENERGY" and rawget(state, "energy") then
+    local now = GetTime()
+    local elapsed = state.energy.last_tick > 0 and now - state.energy.last_tick or 2
+    local current_energy = UnitPower("player", Enum.PowerType.Energy)
+    local tick_energy = current_energy - lastObservedEnergy
+    
+    if (tick_energy == 20 or current_energy == state.energy.max) 
+        and elapsed >= 1.9 
+        and ((not state.action.cat_form) or state.action.cat_form.realCast ~= state.now) then
+        
+        if elapsed > 1.9 and elapsed < 2.1 then
+            power_tick_data.energy_avg = (elapsed + (power_tick_data.energy_avg * power_tick_data.energy_ticks)) / (power_tick_data.energy_ticks + 1)
+            power_tick_data.energy_ticks = power_tick_data.energy_ticks + 1
+            state.energy.tick_time_avg = power_tick_data.energy_avg
         end
-
+        
+        state.energy.last_tick = now
+        Hekili:ForceUpdate("UNIT_POWER_UPDATE", true)
     end
+    
+    lastObservedEnergy = current_energy
+end
+
+    
     Hekili:ForceUpdate( event, true )
 end
 Hekili:ProfileCPU( "UNIT_POWER_UPDATE", UNIT_POWER_FREQUENT )
@@ -2422,7 +2435,7 @@ RegisterEvent( "BAG_UPDATE", DelayedUpdateKeybindings )
 -- RegisterEvent( "SPELLS_CHANGED", ReadKeybindings )
 -- RegisterEvent( "ACTIONBAR_SLOT_CHANGED", DelayedUpdateOneKeybinding )
 
-if Hekili.IsClassic() then
+if Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
     RegisterEvent( "ACTIVE_TALENT_GROUP_CHANGED", function( event )
         DelayedUpdateKeybindings( event )
     end )

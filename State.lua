@@ -2,7 +2,9 @@
 -- June 2014
 
 local addon, ns = ...
-local Hekili = _G[ addon ]
+local Hekili = _G.Hekili or _G[ addon ]
+
+local Tooltip = ns.Tooltip
 
 local auras = ns.auras
 
@@ -21,7 +23,7 @@ local format = string.format
 
 local Mark, SuperMark, ClearMarks = ns.Mark, ns.SuperMark, ns.ClearMarks
 
-local RC = LibStub( "LibRangeCheck-3.0" )
+local RC = LibStub( "LibRangeCheck-2.0" )
 local LSR = LibStub( "SpellRange-1.0" )
 
 local class = Hekili.Class
@@ -37,38 +39,6 @@ end
 local IsInJailersTower = _G.IsInJailersTower or function() return false end
 local UnitEffectiveLevel = _G.UnitEffectiveLevel or _G.UnitLevel
 local UnitSpellHaste = _G.UnitSpellHaste or function() return GetCombatRatingBonus( CR_HASTE_SPELL ) end
-
-local SpellBookSpellBank = Enum and Enum.SpellBookSpellBank
-local SPELLBOOK_BANK_PLAYER = SpellBookSpellBank and SpellBookSpellBank.Player
-local SPELLBOOK_BANK_PET = SpellBookSpellBank and SpellBookSpellBank.Pet
-
-local IsSpellKnown = _G.IsSpellKnown
-if not IsSpellKnown and C_SpellBook and C_SpellBook.IsSpellInSpellBook then
-    IsSpellKnown = function( spellID, isPet )
-        local spellBank = isPet and SPELLBOOK_BANK_PET or SPELLBOOK_BANK_PLAYER
-        if not spellBank then return false end
-
-        local includeOverrides = false
-        return C_SpellBook.IsSpellInSpellBook( spellID, spellBank, includeOverrides )
-    end
-end
-if not IsSpellKnown then
-    IsSpellKnown = function() return false end
-end
-
-local IsSpellKnownOrOverridesKnown = _G.IsSpellKnownOrOverridesKnown
-if not IsSpellKnownOrOverridesKnown and C_SpellBook and C_SpellBook.IsSpellInSpellBook then
-    IsSpellKnownOrOverridesKnown = function( spellID, isPet )
-        local spellBank = isPet and SPELLBOOK_BANK_PET or SPELLBOOK_BANK_PLAYER
-        if not spellBank then return false end
-
-        local includeOverrides = true
-        return C_SpellBook.IsSpellInSpellBook( spellID, spellBank, includeOverrides )
-    end
-end
-if not IsSpellKnownOrOverridesKnown then
-    IsSpellKnownOrOverridesKnown = IsSpellKnown
-end
 
 -- This will be our environment table for local functions.
 local state = Hekili.State
@@ -135,10 +105,22 @@ state.debuff = {}
 state.dot = {}
 state.equipped = {}
 state.main_hand = {
-    size = 0
+    size = 0,
+    speed = 0,
+    damage = {
+        min = 0,
+        avg = 0,
+        max = 0
+    }
 }
 state.off_hand = {
-    size = 0
+    size = 0,
+    speed = 0,
+    damage = {
+        min = 0,
+        avg = 0,
+        max = 0
+    }
 }
 
 state.gcd = {}
@@ -640,8 +622,6 @@ state.GetTime = GetTime
 state.GetTotemInfo = GetTotemInfo
 state.InCombatLockdown = InCombatLockdown ]]
 state.IsActiveSpell = ns.IsActiveSpell
-state.IsSpellKnown = IsSpellKnown
-state.IsSpellKnownOrOverridesKnown = IsSpellKnownOrOverridesKnown
 --[[ state.IsPlayerSpell = IsPlayerSpell
 state.IsSpellKnown = IsSpellKnown
 state.IsSpellKnownOrOverridesKnown = IsSpellKnownOrOverridesKnown
@@ -1249,11 +1229,6 @@ local function summonTotem( name, elem, duration )
         state.totem[ elem ].name = name
         state.totem[ elem ].expires = state.query_time + duration
         summonPet( elem, duration )
-
-        local elementAura = elem .. "_totem"
-        if class.auras[ elementAura ] then
-            applyBuff( elementAura, duration )
-        end
     end
 
     summonPet( name, duration )
@@ -1405,11 +1380,6 @@ do
         timeout = timeout + state.gcd.remains
 
         local r = state[ resource ]
-        if not r then return end
-
-        r.times = r.times or {}
-        r.values = r.values or {}
-        r.forecast = r.forecast or {}
 
         -- We account for haste here so that we don't compute lots of extraneous future resource gains in Bloodlust/high haste situations.
         remains[ resource ] = timeout
@@ -1564,21 +1534,13 @@ end
 local resourceChange = function( amount, resource, overcap )
     if amount == 0 then return false end
 
-    if type( resource ) == "string" and not state[ resource ] then
-        local normalized = resource:lower()
-        if state[ normalized ] then
-            resource = normalized
-        end
-    end
-
     local r = state[ resource ]
-    if not r then return false end
-    local pre = r.current or r.actual or 0
+    local pre = r.current
 
     if amount < 0 and r.spend then r.spend( -amount, resource, overcap )
     elseif amount > 0 and r.gain then r.gain( amount, resource, overcap )
     else
-        r.actual = max( 0, pre + amount )
+        r.actual = max( 0, r.current + amount )
         if not overcap then r.actual = min( r.max, r.actual ) end
     end
 
@@ -1592,59 +1554,27 @@ end
 
 local gain = function( amount, resource, overcap, noforecast )
     amount, resource, overcap = ns.callHook( "pregain", amount, resource, overcap )
-    local changed = resourceChange( amount, resource, overcap )
-
-    if type( resource ) == "string" and not state[ resource ] then
-        local normalized = resource:lower()
-        if state[ normalized ] then
-            resource = normalized
-        end
-    end
-
-    if changed and not noforecast and resource ~= "health" then forecastResources( resource ) end
+    resourceChange( amount, resource, overcap )
+    if not noforecast and resource ~= "health" then forecastResources( resource ) end
     ns.callHook( "gain", amount, resource, overcap )
 end
 
 local rawGain = function( amount, resource, overcap )
-    local changed = resourceChange( amount, resource, overcap )
-
-    if type( resource ) == "string" and not state[ resource ] then
-        local normalized = resource:lower()
-        if state[ normalized ] then
-            resource = normalized
-        end
-    end
-
-    if changed then forecastResources( resource ) end
+    resourceChange( amount, resource, overcap )
+    forecastResources( resource )
 end
 
 
 local spend = function( amount, resource, noforecast )
     amount, resource = ns.callHook( "prespend", amount, resource )
-    local changed = resourceChange( -amount, resource, overcap )
-
-    if type( resource ) == "string" and not state[ resource ] then
-        local normalized = resource:lower()
-        if state[ normalized ] then
-            resource = normalized
-        end
-    end
-
-    if changed and not noforecast and resource ~= "health" then forecastResources( resource ) end
+    resourceChange( -amount, resource, overcap )
+    if not noforecast and resource ~= "health" then forecastResources( resource ) end
     ns.callHook( "spend", amount, resource, overcap, true )
 end
 
 local rawSpend = function( amount, resource )
-    local changed = resourceChange( -amount, resource, overcap )
-
-    if type( resource ) == "string" and not state[ resource ] then
-        local normalized = resource:lower()
-        if state[ normalized ] then
-            resource = normalized
-        end
-    end
-
-    if changed then forecastResources( resource ) end
+    resourceChange( -amount, resource, overcap )
+    forecastResources( resource )
 end
 
 
@@ -2087,7 +2017,7 @@ do
             elseif k == "mounted" or k == "is_mounted" then t[k] = IsMounted()
             elseif k == "moving" then t[k] = ( GetUnitSpeed("player") > 0 )
             elseif k == "raid" then t[k] = IsInRaid() and t.group_members > 5
-            elseif k == "solo" then t[k] = t.group_members <= 1
+            elseif k == "solo" then t[k] = t.group_members == 0
             elseif k == "tanking" then t[k] = t.role.tank and t.aggro
 
             -- Enemy counting.
@@ -2463,9 +2393,9 @@ local mt_stat = {
             t[k] = state.mana and state.mana.regen or 0
 
         elseif k == "attack_power" then
-            if Hekili.IsClassic() then
-                local a, b = UnitAttackPower( "player" )
-                t[k] = a + b
+            if Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
+                local a, b, c = UnitAttackPower( "player" )
+                t[k] = a + b + c
             else t[k] = UnitAttackPower("player") + UnitWeaponAttackPower("player") end
 
         elseif k == "crit_rating" then
@@ -2480,13 +2410,15 @@ local mt_stat = {
         elseif k == "armor_penetration" then
             t[k] = GetArmorPenetration()
 
+        elseif k == "base_weapon_damage" or k == "base_weapon_speed" then
+            
+            t[k] = dps * speed
+
+
         elseif k == "weapon_dps" or k == "weapon_offhand_dps" then
             local low, high, offlow, offhigh = UnitDamage( "player" )
-            low, high = low or 0, high or 0
-            offlow, offhigh = offlow or low, offhigh or high
-
             t.weapon_dps = 0.5 * ( low + high )
-            t.weapon_offhand_dps = 0.5 * ( offlow + offhigh )
+            t.weapon_offhand_dps = 0.5 * ( low + high )
 
         elseif k == "weapon_speed" or k == "weapon_offhand_speed" then
             local main, off = UnitAttackSpeed( "player" )
@@ -2535,7 +2467,7 @@ local mt_stat = {
             t[k] = 0
 
         elseif k == "crit" then
-            t[k] = ( max( GetCritChance(), Hekili.IsClassic() and GetSpellCritChance( 3 ) or GetSpellCritChance( "player" ), GetRangedCritChance() ) + ( t.mod_crit_pct or 0 ) )
+            t[k] = ( max( GetCritChance(), (Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC()) and GetSpellCritChance( 3 ) or GetSpellCritChance( "player" ), GetRangedCritChance() ) + ( t.mod_crit_pct or 0 ) )
 
         end
 
@@ -2932,6 +2864,7 @@ do
 
             elseif k == "level" then t[k] = UnitLevel( "target" ) or UnitLevel( "player" ) or MAX_PLAYER_LEVEL
             elseif k == "moving" then t[k] = GetUnitSpeed( "target" ) > 0
+            elseif k == "name" then t[k] = UnitName( "target" )
             elseif k == "real_ttd" then t[k] = Hekili:GetTTD( "target" )
             elseif k == "time_to_die" then
                 local ttd = t.real_ttd
@@ -3463,32 +3396,8 @@ function state:TimeToResource( t, amount )
     if not amount or amount > t.max then return 3600
     elseif t.current >= amount then return 0 end
 
-    local pad, lastTick = 0, nil
-    local tickRate = ( t.tick_rate and t.tick_rate > 0 ) and t.tick_rate or 0.1
-    local tickPad = function( atTime )
-        if not lastTick or tickRate <= 0 then return 0 end
-
-        local elapsed = atTime - lastTick
-        if elapsed <= 0 then return 0 end
-
-        local remainder = elapsed % tickRate
-        local epsilon = max( 0.001, tickRate * 0.01 )
-
-        if remainder <= epsilon or ( tickRate - remainder ) <= epsilon then
-            return 0
-        end
-
-        return tickRate - remainder
-    end
-
-    if t.resource == "energy" or t.resource == "focus" then
-        -- Round any result requiring ticks to the next tick.
-        lastTick = t.last_tick
-    end
-
     if t.forecast and t.fcount > 0 then
         local q = state.query_time
-        local index, slice
 
         if t.times[ amount ] then return t.times[ amount ] - q end
 
@@ -3510,26 +3419,16 @@ function state:TimeToResource( t, amount )
 
             if slice.v >= amount then
                 t.times[ amount ] = slice.t
-
-                if lastTick then
-                    pad = tickPad( slice.t )
-                end
-
-                return max( 0, pad + t.times[ amount ] - q )
+                return max( 0, t.times[ amount ] - q )
 
             elseif after and after.v >= amount then
                 -- Our next slice will have enough resources.  Check to see if we'd regen enough in-between.
                 local time_diff = after.t - slice.t
                 local deficit = amount - slice.v
                 local regen_time = deficit / t.regen
-                local predicted_time = slice.t + regen_time
-
-                if lastTick then
-                    pad = tickPad( predicted_time )
-                end
 
                 if regen_time < time_diff then
-                    t.times[ amount ] = ( pad + slice.t + regen_time )
+                    t.times[ amount ] = ( slice.t + regen_time )
                 else
                     t.times[ amount ] = after.t
                 end
@@ -3541,17 +3440,8 @@ function state:TimeToResource( t, amount )
         return max( 0, t.times[ amount ] - q )
     end
 
-    -- This wasn't a modeled resource,, just look at regen time.
-    if lastTick then
-        local predicted_time = state.query_time
-        if t.regen > 0 then
-            predicted_time = predicted_time + ( ( amount - t.current ) / t.regen )
-        end
-        pad = tickPad( predicted_time )
-    end
-
     if t.regen <= 0 then return 3600 end
-    return max( 0, pad + ( ( amount - t.current ) / t.regen ) )
+    return max( 0, ( ( amount - t.current ) / t.regen ) )
 end
 
 
@@ -3621,6 +3511,16 @@ local mt_resource = {
             -- Assassination, April 2021
             -- Using the same as time_to_max because our time_to_max uses modeled regen events...
             return state:TimeToResource( t, t.max )
+
+        elseif k == "time_to_tick" then
+            local q = state.query_time
+            for i = 1, t.fcount do
+                local v = t.forecast[ i ]
+                if i > 1 and v.t >= q then
+                    return v.t - q
+                end
+            end
+            return t.tick_rate
 
         elseif k:sub(1, 8) == "time_to_" then
             local amount = k:sub(9)
@@ -4314,9 +4214,6 @@ local mt_default_totem = {
         elseif k == "up" or k == "active" then
             return ( t.expires > ( state.query_time ) )
 
-        elseif k == "down" then
-            return not ( t.expires > ( state.query_time ) )
-
         elseif k == "remains" then
             if t.expires > ( state.query_time ) then
                 return ( t.expires - ( state.query_time ) )
@@ -4326,7 +4223,7 @@ local mt_default_totem = {
 
         end
 
-        Error( "UNK: totem." .. ( t.name or "no_name" ) .. "." .. k )
+        Error( "UNK: totem." .. name or "no_name" .. "." .. k )
     end,
     __newindex = function( t, k, v )
         if v == nil then return end
@@ -6354,12 +6251,11 @@ do
                     local baseInt = min( 20, effectiveStat )
                     local bonusInt = effectiveStat - baseInt
 
-                    res.modmax = res.max - ( baseInt + bonusInt * MANA_PER_INTELLECT )
+                    res.modmax = res.max - ( baseInt + bonusInt * (Hekili.IsClassic() and 15 or MANA_PER_INTELLECT) )
                 end
 
                 res.last_tick = rawget( res, "last_tick" ) or 0
-                local default_tick_rate = ( ( k == "energy" or k == "focus" ) and Hekili.IsClassic() ) and 2.02 or 0.1
-                res.tick_rate = rawget( res, "tick_rate" ) or default_tick_rate
+                res.tick_rate = rawget( res, "tick_rate" ) or (power.type == Enum.PowerType.Energy and 2 or 0.1)
 
                 if power.type == Enum.PowerType.Mana then
                     local inactive, active = GetManaRegen()
@@ -6369,16 +6265,9 @@ do
                     res.regen = nil
                 else
                     if ResourceRegenerates( k ) then
-                        if k == "energy" and Hekili.IsClassic() then
-                            local fixed_energy_regen = 20.2 / 2.02
-                            res.tick_rate = 2.02
-                            res.active_regen = fixed_energy_regen
-                            res.inactive_regen = fixed_energy_regen
-                        else
-                            local inactive, active = GetPowerRegenForPowerType( power.type )
-                            res.active_regen = active or 0
-                            res.inactive_regen = inactive or 0
-                        end
+                        local inactive, active = GetPowerRegenForPowerType( power.type )
+                        res.active_regen = active or 0
+                        res.inactive_regen = inactive or 0
                         res.regen = nil
                     else
                         res.regen = 0
@@ -6916,7 +6805,7 @@ end
 function state:IsKnown( sID, notoggle )
 
     if type( sID ) ~= "number" then
-        if Hekili.IsClassic() then
+        if Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
             -- Gloss over spell ranks.
             local ability = class.abilities[ sID ]
 
@@ -6950,8 +6839,19 @@ function state:IsKnown( sID, notoggle )
 
     local ability = class.abilities[ sID ]
 
+    -- Numeric ID may be passed (e.g. from cooldown table) before the key path ever registered it (TBC/Classic GetSpellInfo rank resolution).
+    if not ability and type( sID ) == "number" then
+        for key, ab in pairs( class.abilities ) do
+            if type( key ) == "string" and ab.id == sID then
+                class.abilities[ sID ] = ab
+                ability = ab
+                break
+            end
+        end
+    end
+
     if not ability then
-        Error( "IsKnown() - " .. sID .. " not found in abilities table." )
+        Error( "IsKnown() - " .. sID .. " not found in abilities table.\n" .. debugstack() )
         return false
     end
 
@@ -7050,7 +6950,7 @@ do
         local spec = rawget( profile.specs, state.spec.id )
         if not spec then return true end
 
-        local option = ability.item and spec.items[ spell ] or spec.abilities[ spell ]
+        local option = ( not ability.configurable and ability.item ) and spec.items[ spell ] or spec.abilities[ spell ]
 
         if option.disabled then return true, "preference" end
         if option.boss and not state.boss then return true, "boss-only" end
