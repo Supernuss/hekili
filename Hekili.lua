@@ -59,6 +59,10 @@ Hekili.IsDragonflight = function()
     return select( 4, GetBuildInfo() ) >= 100000
 end
 
+ns.callHook = ns.callHook or function( _, ... )
+    return ...
+end
+
 ns.PTR = false
 
 

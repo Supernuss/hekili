@@ -16,7 +16,7 @@ local lower = string.lower
 local insert, remove, sort, wipe = table.insert, table.remove, table.sort, table.wipe
 
 local CGetItemInfo = ns.CachedGetItemInfo
-local RC = LibStub( "LibRangeCheck-2.0" )
+local RC = LibStub( "LibRangeCheck-3.0" )
 
 -- Abandoning AceEvent in favor of darkend's solution from:
 -- http://andydote.co.uk/2014/11/23/good-design-in-warcraft-addons.html
@@ -325,6 +325,11 @@ do
     end
 
 function Hekili:ContinueOnSpellLoad( spellID, func )
+    if not C_Spell or not C_Spell.IsSpellDataCached or not C_Spell.RequestLoadSpellData then
+        func( true )
+        return
+    end
+
         if C_Spell.IsSpellDataCached( spellID ) then
         func( true )
         return
@@ -1416,6 +1421,7 @@ local function UNIT_POWER_FREQUENT( event, unit, power )
             power_tick_data.energy_avg = (elapsed + (power_tick_data.energy_avg * power_tick_data.energy_ticks)) / (power_tick_data.energy_ticks + 1)
             power_tick_data.energy_ticks = power_tick_data.energy_ticks + 1
             state.energy.tick_time_avg = power_tick_data.energy_avg
+            state.energy.tick_rate = power_tick_data.energy_avg
         end
         
         state.energy.last_tick = now

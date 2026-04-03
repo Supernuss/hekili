@@ -23,11 +23,35 @@ local format = string.format
 
 local Mark, SuperMark, ClearMarks = ns.Mark, ns.SuperMark, ns.ClearMarks
 
-local RC = LibStub( "LibRangeCheck-2.0" )
+local RC = LibStub( "LibRangeCheck-3.0" )
 local LSR = LibStub( "SpellRange-1.0" )
 
 local class = Hekili.Class
 local scripts = Hekili.Scripts
+
+-- Polyfill IsSpellKnown for Anniversary/modern clients.
+local SPELLBOOK_BANK_PLAYER = Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player
+local SPELLBOOK_BANK_PET = Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Pet
+
+local IsSpellKnown = _G.IsSpellKnown
+if not IsSpellKnown and C_SpellBook and C_SpellBook.IsSpellInSpellBook then
+    IsSpellKnown = function( spellID, isPet )
+        local spellBank = isPet and SPELLBOOK_BANK_PET or SPELLBOOK_BANK_PLAYER
+        if not spellBank then return false end
+        local includeOverrides = false
+        return C_SpellBook.IsSpellInSpellBook( spellID, spellBank, includeOverrides )
+    end
+end
+
+local IsSpellKnownOrOverridesKnown = _G.IsSpellKnownOrOverridesKnown
+if not IsSpellKnownOrOverridesKnown and C_SpellBook and C_SpellBook.IsSpellInSpellBook then
+    IsSpellKnownOrOverridesKnown = function( spellID, isPet )
+        local spellBank = isPet and SPELLBOOK_BANK_PET or SPELLBOOK_BANK_PLAYER
+        if not spellBank then return false end
+        local includeOverrides = true
+        return C_SpellBook.IsSpellInSpellBook( spellID, spellBank, includeOverrides )
+    end
+end
 
 local GetMeleeHaste = _G.GetMeleeHaste or function() return GetCombatRatingBonus( CR_HASTE_MELEE ) end
 local GetRangedHaste = _G.GetRangedHaste or function() return GetCombatRatingBonus( CR_HASTE_RANGED ) end
@@ -1534,13 +1558,21 @@ end
 local resourceChange = function( amount, resource, overcap )
     if amount == 0 then return false end
 
+    if type( resource ) == "string" and not state[ resource ] then
+        local normalized = resource:lower()
+        if state[ normalized ] then
+            resource = normalized
+        end
+    end
+
     local r = state[ resource ]
-    local pre = r.current
+    if not r then return false end
+    local pre = r.current or r.actual or 0
 
     if amount < 0 and r.spend then r.spend( -amount, resource, overcap )
     elseif amount > 0 and r.gain then r.gain( amount, resource, overcap )
     else
-        r.actual = max( 0, r.current + amount )
+        r.actual = max( 0, pre + amount )
         if not overcap then r.actual = min( r.max, r.actual ) end
     end
 
@@ -1554,27 +1586,27 @@ end
 
 local gain = function( amount, resource, overcap, noforecast )
     amount, resource, overcap = ns.callHook( "pregain", amount, resource, overcap )
-    resourceChange( amount, resource, overcap )
-    if not noforecast and resource ~= "health" then forecastResources( resource ) end
+    local changed = resourceChange( amount, resource, overcap )
+    if changed and not noforecast and resource ~= "health" then forecastResources( resource ) end
     ns.callHook( "gain", amount, resource, overcap )
 end
 
 local rawGain = function( amount, resource, overcap )
-    resourceChange( amount, resource, overcap )
-    forecastResources( resource )
+    local changed = resourceChange( amount, resource, overcap )
+    if changed then forecastResources( resource ) end
 end
 
 
 local spend = function( amount, resource, noforecast )
     amount, resource = ns.callHook( "prespend", amount, resource )
-    resourceChange( -amount, resource, overcap )
-    if not noforecast and resource ~= "health" then forecastResources( resource ) end
-    ns.callHook( "spend", amount, resource, overcap, true )
+    local changed = resourceChange( -amount, resource )
+    if changed and not noforecast and resource ~= "health" then forecastResources( resource ) end
+    ns.callHook( "spend", amount, resource, nil, true )
 end
 
 local rawSpend = function( amount, resource )
-    resourceChange( -amount, resource, overcap )
-    forecastResources( resource )
+    local changed = resourceChange( -amount, resource )
+    if changed then forecastResources( resource ) end
 end
 
 
@@ -2017,7 +2049,7 @@ do
             elseif k == "mounted" or k == "is_mounted" then t[k] = IsMounted()
             elseif k == "moving" then t[k] = ( GetUnitSpeed("player") > 0 )
             elseif k == "raid" then t[k] = IsInRaid() and t.group_members > 5
-            elseif k == "solo" then t[k] = t.group_members == 0
+            elseif k == "solo" then t[k] = t.group_members <= 1
             elseif k == "tanking" then t[k] = t.role.tank and t.aggro
 
             -- Enemy counting.
@@ -2393,7 +2425,10 @@ local mt_stat = {
             t[k] = state.mana and state.mana.regen or 0
 
         elseif k == "attack_power" then
-            if Hekili.IsWrath() or Hekili.IsClassic() or Hekili.IsTBC() then
+            if Hekili.IsTBC() then
+                local a, b = UnitAttackPower( "player" )
+                t[k] = ( a or 0 ) + ( b or 0 )
+            elseif Hekili.IsWrath() or Hekili.IsClassic() then
                 local a, b, c = UnitAttackPower( "player" )
                 t[k] = a + b + c
             else t[k] = UnitAttackPower("player") + UnitWeaponAttackPower("player") end
@@ -2417,8 +2452,8 @@ local mt_stat = {
 
         elseif k == "weapon_dps" or k == "weapon_offhand_dps" then
             local low, high, offlow, offhigh = UnitDamage( "player" )
-            t.weapon_dps = 0.5 * ( low + high )
-            t.weapon_offhand_dps = 0.5 * ( low + high )
+            t.weapon_dps = 0.5 * ( ( low or 0 ) + ( high or 0 ) )
+            t.weapon_offhand_dps = 0.5 * ( ( offlow or 0 ) + ( offhigh or 0 ) )
 
         elseif k == "weapon_speed" or k == "weapon_offhand_speed" then
             local main, off = UnitAttackSpeed( "player" )
@@ -3396,6 +3431,29 @@ function state:TimeToResource( t, amount )
     if not amount or amount > t.max then return 3600
     elseif t.current >= amount then return 0 end
 
+    local pad, lastTick = 0, nil
+    local tickRate = ( t.tick_rate and t.tick_rate > 0 ) and t.tick_rate or 0.1
+    local tickPad = function( atTime )
+        if not lastTick or tickRate <= 0 then return 0 end
+
+        local elapsed = atTime - lastTick
+        if elapsed <= 0 then return 0 end
+
+        local remainder = elapsed % tickRate
+        local epsilon = max( 0.001, tickRate * 0.01 )
+
+        if remainder <= epsilon or ( tickRate - remainder ) <= epsilon then
+            return 0
+        end
+
+        return tickRate - remainder
+    end
+
+    if t.resource == "energy" or t.resource == "focus" then
+        -- Round any result requiring ticks to the next tick.
+        lastTick = t.last_tick
+    end
+
     if t.forecast and t.fcount > 0 then
         local q = state.query_time
 
@@ -3419,16 +3477,26 @@ function state:TimeToResource( t, amount )
 
             if slice.v >= amount then
                 t.times[ amount ] = slice.t
-                return max( 0, t.times[ amount ] - q )
+
+                if lastTick then
+                    pad = tickPad( slice.t )
+                end
+
+                return max( 0, pad + t.times[ amount ] - q )
 
             elseif after and after.v >= amount then
                 -- Our next slice will have enough resources.  Check to see if we'd regen enough in-between.
                 local time_diff = after.t - slice.t
                 local deficit = amount - slice.v
                 local regen_time = deficit / t.regen
+                local predicted_time = slice.t + regen_time
+
+                if lastTick then
+                    pad = tickPad( predicted_time )
+                end
 
                 if regen_time < time_diff then
-                    t.times[ amount ] = ( slice.t + regen_time )
+                    t.times[ amount ] = ( pad + slice.t + regen_time )
                 else
                     t.times[ amount ] = after.t
                 end
@@ -3440,8 +3508,17 @@ function state:TimeToResource( t, amount )
         return max( 0, t.times[ amount ] - q )
     end
 
+    -- This wasn't a modeled resource, just look at regen time.
+    if lastTick then
+        local predicted_time = state.query_time
+        if t.regen > 0 then
+            predicted_time = predicted_time + ( ( amount - t.current ) / t.regen )
+        end
+        pad = tickPad( predicted_time )
+    end
+
     if t.regen <= 0 then return 3600 end
-    return max( 0, ( ( amount - t.current ) / t.regen ) )
+    return max( 0, pad + ( ( amount - t.current ) / t.regen ) )
 end
 
 
@@ -6251,11 +6328,12 @@ do
                     local baseInt = min( 20, effectiveStat )
                     local bonusInt = effectiveStat - baseInt
 
-                    res.modmax = res.max - ( baseInt + bonusInt * (Hekili.IsClassic() and 15 or MANA_PER_INTELLECT) )
+                    res.modmax = res.max - ( baseInt + bonusInt * MANA_PER_INTELLECT )
                 end
 
                 res.last_tick = rawget( res, "last_tick" ) or 0
-                res.tick_rate = rawget( res, "tick_rate" ) or (power.type == Enum.PowerType.Energy and 2 or 0.1)
+                res.tick_rate = rawget( res, "tick_rate" ) or rawget( res, "tick_time_avg" ) or (power.type == Enum.PowerType.Energy and 2 or 0.1)
+                res.tick_time_avg = res.tick_rate
 
                 if power.type == Enum.PowerType.Mana then
                     local inactive, active = GetManaRegen()

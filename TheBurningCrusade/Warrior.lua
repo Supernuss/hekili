@@ -10,6 +10,19 @@ local FindUnitDebuffByID = ns.FindUnitDebuffByID
 local IsCurrentSpell = _G.IsCurrentSpell
 local spec = Hekili:NewSpecialization( 1 )
 
+-- DBC tier set registrations.
+spec:RegisterGear( "tier4", 29011, 29012, 29015, 29016, 29017 )
+spec:RegisterGear( "tier5", 30113, 30114, 30115, 30116, 30117 )
+spec:RegisterGear( "tier6", 30969, 30970, 30972, 30974, 30975, 30976, 30977, 30978, 30979, 30980 )
+spec:RegisterGear( "sunwell", 34441, 34442, 34546, 34547, 34568, 34569 )
+
+-- Physics-based TBC rage constants.
+local TBC_RAGE_CONVERSION = 274.7
+local TBC_RAGE_DEALT_FACTOR = 3.75 / TBC_RAGE_CONVERSION
+local TBC_RAGE_TAKEN_FACTOR = 2.5 / TBC_RAGE_CONVERSION
+local TBC_RAGE_MAINHAND_HIT_FACTOR = 3.5 / 2
+local TBC_RAGE_OFFHAND_HIT_FACTOR = 1.75 / 2
+
 local function swingSpend(action)
     return type(action.swingSpend) == "function" and action.swingSpend() or action.swingSpend
 end

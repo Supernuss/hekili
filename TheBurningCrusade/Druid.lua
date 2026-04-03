@@ -10,9 +10,117 @@ local strformat = string.format
 
 local spec = Hekili:NewSpecialization( 11 )
 
-spec:RegisterCombatLogEvent( function( _, subtype, _, sourceGUID, sourceName, _, _, destGUID, destName, destFlags, _, spellID, spellName )
-    if sourceGUID ~= state.GUID then
-        return
+-- Physics-based TBC rage constants.
+local TBC_RAGE_CONVERSION = 274.7
+local TBC_RAGE_DEALT_FACTOR = 3.75 / TBC_RAGE_CONVERSION
+local TBC_RAGE_TAKEN_FACTOR = 2.5 / TBC_RAGE_CONVERSION
+local TBC_RAGE_MAINHAND_HIT_FACTOR = 3.5 / 2
+local TBC_RAGE_OFFHAND_HIT_FACTOR = 1.75 / 2
+local PASSIVE_RAGE_DAMAGE_WINDOW = 10
+
+local MAUL_SPELL_IDS = {
+    [6807] = true, [6808] = true, [6809] = true, [8972] = true,
+    [9745] = true, [9880] = true, [9881] = true, [26996] = true,
+}
+
+local passive_rage_damage_events = {}
+
+local function trim_passive_rage_damage_events( now )
+    local cutoff = now - PASSIVE_RAGE_DAMAGE_WINDOW
+    while passive_rage_damage_events[1] and passive_rage_damage_events[1].t < cutoff do
+        table.remove( passive_rage_damage_events, 1 )
+    end
+end
+
+local function add_passive_rage_damage_event( amount )
+    if not amount or amount == 0 then return end
+    local now = GetTime and GetTime() or 0
+    passive_rage_damage_events[ #passive_rage_damage_events + 1 ] = { t = now, v = amount }
+    trim_passive_rage_damage_events( now )
+end
+
+local function get_passive_incoming_damage_per_second()
+    local now = GetTime and GetTime() or 0
+    trim_passive_rage_damage_events( now )
+    local net_damage = 0
+    for i = 1, #passive_rage_damage_events do
+        net_damage = net_damage + passive_rage_damage_events[i].v
+    end
+    return max( 0, net_damage ) / PASSIVE_RAGE_DAMAGE_WINDOW
+end
+
+local function is_bear_form_active()
+    return UnitPowerType and UnitPowerType( "player" ) == 1
+end
+
+local function get_bear_swing_speed( is_offhand )
+    local swings = state.swings
+    local speed = swings and ( is_offhand and swings.offhand_speed or swings.mainhand_speed )
+    if speed and speed > 0 then return speed end
+    return is_offhand and 2.0 or 2.5
+end
+
+local function gain_bear_rage( amount )
+    if not amount or amount <= 0 then return end
+    if type( state.gain ) == "function" then
+        state.gain( amount, "rage" )
+    end
+end
+
+local function gain_bear_auto_attack_rage( damage, is_offhand, is_critical )
+    if not damage or damage <= 0 then return end
+    local hit_factor = is_offhand and TBC_RAGE_OFFHAND_HIT_FACTOR or TBC_RAGE_MAINHAND_HIT_FACTOR
+    if is_critical then hit_factor = hit_factor * 2 end
+    local rage = ( damage * TBC_RAGE_DEALT_FACTOR ) + ( hit_factor * get_bear_swing_speed( is_offhand ) )
+    gain_bear_rage( rage )
+end
+
+local function gain_bear_damage_taken_rage( damage )
+    if not damage or damage <= 0 then return end
+    gain_bear_rage( damage * TBC_RAGE_TAKEN_FACTOR )
+end
+
+local function get_bear_passive_incoming_rage_per_second()
+    if not ( state.buff.bear_form.up or state.buff.dire_bear_form.up ) then return 0 end
+    return get_passive_incoming_damage_per_second() * TBC_RAGE_TAKEN_FACTOR
+end
+
+spec:RegisterCombatLogEvent( function( _, subtype, _, sourceGUID, sourceName, _, _, destGUID, destName, destFlags, _, spellID, spellName, _, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10 )
+    if not is_bear_form_active() then return end
+
+    if sourceGUID == state.GUID then
+        if subtype == "SWING_DAMAGE" then
+            if state.buff.maul_queue and state.buff.maul_queue.up then
+                return
+            end
+            gain_bear_auto_attack_rage( a1, a10, a7 )
+            return
+        end
+
+        if subtype == "SWING_MISSED" and state.buff.maul_queue and state.buff.maul_queue.up then
+            return
+        end
+
+        if ( subtype == "SPELL_DAMAGE" or subtype == "SPELL_MISSED" ) and MAUL_SPELL_IDS[ spellID or 0 ] then
+            return
+        end
+    end
+
+    if destGUID == state.GUID then
+        local damage
+
+        if subtype == "SWING_DAMAGE" then
+            damage = a1
+        elseif subtype == "SPELL_DAMAGE" or subtype == "RANGE_DAMAGE" or subtype == "SPELL_PERIODIC_DAMAGE" then
+            damage = a4
+        elseif subtype == "ENVIRONMENTAL_DAMAGE" then
+            damage = a2
+        end
+
+        if damage and damage > 0 then
+            gain_bear_damage_taken_rage( damage )
+            add_passive_rage_damage_event( damage )
+        end
     end
 end, false )
 
@@ -156,6 +264,28 @@ spec:RegisterGear( "wolfshead", 8345 )
 spec:RegisterGear( "staff_of_natural_fury", 31334 )
 spec:RegisterGear( "tier5_balance", 30231, 30232, 30233, 30234, 30235 )
 
+-- DBC tier set registrations (full sets, all spec variants).
+spec:RegisterGear( "tier4",
+    29086, 29087, 29088, 29089, 29090,
+    29091, 29092, 29093, 29094, 29095,
+    29096, 29097, 29098, 29099, 29100
+)
+spec:RegisterGear( "tier5",
+    30216, 30217, 30219, 30220, 30221,
+    30222, 30223, 30228, 30229, 30230,
+    30231, 30232, 30233, 30234, 30235
+)
+spec:RegisterGear( "tier6",
+    31032, 31034, 31035, 31037, 31039,
+    31040, 31041, 31042, 31043, 31044,
+    31045, 31046, 31047, 31048, 31049
+)
+spec:RegisterGear( "sunwell",
+    34444, 34445, 34446,
+    34554, 34555, 34556,
+    34571, 34572, 34573
+)
+
 -- Resources
 spec:RegisterResource( Enum.PowerType.Rage, {
     enrage = {
@@ -189,6 +319,13 @@ spec:RegisterResource( Enum.PowerType.Rage, {
         value = function( now )
             return state.buff.maul.expires < now and rage_amount() or 0
         end,
+    },
+
+    bear_incoming_damage = {
+        resource = "rage",
+        last = function () return state.now + state.offset - 1 end,
+        interval = 1,
+        value = function () return get_bear_passive_incoming_rage_per_second() end,
     },
 } )
 spec:RegisterResource( Enum.PowerType.Mana )
